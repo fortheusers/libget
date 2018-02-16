@@ -1,9 +1,12 @@
 #include "Package.hpp"
 #include <vector>
+#include <iostream>
 
 class Repo
 {
-	Repo(std::string url);
+	public:
+	Repo();
+	std::string toString();
 	std::string name;
 	std::string url;
 	std::vector<Package> packages;

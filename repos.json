@@ -1,0 +1,19 @@
+{
+    "repos": [
+        {
+            "name": "Wiiubru Default",
+            "url": "http://wiiubru.com/appstore",
+            "enabled": true
+        },
+        {
+            "name": "VGMoose Apps",
+            "url": "http://hbas.vgmoose.com",
+            "enabled": true
+        },
+        {
+            "name": "Sample repo",
+            "url": "http://example.com",
+            "enabled": false
+        }
+    ]
+}
