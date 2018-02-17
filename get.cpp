@@ -18,7 +18,7 @@ vector<Repo*> repos;
 /**
 Load any repos from a config file into the repos vector.
 **/
-void loadRepos(char* config_path)
+void loadRepos(const char* config_path)
 {
 	ifstream ifs(config_path);
     IStreamWrapper isw(ifs);
@@ -42,7 +42,7 @@ void loadRepos(char* config_path)
 
 int main(int argc, char** args)
 {
-	char* config_path = "repos.json";
+	const char* config_path = "repos.json";
 	loadRepos(config_path);
 	
 	if (repos.size() == 0)

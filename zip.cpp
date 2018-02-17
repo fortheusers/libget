@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <cstdint>
 
-#include "Zip.hpp"
+#include "zip.hpp"
 #include "util.hpp"
 
 #define u32 uint32_t
@@ -117,7 +117,7 @@ void UnZip::Close() {
 }
 
 int UnZip::ExtractFile(const char * internalPath,const char * path) {
-	printf("Extracting %s to $s");
+	printf("Extracting %s to %s", internalPath, path);
 	int code = unzLocateFile(fileToUnzip,internalPath,0);
 	if(code == UNZ_END_OF_LIST_OF_FILE) 
 		return -1;
@@ -205,7 +205,7 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 	strcpy(folderPath,path);
 	char * pos = strrchr(folderPath,'/');
 	if(pos != NULL) {
-		pos = '\0';
+		*pos = '\0';
 		CreateSubfolder(folderPath);
 	}
 	

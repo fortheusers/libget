@@ -1,3 +1,2 @@
-make:	*.hpp *.cpp
-	g++ -c *.hpp *.cpp -I rapidjson/include -I /usr/local/include
-	ld *.o -o get -lm -lz -lminizip -lstdc++ -lc++ -lcrt1.o
+make:	*.cpp
+	g++ *.cpp -std=gnu++11 -I rapidjson/include -I /usr/local/include -lm -lz -lminizip -o get
