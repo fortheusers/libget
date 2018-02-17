@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <cstdint>
+#include <curl/curl.h>
+#include <iostream>
+#include <curl/easy.h>
 
 #include "util.hpp"
 
@@ -47,4 +50,28 @@ bool mkpath( std::string path )
 		else
 				bSuccess = true;
 		return bSuccess;
+}
+
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+
+// https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
+void downloadFileToMemory(std::string path, std::string* buffer)
+{
+  CURL *curl;
+  CURLcode res;
+    
+  curl = curl_easy_init();
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
+    res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+      
+  }
 }

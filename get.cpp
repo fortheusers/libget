@@ -14,6 +14,7 @@ using namespace std;
 using namespace rapidjson;
 
 vector<Repo*> repos;
+vector<Package*> packages;
 
 /**
 Load any repos from a config file into the repos vector.
@@ -36,8 +37,28 @@ void loadRepos(const char* config_path)
 		repo->enabled = (*it)["enabled"].GetBool();
 		repos.push_back(repo);
 	}
-	
+    
+    // print info about loaded repos
+    cout << repos.size() << " repos loaded!" << endl;
+	for (int x=0; x<repos.size(); x++)
+        cout << "\t" << repos[x]->toString() << endl;
+    
 	return;
+}
+
+void update()
+{
+    // fetch recent package list from enabled repos
+	for (int x=0; x<repos.size(); x++)
+    {
+		if (repos[x]->enabled)
+            repos[x]->loadPackages(&packages);
+    }
+    
+    // print info about loaded packages
+    cout << packages.size() << " packages loaded!" << endl;
+    for (int x=0; x<packages.size(); x++)
+        cout << "\t" << packages[x]->toString() << endl;
 }
 
 int main(int argc, char** args)
@@ -50,10 +71,8 @@ int main(int argc, char** args)
 		printf("There are no repos configured!\n");
 		return ERR_NO_REPOS;
 	}
-	
-	// fetch recent package list from enabled repos
-	for (int x=0; x<repos.size(); x++)
-		cout << repos[x]->toString() << endl;
+        
+    update();
 	
 	return 0;
 }
