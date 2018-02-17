@@ -1,0 +1,13 @@
+language: c++
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+addons:
+  apt:
+    packages:
+      - minizip
+      - gcc
+      - g++
+  
+script:  make

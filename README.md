@@ -1,4 +1,5 @@
 # get
+[![Build Status](https://travis-ci.org/vgmoose/get.svg?branch=master)](https://travis-ci.org/vgmoose/get)
 get is a WIP mini package manager. It's my intent to use this as the backend to [Homebrew App Store](http://github.com/vgmoose/hbas) to allow more formal package management.
 
 ## Why?
