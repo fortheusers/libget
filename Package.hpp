@@ -6,6 +6,7 @@ class Package
 	Package();
     
     std::string toString();
+    bool downloadZip();
     
     // Package attributes
 	std::string pkg_name;
@@ -16,6 +17,7 @@ class Package
     
     // Sorting attributes
 //    Repo* parentRepo;
+    std::string* repoUrl;
     
     // see top of file for enums
 	char category;

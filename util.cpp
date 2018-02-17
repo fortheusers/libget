@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <curl/curl.h>
 #include <iostream>
+#include <fstream>
 #include <curl/easy.h>
 
 #include "util.hpp"
@@ -60,7 +61,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
-void downloadFileToMemory(std::string path, std::string* buffer)
+bool downloadFileToMemory(std::string path, std::string* buffer)
 {
   CURL *curl;
   CURLcode res;
@@ -70,8 +71,29 @@ void downloadFileToMemory(std::string path, std::string* buffer)
     curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+      
     res = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
       
+      if (*buffer == "")
+          return false;
+      
+    return true;
   }
+    
+    return false;
 }
+
+bool downloadFileToDisk(std::string remote_path, std::string local_path)
+{
+    std::string fileContents;
+    bool resp = downloadFileToMemory(remote_path, &fileContents);
+    if (!resp)
+        return false;
+    
+    std::ofstream file(local_path);
+    file << fileContents;
+    return true;
+}
+

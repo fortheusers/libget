@@ -38,6 +38,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		package->author = (*it)["author"].GetString();
         package->short_desc = (*it)["desc"].GetString();
         package->version = (*it)["version"].GetString();
+        package->repoUrl = &this->url;
         
 		packages->push_back(package);
 	}

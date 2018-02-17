@@ -12,6 +12,5 @@ class Repo
     
 	std::string name;
 	std::string url;
-	std::vector<Package*> packages;
 	bool enabled;
 };
