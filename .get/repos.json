@@ -7,13 +7,13 @@
         },
         {
             "name": "VGMoose Apps",
-            "url": "http://hbas.vgmoose.com",
-            "enabled": false
+            "url": "http://hbas3.vgmoose.com",
+            "enabled": true
         },
         {
             "name": "Sample repo",
             "url": "http://localhost:8000",
-            "enabled": true
+            "enabled": false
         }
     ]
 }

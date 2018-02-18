@@ -21,7 +21,13 @@ void Repo::loadPackages(std::vector<Package*>* packages)
     
     // fetch current repository json
     std::string response;
-    downloadFileToMemory(directoryUrl, &response);
+    bool success = downloadFileToMemory(directoryUrl, &response);
+    
+    if (!success)
+    {
+        std::cout << "--> Could not update repository metadata for \"" << this->name << "\" repo!" << std::endl;
+        return;
+    }
     
     // extract out packages, append to package list
     Document doc;
@@ -34,10 +40,14 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	{
 		Package* package = new Package();
 		package->pkg_name = (*it)["name"].GetString();
-		package->title = (*it)["title"].GetString();
-		package->author = (*it)["author"].GetString();
-        package->short_desc = (*it)["desc"].GetString();
-        package->version = (*it)["version"].GetString();
+        if ((*it).HasMember("title"))
+            package->title = (*it)["title"].GetString();
+        if ((*it).HasMember("author"))
+            package->author = (*it)["author"].GetString();
+        if ((*it).HasMember("desc"))
+            package->short_desc = (*it)["desc"].GetString();
+        if ((*it).HasMember("version"))
+            package->version = (*it)["version"].GetString();
         package->repoUrl = &this->url;
         
 		packages->push_back(package);

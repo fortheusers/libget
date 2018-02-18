@@ -117,7 +117,6 @@ void UnZip::Close() {
 }
 
 int UnZip::ExtractFile(const char * internalPath,const char * path) {
-	printf("Extracting %s to %s", internalPath, path);
 	int code = unzLocateFile(fileToUnzip,internalPath,0);
 	if(code == UNZ_END_OF_LIST_OF_FILE) 
 		return -1;
@@ -204,7 +203,8 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 	char folderPath[strlen(path)];
 	strcpy(folderPath,path);
 	char * pos = strrchr(folderPath,'/');
-	if(pos != NULL) {
+
+    if(pos != NULL) {
 		*pos = '\0';
 		CreateSubfolder(folderPath);
 	}
@@ -216,8 +216,8 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
     u32 done = 0;
     int writeBytes = 0;
 	
-	int fileNumber = open(path, O_WRONLY | O_TRUNC);
-	
+	int fileNumber = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+
 	if(fileNumber == -1) {
 		free(buffer);
 		return -4;		
@@ -242,7 +242,6 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 		return -4;		
 	
 	unzCloseCurrentFile(fileToUnzip);
-	
 	return 0;
 }
 

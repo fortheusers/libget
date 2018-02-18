@@ -26,6 +26,13 @@ void loadRepos(const char* config_path)
 {
 	ifstream ifs(config_path);
     IStreamWrapper isw(ifs);
+    
+    if (!ifs.good())
+    {
+        cout << "--> Could not load repos from " << config_path << endl;
+        return;
+    }
+    
     Document doc;
     doc.ParseStream(isw);
 	
@@ -67,22 +74,36 @@ int validateRepos()
 
 int main(int argc, char** args)
 {
-	const char* config_path = "repos.json";
+    // the path for the get metadata folder
+	string config_path = "./.get/";
+    string repo_file = config_path + "repos.json";
+    string package_dir = config_path + "packages";
+    string tmp_dir = config_path + "tmp";
     
-    printf("--> Using \"./sdroot\" as local download root directory\n");
-    mkdir("./sdroot", 0700);
+//    printf("--> Using \"./sdroot\" as local download root directory\n");
+//    mkdir("./sdroot", 0700);
     
-    cout << "--> Using \"" << config_path << "\" as repo list" << endl;
+    mkdir(config_path.c_str(), 0700);
+    mkdir(package_dir.c_str(), 0700);
+    mkdir(tmp_dir.c_str(), 0700);
+    
+    cout << "--> Using \"" << repo_file << "\" as repo list" << endl;
     
     // load repo info
-    loadRepos(config_path);
+    loadRepos(repo_file.c_str());
     update();
+    
+    bool removeMode = false;
     
     for (int x=1; x<argc; x++)
     {
         std::string cur = args[x];
         
-        if (cur == "-l")
+        if (cur == "--delete")
+        {  
+            removeMode = true;
+        }
+        else if (cur == "-l")
         {
             // list available remote packages
             cout << "--> Listing available remotes and  packages" << endl;
@@ -101,13 +122,24 @@ int main(int argc, char** args)
             // TODO: use a hash map to improve speed
             bool found = false;
             
+            // 
+            
             for (int y=0; y<packages.size(); y++)
             {
                 if (packages[y]->pkg_name == cur)
                 {
+                    found = true;
+                    
+                    if (removeMode)
+                    {
+                        // remove flag was specified, delete this package
+                        packages[y]->remove();
+                        cout << "--> Uninstalled [" << cur << "] package" << endl;
+                        break;
+                    }
+                        
                     // found package in a remote server, fetch it
                     bool located = packages[y]->downloadZip();
-                    found = true;
                     
                     if (!located)
                     {
@@ -116,6 +148,9 @@ int main(int argc, char** args)
                         cout << "--> Error retreiving remote file for [" << cur << "] (check network or 404 error?)" << endl;
                         break;
                     }
+                    
+                    // install the package, (extracts manifest, etc)
+                    packages[y]->install();
                     
                     cout << "--> Downloaded [" << cur << "] to sdroot/" << endl;
                     

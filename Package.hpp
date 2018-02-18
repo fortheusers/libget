@@ -7,6 +7,8 @@ class Package
     
     std::string toString();
     bool downloadZip();
+    bool install();
+    bool remove();
     
     // Package attributes
 	std::string pkg_name;
