@@ -27,18 +27,28 @@ When `get` runs, it will go through the enabled repos in that config file, and t
 }
 ```
 
+The python script [repogen.py](https://github.com/vgmoose/get/blob/master/web/repogen.py) can generate the above repo.json file and the zip file structure explained below. It turns folders in the [packages](https://github.com/vgmoose/get/tree/master/web/packages) directory into zip files in `zips`.
+
 ### Installing a package
 Installing a package requires the desired package name to exist in one of the repos, and for a GET to `/zips/$PKG_NAME.zip` to resolve. For example, to download the package `space` from above, the following command would be used:
 ```
 ./get space
 ```
 
-It will try to fetch `/zips/space.zip` from the repo that contains the `space` package, and save it in `sdroot`.
+It will try to fetch `/zips/space.zip` from the repo that contains the `space` package, and save it in `sd:/`.
 
 ### Listing all available packages
 ```
 ./get -l
 ```
+
+### Removing an installed package
+Any installed packages specified after the `--delete` flag will be removed
+```
+./get --delete space
+```
+
+This command parses the `manifest.install` file fetched when the package was installed, and uses it to determine which files to remove. Currently empty folders are left behind after the files are deleted.
 
 ## Building for PC
 First clone the repo recursively

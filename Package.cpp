@@ -117,6 +117,66 @@ bool Package::install()
 bool Package::remove()
 {
     // perform an uninstall of the current package, parsing the cached metadata
+    std::string ManifestPathInternal = "manifest.install";
+	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
+    
+    printf("-> HomebrewManager::Delete\n");
+	
+	struct stat sbuff;
+	if (stat(ManifestPath.c_str(), &sbuff) != 0) //! There's no manifest
+	{
+		// there should've been one!
+        // TODO: generate a temporary one
+        return false;
+	}
+	
+	//! Open the manifest normally
+    std::ifstream ManifestFile;
+    ManifestFile.open(ManifestPath.c_str());
+    
+    std::stringstream Manifest;
+    Manifest << ManifestFile.rdbuf();
+	
+	//! Parse the manifest
+	printf("Parsing the Manifest\n");
+	
+	std::string CurrentLine;
+	while(std::getline(Manifest, CurrentLine))
+	{		
+		char Mode = CurrentLine.at(0);
+		std::string DeletePath = "sd:/" + CurrentLine.substr(3);
+		
+		switch(Mode)
+		{
+			case 'U':
+				printf("%s : UPDATE\n", DeletePath.c_str());
+				printf("Removing %s\n", DeletePath.c_str());
+				std::remove(DeletePath.c_str());
+				break;
+			case 'G':
+				printf("%s : GET\n", DeletePath.c_str());
+				printf("Removing %s\n", DeletePath.c_str());
+				std::remove(DeletePath.c_str());
+				break;
+			case 'L':
+				printf("%s : LOCAL\n", DeletePath.c_str());
+				printf("Removing %s\n", DeletePath.c_str());
+				std::remove(DeletePath.c_str());
+				break;
+			default:
+				break;
+		}
+	}
+	
+	printf("Removing manifest...\n");
+	
+	ManifestFile.close();
+//	delete ManifestFile;
+	
+	std::remove(ManifestPath.c_str());
+	
+	
+	printf("Homebrew removed\n");
     
     return true;
 }
