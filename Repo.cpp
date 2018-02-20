@@ -2,6 +2,7 @@
 #include "util.hpp"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
+#include "codes.h"
 
 using namespace rapidjson;
 
@@ -38,7 +39,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	// for every repo
 	for(Value::ConstValueIterator it=packages_doc.Begin(); it != packages_doc.End(); it++)
 	{
-		Package* package = new Package();
+		Package* package = new Package(GET);
 		package->pkg_name = (*it)["name"].GetString();
         if ((*it).HasMember("title"))
             package->title = (*it)["title"].GetString();

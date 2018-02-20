@@ -1,19 +1,22 @@
 #include "Package.hpp"
 #include "util.hpp"
 #include "zip.hpp"
+#include "codes.h"
 #include <sys/stat.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #define u8 uint8_t
 
-Package::Package()
+Package::Package(int state)
 {
 	this->pkg_name = "?";
     this->title = "???";
     this->author = "Unknown";
     this->version = "0.0.0";
     this->short_desc = "N/A";
+    
+    this->status = state;
 }
 
 const char* pkg_path = "./.get/packages/";
@@ -65,7 +68,7 @@ bool Package::install()
 		{		
 			char Mode = CurrentLine.at(0);
 			std::string Path = CurrentLine.substr(3);
-			std::string ExtractPath = "sd:/" + Path;
+			std::string ExtractPath = "sdroot/" + Path;
 			
 			switch(Mode)
 			{
@@ -100,7 +103,7 @@ bool Package::install()
 	{
 		//! Extract the whole zip
 		printf("No manifest found: extracting the Zip\n");
-		HomebrewZip->ExtractAll("sd:/");
+		HomebrewZip->ExtractAll("sdroot/");
 	}
 	
 	ManifestFile.close();
@@ -144,7 +147,7 @@ bool Package::remove()
 	while(std::getline(Manifest, CurrentLine))
 	{		
 		char Mode = CurrentLine.at(0);
-		std::string DeletePath = "sd:/" + CurrentLine.substr(3);
+		std::string DeletePath = "sdroot/" + CurrentLine.substr(3);
 		
 		switch(Mode)
 		{
@@ -179,4 +182,46 @@ bool Package::remove()
 	printf("Homebrew removed\n");
     
     return true;
+}
+
+void Package::updateStatus()
+{
+    // check if the manifest for this package exists
+    std::string ManifestPathInternal = "manifest.install";
+    std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;	
+    
+    struct stat sbuff;
+    if (stat(ManifestPath.c_str(), &sbuff) == 0)
+    {
+        // manifest exists, we are at least installed
+        this->status = INSTALLED;
+        return;
+    }
+    
+    // TODO: check for info.json, parse version out of it
+    // and compare against the package's to know whether
+    // it's an update or not
+    
+    // if we're down here, and it's not a local package
+    // already, it's probably a get package (package was
+    // available, but the manifest wasn't installed)
+    if (this->status != LOCAL)
+        this->status = GET;
+        
+}
+
+const char* Package::statusString()
+{
+    switch (this->status)
+    {
+        case LOCAL:
+            return "LOCAL    ";
+        case INSTALLED:
+            return "INSTALLED";
+        case UPDATE:
+            return "UPDATE   ";
+        case GET:
+            return "GET      ";
+    }
+    return "UNKNOWN";
 }

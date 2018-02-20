@@ -19,8 +19,23 @@ packages["packages"] = []
 for package in os.listdir("packages"):
     if os.path.isfile("packages/" + package):
         continue
+        
     zipf = zipfile.ZipFile("zips/" + package + ".zip", 'w', zipfile.ZIP_DEFLATED)
     os.chdir(curdir + "/packages/" + package)
+    
+    # generate a manifest to go inside of this zip
+    # TODO: pull in any existing manifest and only write U entries
+    # omitted files
+    manifest = ""
+    for root, dirs, files in os.walk("."):
+        for file in files:
+            if file == "manifest.install" or file == "icon.png" or file == "info.json":
+                continue
+            manifest += "U: %s\n" % os.path.join(root, file)[2:]
+    manifest_file = open("manifest.install", "w")
+    manifest_file.write(manifest)
+    manifest_file.close()
+            
     zipdir(".", zipf)
     zipf.close()
 

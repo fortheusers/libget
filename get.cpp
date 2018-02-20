@@ -53,12 +53,19 @@ void loadRepos(const char* config_path)
 
 void update()
 {
+    // clear current packages
+    packages.clear();
+    
     // fetch recent package list from enabled repos
-	for (int x=0; x<repos.size(); x++)
+    for (int x=0; x<repos.size(); x++)
     {
-		if (repos[x]->enabled)
-            repos[x]->loadPackages(&packages);
+        if (repos[x]->enabled)
+                repos[x]->loadPackages(&packages);
     }
+    
+    // check for any installed packages to update their status
+    for (int x=0; x<packages.size(); x++)
+        packages[x]->updateStatus();
 }
 
 int validateRepos()
@@ -99,22 +106,34 @@ int main(int argc, char** args)
     {
         std::string cur = args[x];
         
-        if (cur == "--delete")
+        if (cur == "--delete" || cur == "--remove")
         {  
             removeMode = true;
         }
-        else if (cur == "-l")
+        else if (cur == "-l" || cur == "--list")
         {
             // list available remote packages
-            cout << "--> Listing available remotes and  packages" << endl;
+            cout << "--> Listing available remotes and packages" << endl;
             
             cout << repos.size() << " repos loaded!" << endl;
             for (int x=0; x<repos.size(); x++)
                 cout << "\t" << repos[x]->toString() << endl;
             
-            cout << packages.size() << " packages loaded!" << endl;
+            cout << packages.size() << " packages available!" << endl;
             for (int x=0; x<packages.size(); x++)
-                cout << "\t" << packages[x]->toString() << endl;
+                cout << "\t" << packages[x]->statusString() << " " << packages[x]->toString() << endl;
+            
+//            cout << "--> Listing installed packages" << endl;
+            int count = 0;
+            int updatecount = 0;
+            for (int x=0; x<packages.size(); x++)
+                if (packages[x]->status != GET)
+                {
+                    count++;
+//                    cout << "\t" << packages[x]->statusString() << " " << packages[x]->toString() << endl;
+                }
+            cout << count << " packages installed" << endl << updatecount << " updates available" << endl;
+            
         }
         else // assume argument is a package
         {
@@ -134,7 +153,10 @@ int main(int argc, char** args)
                     {
                         // remove flag was specified, delete this package
                         packages[y]->remove();
+                        
                         cout << "--> Uninstalled [" << cur << "] package" << endl;
+                        
+                        update();
                         break;
                     }
                         
@@ -145,7 +167,7 @@ int main(int argc, char** args)
                     {
                         // according to the repo list, the package zip file should've been here
                         // but we got a 404 and couldn't find it
-                        cout << "--> Error retreiving remote file for [" << cur << "] (check network or 404 error?)" << endl;
+                        cout << "--> Error retrieving remote file for [" << cur << "] (check network or 404 error?)" << endl;
                         break;
                     }
                     
@@ -153,6 +175,9 @@ int main(int argc, char** args)
                     packages[y]->install();
                     
                     cout << "--> Downloaded [" << cur << "] to sdroot/" << endl;
+                    
+                    // update again post-install
+                    update();
                     
                     break;
                 }
