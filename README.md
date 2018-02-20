@@ -20,7 +20,7 @@ When `get` runs, it will go through the enabled repos in that config file, and t
       "name": "space",
       "title": "Space Game",
       "author": "vgmoose",
-      "desc": "Shoot rocks in outer space, and stuff",
+      "description": "Shoot rocks in outer space, and stuff",
       "version": "1.0.0"
     }
   ]
@@ -63,3 +63,10 @@ make
 ```
 
 The `minizip` library is used to provide zip.h and zip.c files.
+
+## License
+This software is licensed under the GPLv3.
+
+Contributors:
+- rw-r-r_0644 - manifest file parsing code
+- zarklord - zip folder extraction library

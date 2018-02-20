@@ -44,8 +44,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
             package->title = (*it)["title"].GetString();
         if ((*it).HasMember("author"))
             package->author = (*it)["author"].GetString();
-        if ((*it).HasMember("desc"))
-            package->short_desc = (*it)["desc"].GetString();
+        if ((*it).HasMember("description"))
+            package->short_desc = (*it)["description"].GetString();
         if ((*it).HasMember("version"))
             package->version = (*it)["version"].GetString();
         package->repoUrl = &this->url;
