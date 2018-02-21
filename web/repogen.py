@@ -3,7 +3,7 @@ import os, json, zipfile
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):        
         for file in files:
-            if root == "." and (file == "info.json" or file == "icon.png"):
+            if root == "." and (file == "icon.png"):
                 continue
             ziph.write(os.path.join(root, file))
 

@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "rapidjson/istreamwrapper.h"
+#include "rapidjson/document.h"
 #define u8 uint8_t
 
 Package::Package(int state)
@@ -37,7 +39,7 @@ bool Package::install()
 {
     // assumes that download was called first
     
-//    printf("-> HomebrewManager::installZip");
+//	printf("-> HomebrewManager::installZip");
 //	if(UseProgressBar)
 //		Progress->setTitle("Installing Homebrew to SDCard...");
 	
@@ -49,6 +51,11 @@ bool Package::install()
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 	HomebrewZip->ExtractFile(ManifestPathInternal.c_str(), ManifestPath.c_str());
 	
+	//! Then extract the info.json file (to know what version we have installed and stuff)
+	std::string jsonPathInternal = "info.json";
+	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
+	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
+	
 	//! Open the Manifest
 //	CFile * ManifestFile = new CFile(ManifestPath, CFile::ReadOnly);
     std::ifstream ManifestFile;
@@ -57,9 +64,7 @@ bool Package::install()
 	//! Make sure the manifest is present and not empty
 	if (ManifestFile.good())
 	{
-		//! Parse the manifest
-//		printf("Parsing the manifest\n");
-		
+		//! Parse the manifest	
 		std::stringstream Manifest;
         Manifest << ManifestFile.rdbuf();
 		
@@ -102,8 +107,10 @@ bool Package::install()
 	else
 	{
 		//! Extract the whole zip
-		printf("No manifest found: extracting the Zip\n");
-		HomebrewZip->ExtractAll("sdroot/");
+//		printf("No manifest found: extracting the Zip\n");
+//		HomebrewZip->ExtractAll("sdroot/");
+		std::cout << "No manifest file found! Refusing to extract." << std::endl;
+		return false;
 	}
 	
 	ManifestFile.close();
@@ -177,6 +184,8 @@ bool Package::remove()
 //	delete ManifestFile;
 	
 	std::remove(ManifestPath.c_str());
+	std::remove((std::string(pkg_path) + this->pkg_name + "/info.json").c_str());
+	rmdir((std::string(pkg_path) + this->pkg_name).c_str());
 	
 	
 	printf("Homebrew removed\n");
@@ -195,12 +204,51 @@ void Package::updateStatus()
     {
         // manifest exists, we are at least installed
         this->status = INSTALLED;
-        return;
     }
     
     // TODO: check for info.json, parse version out of it
     // and compare against the package's to know whether
     // it's an update or not
+	std::string jsonPathInternal = "info.json";
+	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
+	
+	if (INSTALLED && stat(jsonPath.c_str(), &sbuff) == 0)
+	{
+		// pull out the version number and check if it's
+		// different than the one on the repo
+		std::ifstream ifs(jsonPath.c_str());
+		rapidjson::IStreamWrapper isw(ifs);
+
+		if (!ifs.good())
+		{
+			std::cout << "--> Could not locate " << jsonPath << std::endl;
+			this->status = UPDATE; // issue opening info.json, assume update
+			return;
+		}
+
+		rapidjson::Document doc;
+		doc.ParseStream(isw);
+		std::string version;
+		
+		if (doc.HasMember("version"))
+		{
+			const rapidjson::Value& info_doc = doc["version"];
+			version = info_doc.GetString();
+		}
+		else
+			version = "0.0.0";
+		
+		if (version != this->version)
+			this->status = UPDATE;
+		
+		// we're eithe ran update or an install at this point
+		return;
+	}
+	else if (this->status == INSTALLED)
+	{
+		this->status = UPDATE; // manifest, but no info, always update
+		return;
+	}
     
     // if we're down here, and it's not a local package
     // already, it's probably a get package (package was
