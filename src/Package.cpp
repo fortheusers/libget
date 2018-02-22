@@ -1,7 +1,7 @@
 #include "Package.hpp"
-#include "util.hpp"
-#include "zip.hpp"
-#include "codes.h"
+#include "Utils.hpp"
+#include "Zip.hpp"
+#include "constants.h"
 #include <sys/stat.h>
 #include <fstream>
 #include <iostream>

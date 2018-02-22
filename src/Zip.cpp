@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <cstdint>
 
-#include "zip.hpp"
-#include "util.hpp"
+#include "Zip.hpp"
+#include "Utils.hpp"
 
 #define u32 uint32_t
 #define u8 uint8_t

@@ -14,7 +14,7 @@
 #include <fstream>
 #include <curl/easy.h>
 
-#include "util.hpp"
+#include "Utils.hpp"
 
 bool CreateSubfolder(char* cpath)
 {
@@ -97,3 +97,7 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
     return true;
 }
 
+const char* plural(int amount)
+{
+    return (amount == 1)? "" : "s";
+}
