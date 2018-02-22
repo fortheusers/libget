@@ -1,12 +1,10 @@
-#include "Get.hpp"
-#include "Utils.hpp"
+#include "../src/Get.hpp"
+#include "../src/Utils.hpp"
 #include <cstdio>
 #include <fstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <iostream>
-
-
 
 using namespace std;
 

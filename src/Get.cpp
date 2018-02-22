@@ -24,6 +24,8 @@ Get::Get(const char* config_dir, const char* defaultRepo)
     string package_dir = config_path + "packages";
     string tmp_dir = config_path + "tmp";
     
+    this->repos_path = repo_file.c_str();
+    
     //    printf("--> Using \"./sdroot\" as local download root directory\n");
     //    mkdir("./sdroot", 0700);
     
@@ -34,7 +36,7 @@ Get::Get(const char* config_dir, const char* defaultRepo)
     cout << "--> Using \"" << repo_file << "\" as repo list" << endl;
     
     // load repo info
-    this->loadRepos(repo_file.c_str());
+    this->loadRepos();
     this->update();
 }
 
@@ -70,12 +72,21 @@ int Get::remove(Package* package)
     return true;
 }
 
+int Get::toggleRepo(Repo* repo)
+{
+    repo->enabled = !repo->enabled;
+    update();
+    return true;
+}
 
 /**
 Load any repos from a config file into the repos vector.
 **/
-void Get::loadRepos(const char* config_path)
+void Get::loadRepos()
 {
+    repos.clear();
+    const char* config_path = repos_path;
+    
 	ifstream* ifs = new ifstream(config_path);
     
     if (!ifs->good() || ifs->peek() == std::ifstream::traits_type::eof())

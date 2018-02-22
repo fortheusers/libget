@@ -1,0 +1,19 @@
+{
+    "repos": [
+        {
+            "name": "Test Repo A",
+            "url": "http://localhost:8000/a",
+            "enabled": true
+        },
+        {
+            "name": "Test Repo B",
+            "url": "http://localhost:8000/b",
+            "enabled": false
+        },
+        {
+            "name": "Ingnore me",
+            "url": "badurl",
+            "enabled": false
+        }
+    ]
+}

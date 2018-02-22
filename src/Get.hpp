@@ -21,9 +21,10 @@ public:
     //    void downloadAll()            // download all of the queued packages
     
 private:
-    void loadRepos(const char* config_path);
+    void loadRepos();
     void update();
     int validateRepos();
     
     const char* defaultRepo;
+    const char* repos_path;
 };
