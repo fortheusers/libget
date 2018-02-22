@@ -24,17 +24,43 @@ Load any repos from a config file into the repos vector.
 **/
 void loadRepos(const char* config_path)
 {
-	ifstream ifs(config_path);
-    IStreamWrapper isw(ifs);
+	ifstream* ifs = new ifstream(config_path);
     
-    if (!ifs.good())
+    if (!ifs->good() || ifs->peek() == std::ifstream::traits_type::eof())
     {
-        cout << "--> Could not load repos from " << config_path << endl;
-        return;
+        cout << "--> Could not load repos from " << config_path << ", generating default repos.json" << endl;
+		
+		Repo* defaultRepo = new Repo("Local Repo", "http://localhost:8000/appstore");
+		
+		Document d;
+		d.Parse(generateRepoJson(1, defaultRepo).c_str());
+		
+		std::ofstream file(config_path);
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		d.Accept(writer);
+		file << buffer.GetString();
+		
+		ifs = new ifstream(config_path);
+		
+		if (!ifs->good())
+		{
+			cout << "--> Could not generate a new repos.json" << endl;
+			return;
+		}
+		
     }
+	
+	IStreamWrapper isw(*ifs);
     
     Document doc;
     doc.ParseStream(isw);
+	
+	if (!doc.HasMember("repos"))
+	{
+		cout << "--> Invalid format in " << config_path << endl;
+		return;
+	}
 	
 	const Value& repos_doc = doc["repos"];
 	
@@ -79,6 +105,11 @@ int validateRepos()
     return 0;
 }
 
+const char* plural(int amount)
+{
+	return (amount == 1)? "" : "s";
+}
+
 int main(int argc, char** args)
 {
     // the path for the get metadata folder
@@ -115,11 +146,11 @@ int main(int argc, char** args)
             // list available remote packages
             cout << "--> Listing available remotes and packages" << endl;
             
-            cout << repos.size() << " repos loaded!" << endl;
+            cout << repos.size() << " repo" << plural(repos.size()) << " loaded!" << endl;
             for (int x=0; x<repos.size(); x++)
                 cout << "\t" << repos[x]->toString() << endl;
             
-            cout << packages.size() << " packages available!" << endl;
+            cout << packages.size() << " package" << plural(packages.size()) << " available!" << endl;
             for (int x=0; x<packages.size(); x++)
                 cout << "\t" << packages[x]->statusString() << " " << packages[x]->toString() << endl;
             
@@ -127,12 +158,13 @@ int main(int argc, char** args)
             int count = 0;
             int updatecount = 0;
             for (int x=0; x<packages.size(); x++)
+			{
                 if (packages[x]->status != GET)
-                {
                     count++;
-//                    cout << "\t" << packages[x]->statusString() << " " << packages[x]->toString() << endl;
-                }
-            cout << count << " packages installed" << endl << updatecount << " updates available" << endl;
+				if (packages[x]->status == UPDATE)
+					updatecount++;
+			}
+            cout << count << " package" << plural(count) << " installed" << endl << updatecount << " update" << plural(updatecount) << " available" << endl;
             
         }
         else // assume argument is a package
@@ -140,9 +172,7 @@ int main(int argc, char** args)
             // try to find the package in a local repo
             // TODO: use a hash map to improve speed
             bool found = false;
-            
-            // 
-            
+                        
             for (int y=0; y<packages.size(); y++)
             {
                 if (packages[y]->pkg_name == cur)

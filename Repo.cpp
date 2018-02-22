@@ -3,12 +3,47 @@
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "codes.h"
+#include <sstream>
+#include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 using namespace rapidjson;
 
 Repo::Repo()
 {
 	
+}
+
+Repo::Repo(const char* name, const char* url)
+{
+	// create a repo from the passed parameters
+	this->name = name;
+	this->url = url;
+	this->enabled = true;
+}
+
+std::string Repo::toJson()
+{
+	std::stringstream resp;
+	resp << "\t\t{\n\t\t\t\"name\": \"" << this->name << "\",\n\t\t\t\"url\": \"" << this->url << "\",\n\t\t\t\"enabled\": " << (this->enabled? "true" : "false") << "\n\t\t}\n";
+	return resp.str();
+}
+
+std::string generateRepoJson(int count, ...)
+{
+	va_list ap;
+	
+	std::stringstream response;
+	response << "{\n\t\"repos\": [\n";
+	
+	va_start(ap, count);
+	
+	for (int x=0; x<count; x++)
+		response << (va_arg(ap, Repo*))->toJson();
+		
+	va_end(ap);
+	response << "\t]\n}\n";
+			
+	return response.str();
 }
 
 std::string Repo::toString()

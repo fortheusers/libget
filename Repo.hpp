@@ -6,7 +6,8 @@ class Repo
 {
 	public:
 	Repo();
-    
+	Repo(const char* name, const char* url);
+	std::string toJson();    
 	std::string toString();
     void loadPackages(std::vector<Package*>* package);
     
@@ -14,3 +15,5 @@ class Repo
 	std::string url;
 	bool enabled;
 };
+
+std::string generateRepoJson(int count, ...);
