@@ -1,3 +1,5 @@
+#ifndef REPO_H
+#define REPO_H
 #include <vector>
 #include <iostream>
 #include "Package.hpp"
@@ -17,3 +19,4 @@ class Repo
 };
 
 std::string generateRepoJson(int count, ...);
+#endif
