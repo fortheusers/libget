@@ -10,4 +10,4 @@ before_script:
   - wget http://mirrors.kernel.org/ubuntu/pool/universe/m/minizip/libminizip-dev_1.1-8_amd64.deb
   - sudo dpkg -i libminizip-dev_1.1-8_amd64.deb libminizip1_1.1-8_amd64.deb
   
-script: make
+script: make && make run_tests

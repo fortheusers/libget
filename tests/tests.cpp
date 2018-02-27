@@ -2,8 +2,8 @@
 #include <sys/stat.h>
 #include "../src/Get.hpp"
 
-//#define URL "https://vgmoose.github.io/get/tests/server/"
-#define URL "http://localhost:8000/server/"
+#define URL "https://vgmoose.github.io/get/tests/server/"
+//#define URL "http://localhost:8000/server/"
 
 using namespace std;
 
