@@ -1,3 +1,5 @@
+#ifndef GET_H
+#define GET_H
 #include <vector>
 #include "Repo.hpp"
 #include "constants.h"
@@ -28,3 +30,4 @@ private:
     const char* defaultRepo;
     const char* repos_path;
 };
+#endif

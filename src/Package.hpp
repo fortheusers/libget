@@ -1,3 +1,5 @@
+#ifndef PACKAGE_H
+#define PACKAGE_H
 #include <string>
 
 class Package
@@ -33,3 +35,4 @@ class Package
     char permissions;
     
 };
+#endif
