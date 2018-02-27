@@ -2,16 +2,16 @@
     "repos": [
         {
             "name": "Test Repo A",
-            "url": "http://localhost:8000/a",
+            "url": "https://vgmoose.github.io/get/tests/server/a",
             "enabled": true
         },
         {
             "name": "Test Repo B",
-            "url": "http://localhost:8000/b",
+            "url": "https://vgmoose.github.io/get/tests/server/b",
             "enabled": false
         },
         {
-            "name": "Ingnore me",
+            "name": "Ignore me",
             "url": "badurl",
             "enabled": false
         }
