@@ -20,20 +20,23 @@ Get::Get(const char* config_dir, const char* defaultRepo)
     
     // the path for the get metadata folder
     string config_path = config_dir;
-    string repo_file = config_path + "repos.json";
-    string package_dir = config_path + "packages";
-    string tmp_dir = config_path + "tmp";
-    
-    this->repos_path = repo_file.c_str();
-    
+	
+    string* repo_file = new string(config_path + "repos.json");
+	this->repos_path = repo_file->c_str();
+    string* package_dir = new string(config_path + "packages/");
+	this->pkg_path = package_dir->c_str();
+    string* tmp_dir = new string(config_path + "tmp/");
+	this->tmp_path = tmp_dir->c_str();
+	
+	
     //    printf("--> Using \"./sdroot\" as local download root directory\n");
     //    mkdir("./sdroot", 0700);
     
     mkdir(config_path.c_str(), 0700);
-    mkdir(package_dir.c_str(), 0700);
-    mkdir(tmp_dir.c_str(), 0700);
+    mkdir(package_dir->c_str(), 0700);
+    mkdir(tmp_dir->c_str(), 0700);
     
-    cout << "--> Using \"" << repo_file << "\" as repo list" << endl;
+    cout << "--> Using \"" << *repo_file << "\" as repo list" << endl;
     
     // load repo info
     this->loadRepos();
@@ -43,7 +46,7 @@ Get::Get(const char* config_dir, const char* defaultRepo)
 int Get::install(Package* package)
 {
     // found package in a remote server, fetch it
-    bool located = package->downloadZip();
+    bool located = package->downloadZip(this->tmp_path);
     
     if (!located)
     {
@@ -54,7 +57,7 @@ int Get::install(Package* package)
     }
     
     // install the package, (extracts manifest, etc)
-    package->install();
+    package->install(this->pkg_path, this->tmp_path);
     
     cout << "--> Downloaded [" << package->pkg_name << "] to sdroot/" << endl;
     
@@ -65,7 +68,7 @@ int Get::install(Package* package)
 
 int Get::remove(Package* package)
 {
-    package->remove();
+    package->remove(this->tmp_path);
     cout << "--> Uninstalled [" << package->pkg_name << "] package" << endl;
     update();
     
@@ -154,7 +157,7 @@ void Get::update()
     
     // check for any installed packages to update their status
     for (int x=0; x<packages.size(); x++)
-        packages[x]->updateStatus();
+        packages[x]->updateStatus(this->pkg_path);
 }
 
 int Get::validateRepos()

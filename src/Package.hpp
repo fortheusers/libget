@@ -8,11 +8,11 @@ class Package
     Package(int state);
     
     std::string toString();
-    bool downloadZip();
-    bool install();
-    bool remove();
+    bool downloadZip(const char* tmp_path);
+    bool install(const char* pkg_path, const char* tmp_path);
+    bool remove(const char* pkg_path);
     const char* statusString();
-    void updateStatus();
+    void updateStatus(const char* pkg_path);
     
     // Package attributes
     std::string pkg_name;
@@ -33,6 +33,7 @@ class Package
     // bitmask for permissions, from left to right:
     // unused, iosu, kernel, nand, usb, sd, wifi, sound
     char permissions;
-    
+
 };
+
 #endif
