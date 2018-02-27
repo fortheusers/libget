@@ -68,7 +68,7 @@ int Get::install(Package* package)
 
 int Get::remove(Package* package)
 {
-    package->remove(this->tmp_path);
+    package->remove(this->pkg_path);
     cout << "--> Uninstalled [" << package->pkg_name << "] package" << endl;
     update();
     

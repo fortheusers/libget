@@ -21,6 +21,11 @@ Package::Package(int state)
     this->status = state;
 }
 
+Package::~Package()
+{
+	delete this->contents;
+}
+
 std::string Package::toString()
 {
     return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
@@ -134,6 +139,7 @@ bool Package::remove(const char* pkg_path)
 	{
 		// there should've been one!
         // TODO: generate a temporary one
+		printf("--> ERROR: no manifest found at %s\n", ManifestPath.c_str());
         return false;
 	}
 	

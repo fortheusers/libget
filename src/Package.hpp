@@ -1,11 +1,14 @@
 #ifndef PACKAGE_H
 #define PACKAGE_H
 #include <string>
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/document.h"
 
 class Package
 {
     public:
     Package(int state);
+	~Package();
     
     std::string toString();
     bool downloadZip(const char* tmp_path);
@@ -34,6 +37,9 @@ class Package
     // unused, iosu, kernel, nand, usb, sd, wifi, sound
     char permissions;
 
+	// the downloaded contents file, to keep memory around to cleanup later
+	std::string* contents;
+	
 };
 
 #endif

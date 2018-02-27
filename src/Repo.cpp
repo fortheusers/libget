@@ -58,6 +58,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
     // fetch current repository json
     std::string response;
     bool success = downloadFileToMemory(directoryUrl, &response);
+	
+	std::string* response_copy = new std::string(response);
     
     if (!success)
     {
@@ -66,8 +68,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
     }
     
     // extract out packages, append to package list
-    Document doc;
-    doc.Parse(response.c_str());
+	Document doc;
+    doc.Parse(response_copy->c_str());
 	
 	const Value& packages_doc = doc["packages"];
 	
@@ -87,6 +89,9 @@ void Repo::loadPackages(std::vector<Package*>* packages)
         if ((*it).HasMember("version"))
             package->version = (*it)["version"].GetString();
         package->repoUrl = &this->url;
+		
+		// save the response string to cleanup later
+		package->contents = response_copy;
         
 		packages->push_back(package);
 	}
