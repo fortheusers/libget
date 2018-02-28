@@ -262,7 +262,7 @@ std::string UnZip::GetFileName(unz_file_info_s * fileInfo) {
 
 std::string UnZip::GetFullFileName(unz_file_info_s * fileInfo) {
 	char * filePath = (char*)malloc(fileInfo->size_filename);
-	unzGetCurrentFileInfo(fileToUnzip,NULL,filePath,fileInfo->size_filename,NULL,0,NULL,0);
+	unzGetCurrentFileInfo(fileToUnzip,fileInfo,filePath,fileInfo->size_filename,NULL,0,NULL,0);
 	filePath[fileInfo->size_filename] = '\0';
 	std::string path(filePath);
 	path.resize(fileInfo->size_filename);
