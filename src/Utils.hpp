@@ -14,7 +14,7 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path);
 const char* plural(int amount);
 
 // switch/other platform specific
-#if defined(LINUX) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
 #else
 	int http_get_file(std::string path, std::string* buff);
 #endif

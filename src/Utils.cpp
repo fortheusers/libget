@@ -12,7 +12,7 @@
 #include <iostream>
 #include <fstream>
 
-#if defined(LINUX) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
 	// these platforms use curl
 	#include <curl/curl.h>
 	#include <curl/easy.h>
@@ -81,7 +81,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 bool downloadFileToMemory(std::string path, std::string* buffer)
 {
 	// these platforms have curl, use that
-	#if defined(LINUX) || defined(__APPLE__)
+	#if defined(__linux__) || defined(__APPLE__)
 		CURL *curl;
 		CURLcode res;
 
@@ -128,7 +128,7 @@ const char* plural(int amount)
 
 int init_networking()
 {
-	#if defined(LINUX) || defined(__APPLE__)
+	#if defined(__linux__) || defined(__APPLE__)
 		// no initialization required
 	#else
 		svcSleepThread(100000000);
@@ -155,7 +155,7 @@ int init_networking()
 
 // everything below here is switch/other OS
 // ideally all of the below would be removed to use libcurl
-#if defined(LINUX) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__)
 #else
 static FILE http_stdout;
 static const char http_get_template[] = "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: appstore-nx\r\nAccept-Encoding: none\r\nConnection: close\r\n\r\n";
