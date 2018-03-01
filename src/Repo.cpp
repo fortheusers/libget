@@ -4,7 +4,7 @@
 #include "rapidjson/document.h"
 #include "constants.h"
 #include <sstream>
-#include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
+#include <stdarg.h>		/* va_list, va_start, va_arg, va_end */
 
 using namespace rapidjson;
 
@@ -53,23 +53,23 @@ std::string Repo::toString()
 
 void Repo::loadPackages(std::vector<Package*>* packages)
 {
-    std::string directoryUrl = this->url + "/repo.json";
-    
-    // fetch current repository json
-    std::string response;
-    bool success = downloadFileToMemory(directoryUrl, &response);
+	std::string directoryUrl = this->url + "/repo.json";
+	
+	// fetch current repository json
+	std::string response;
+	bool success = downloadFileToMemory(directoryUrl, &response);
 	
 	std::string* response_copy = new std::string(response);
-    
-    if (!success)
-    {
-        std::cout << "--> Could not update repository metadata for \"" << this->name << "\" repo!" << std::endl;
-        return;
-    }
-    
-    // extract out packages, append to package list
+	
+	if (!success)
+	{
+		std::cout << "--> Could not update repository metadata for \"" << this->name << "\" repo!" << std::endl;
+		return;
+	}
+	
+	// extract out packages, append to package list
 	Document doc;
-    doc.Parse(response_copy->c_str());
+	doc.Parse(response_copy->c_str());
 	
 	const Value& packages_doc = doc["packages"];
 	
@@ -78,21 +78,21 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	{
 		Package* package = new Package(GET);
 		package->pkg_name = (*it)["name"].GetString();
-        if ((*it).HasMember("title"))
-            package->title = (*it)["title"].GetString();
+		if ((*it).HasMember("title"))
+			package->title = (*it)["title"].GetString();
 		else
 			package->title = package->pkg_name;
-        if ((*it).HasMember("author"))
-            package->author = (*it)["author"].GetString();
-        if ((*it).HasMember("description"))
-            package->short_desc = (*it)["description"].GetString();
-        if ((*it).HasMember("version"))
-            package->version = (*it)["version"].GetString();
-        package->repoUrl = &this->url;
+		if ((*it).HasMember("author"))
+			package->author = (*it)["author"].GetString();
+		if ((*it).HasMember("description"))
+			package->short_desc = (*it)["description"].GetString();
+		if ((*it).HasMember("version"))
+			package->version = (*it)["version"].GetString();
+		package->repoUrl = &this->url;
 		
 		// save the response string to cleanup later
 		package->contents = response_copy;
-        
+		
 		packages->push_back(package);
 	}
 }

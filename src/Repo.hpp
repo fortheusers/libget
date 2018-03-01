@@ -9,10 +9,10 @@ class Repo
 	public:
 	Repo();
 	Repo(const char* name, const char* url);
-	std::string toJson();    
+	std::string toJson();	 
 	std::string toString();
-    void loadPackages(std::vector<Package*>* package);
-    
+	void loadPackages(std::vector<Package*>* package);
+	
 	std::string name;
 	std::string url;
 	bool enabled;

@@ -32,33 +32,33 @@ int Zip::AddFile(const char * internalPath, const char * path) {
 }
 
 int Zip::AddDir(const char * internalDir, const char * externalDir) {
-    struct dirent *dirent = NULL;
-    DIR *dir = NULL;
+	struct dirent *dirent = NULL;
+	DIR *dir = NULL;
 
-    dir = opendir(externalDir);
-    if (dir == NULL) {
-        return -1;
-    }
+	dir = opendir(externalDir);
+	if (dir == NULL) {
+		return -1;
+	}
 
-    while ((dirent = readdir(dir)) != 0) {
-        if(strcmp(dirent->d_name, "..") == 0 || strcmp(dirent->d_name, ".") == 0)
-            continue;
+	while ((dirent = readdir(dir)) != 0) {
+		if(strcmp(dirent->d_name, "..") == 0 || strcmp(dirent->d_name, ".") == 0)
+			continue;
 		
 		std::string zipPath(internalDir);
-        zipPath += '/';
-        zipPath += dirent->d_name;
+		zipPath += '/';
+		zipPath += dirent->d_name;
 		std::string realPath(externalDir);
-        realPath += '/';
+		realPath += '/';
 		realPath += dirent->d_name;
 
-        if(dirent->d_type & DT_DIR) {
-            AddDir(zipPath.c_str(), realPath.c_str());
-        } else {
-            AddFile(zipPath.c_str(),realPath.c_str());
-        }
-    }
-    closedir(dir);
-    return 0;
+		if(dirent->d_type & DT_DIR) {
+			AddDir(zipPath.c_str(), realPath.c_str());
+		} else {
+			AddFile(zipPath.c_str(),realPath.c_str());
+		}
+	}
+	closedir(dir);
+	return 0;
 }
 
 int Zip::Add(const char * path) {
@@ -68,27 +68,27 @@ int Zip::Add(const char * path) {
 		return -1;
 		
 	u32 filesize = lseek(fileNumber, 0, SEEK_END);
-    lseek(fileNumber, 0, SEEK_SET);
+	lseek(fileNumber, 0, SEEK_SET);
 	
-    u32 blocksize = 0x8000;
+	u32 blocksize = 0x8000;
 	u8 * buffer = (u8*)malloc(blocksize);
 	if (buffer == NULL)
 		return -2;
 		
-    u32 done = 0;
-    int readBytes = 0;
+	u32 done = 0;
+	int readBytes = 0;
 
 	while(done < filesize)
-    {
-        if(done + blocksize > filesize) {
-            blocksize = filesize - done;
-        }
-        readBytes = read(fileNumber, buffer, blocksize);
-        if(readBytes <= 0)
-            break;
+	{
+		if(done + blocksize > filesize) {
+			blocksize = filesize - done;
+		}
+		readBytes = read(fileNumber, buffer, blocksize);
+		if(readBytes <= 0)
+			break;
 		zipWriteInFileInZip(fileToZip,buffer,blocksize);
-        done += readBytes;
-    }
+		done += readBytes;
+	}
 	close(fileNumber);
 	free(buffer);
 
@@ -204,7 +204,7 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 	strcpy(folderPath,path);
 	char * pos = strrchr(folderPath,'/');
 
-    if(pos != NULL) {
+	if(pos != NULL) {
 		*pos = '\0';
 		CreateSubfolder(folderPath);
 	}
@@ -213,8 +213,8 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 	u8 * buffer = (u8*)malloc(blocksize);
 	if(buffer == NULL)
 		return -3;
-    u32 done = 0;
-    int writeBytes = 0;
+	u32 done = 0;
+	int writeBytes = 0;
 	
 	int fileNumber = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 
@@ -224,17 +224,17 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 	}
 		
 	while(done < fileInfo->uncompressed_size)
-    {
-        if(done + blocksize > fileInfo->uncompressed_size) {
-            blocksize = fileInfo->uncompressed_size - done;
-        }
-		unzReadCurrentFile(fileToUnzip,buffer,blocksize);
-        writeBytes = write(fileNumber, buffer, blocksize);
-        if(writeBytes <= 0) {
-            break;
+	{
+		if(done + blocksize > fileInfo->uncompressed_size) {
+			blocksize = fileInfo->uncompressed_size - done;
 		}
-        done += writeBytes;
-    }
+		unzReadCurrentFile(fileToUnzip,buffer,blocksize);
+		writeBytes = write(fileNumber, buffer, blocksize);
+		if(writeBytes <= 0) {
+			break;
+		}
+		done += writeBytes;
+	}
 	close(fileNumber);
 	free(buffer);
 

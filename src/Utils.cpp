@@ -73,8 +73,8 @@ bool mkpath( std::string path )
 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
+	((std::string*)userp)->append((char*)contents, size * nmemb);
+	return size * nmemb;
 }
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
@@ -111,19 +111,19 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 bool downloadFileToDisk(std::string remote_path, std::string local_path)
 {
-    std::string fileContents;
-    bool resp = downloadFileToMemory(remote_path, &fileContents);
-    if (!resp)
-        return false;
-    
-    std::ofstream file(local_path);
-    file << fileContents;
-    return true;
+	std::string fileContents;
+	bool resp = downloadFileToMemory(remote_path, &fileContents);
+	if (!resp)
+		return false;
+	
+	std::ofstream file(local_path);
+	file << fileContents;
+	return true;
 }
 
 const char* plural(int amount)
 {
-    return (amount == 1)? "" : "s";
+	return (amount == 1)? "" : "s";
 }
 
 int init_networking()

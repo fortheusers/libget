@@ -13,12 +13,12 @@
 Package::Package(int state)
 {
 	this->pkg_name = "?";
-    this->title = "???";
-    this->author = "Unknown";
-    this->version = "0.0.0";
-    this->short_desc = "N/A";
-    
-    this->status = state;
+	this->title = "???";
+	this->author = "Unknown";
+	this->version = "0.0.0";
+	this->short_desc = "N/A";
+	
+	this->status = state;
 }
 
 Package::~Package()
@@ -28,19 +28,19 @@ Package::~Package()
 
 std::string Package::toString()
 {
-    return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
+	return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
 }
 
 bool Package::downloadZip(const char* tmp_path)
 {
-    // fetch zip file to tmp directory using curl
-    return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
+	// fetch zip file to tmp directory using curl
+	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
 }
 
 bool Package::install(const char* pkg_path, const char* tmp_path)
 {
-    // assumes that download was called first
-    
+	// assumes that download was called first
+	
 //	printf("-> HomebrewManager::installZip");
 //	if(UseProgressBar)
 //		Progress->setTitle("Installing Homebrew to SDCard...");
@@ -59,15 +59,15 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
 	
 	//! Open the Manifest
-    std::ifstream ManifestFile;
-    ManifestFile.open(ManifestPath.c_str());
-    	
+	std::ifstream ManifestFile;
+	ManifestFile.open(ManifestPath.c_str());
+		
 	//! Make sure the manifest is present and not empty
 	if (ManifestFile.good())
 	{
 		//! Parse the manifest	
 		std::stringstream Manifest;
-        Manifest << ManifestFile.rdbuf();
+		Manifest << ManifestFile.rdbuf();
 		
 		std::string CurrentLine;
 		while(std::getline(Manifest, CurrentLine))
@@ -121,33 +121,33 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	
 	//! Delete the Zip file
 	std::remove((tmp_path + this->pkg_name + ".zip").c_str());
-    
-    return true;
+	
+	return true;
 }
 
 bool Package::remove(const char* pkg_path)
 {
-    // perform an uninstall of the current package, parsing the cached metadata
-    std::string ManifestPathInternal = "manifest.install";
+	// perform an uninstall of the current package, parsing the cached metadata
+	std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
-    
-    printf("-> HomebrewManager::Delete\n");
+	
+	printf("-> HomebrewManager::Delete\n");
 	
 	struct stat sbuff;
 	if (stat(ManifestPath.c_str(), &sbuff) != 0) //! There's no manifest
 	{
 		// there should've been one!
-        // TODO: generate a temporary one
+		// TODO: generate a temporary one
 		printf("--> ERROR: no manifest found at %s\n", ManifestPath.c_str());
-        return false;
+		return false;
 	}
 	
 	//! Open the manifest normally
-    std::ifstream ManifestFile;
-    ManifestFile.open(ManifestPath.c_str());
-    
-    std::stringstream Manifest;
-    Manifest << ManifestFile.rdbuf();
+	std::ifstream ManifestFile;
+	ManifestFile.open(ManifestPath.c_str());
+	
+	std::stringstream Manifest;
+	Manifest << ManifestFile.rdbuf();
 	
 	//! Parse the manifest
 	printf("Parsing the Manifest\n");
@@ -190,26 +190,26 @@ bool Package::remove(const char* pkg_path)
 	
 	
 	printf("Homebrew removed\n");
-    
-    return true;
+	
+	return true;
 }
 
 void Package::updateStatus(const char* pkg_path)
 {
-    // check if the manifest for this package exists
-    std::string ManifestPathInternal = "manifest.install";
-    std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;	
-    
-    struct stat sbuff;
-    if (stat(ManifestPath.c_str(), &sbuff) == 0)
-    {
-        // manifest exists, we are at least installed
-        this->status = INSTALLED;
-    }
-    
-    // TODO: check for info.json, parse version out of it
-    // and compare against the package's to know whether
-    // it's an update or not
+	// check if the manifest for this package exists
+	std::string ManifestPathInternal = "manifest.install";
+	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;	
+	
+	struct stat sbuff;
+	if (stat(ManifestPath.c_str(), &sbuff) == 0)
+	{
+		// manifest exists, we are at least installed
+		this->status = INSTALLED;
+	}
+	
+	// TODO: check for info.json, parse version out of it
+	// and compare against the package's to know whether
+	// it's an update or not
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
 	
@@ -250,27 +250,27 @@ void Package::updateStatus(const char* pkg_path)
 		this->status = UPDATE; // manifest, but no info, always update
 		return;
 	}
-    
-    // if we're down here, and it's not a local package
-    // already, it's probably a get package (package was
-    // available, but the manifest wasn't installed)
-    if (this->status != LOCAL)
-        this->status = GET;
-        
+	
+	// if we're down here, and it's not a local package
+	// already, it's probably a get package (package was
+	// available, but the manifest wasn't installed)
+	if (this->status != LOCAL)
+		this->status = GET;
+		
 }
 
 const char* Package::statusString()
 {
-    switch (this->status)
-    {
-        case LOCAL:
-            return "LOCAL    ";
-        case INSTALLED:
-            return "INSTALLED";
-        case UPDATE:
-            return "UPDATE   ";
-        case GET:
-            return "GET      ";
-    }
-    return "UNKNOWN";
+	switch (this->status)
+	{
+		case LOCAL:
+			return "LOCAL	 ";
+		case INSTALLED:
+			return "INSTALLED";
+		case UPDATE:
+			return "UPDATE	 ";
+		case GET:
+			return "GET		 ";
+	}
+	return "UNKNOWN";
 }
