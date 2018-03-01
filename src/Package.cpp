@@ -57,7 +57,6 @@ bool Package::install()
 	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
 	
 	//! Open the Manifest
-//	CFile * ManifestFile = new CFile(ManifestPath, CFile::ReadOnly);
     std::ifstream ManifestFile;
     ManifestFile.open(ManifestPath.c_str());
     	
@@ -102,13 +101,13 @@ bool Package::install()
 		
 		//! Close the manifest
 		Manifest.str("");
-//		free(Manifest_cstr);
 	}
 	else
 	{
 		//! Extract the whole zip
 //		printf("No manifest found: extracting the Zip\n");
 //		HomebrewZip->ExtractAll("sdroot/");
+		// TODO: generate a manifest here, it's needed for deletion
 		std::cout << "No manifest file found! Refusing to extract." << std::endl;
 		return false;
 	}
@@ -181,7 +180,6 @@ bool Package::remove()
 	printf("Removing manifest...\n");
 	
 	ManifestFile.close();
-//	delete ManifestFile;
 	
 	std::remove(ManifestPath.c_str());
 	std::remove((std::string(pkg_path) + this->pkg_name + "/info.json").c_str());
