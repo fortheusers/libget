@@ -21,21 +21,23 @@ Package::Package(int state)
     this->status = state;
 }
 
-const char* pkg_path = "./.get/packages/";
-const char* tmp_path = "./.get/tmp/";
+Package::~Package()
+{
+	delete this->contents;
+}
 
 std::string Package::toString()
 {
     return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
 }
 
-bool Package::downloadZip()
+bool Package::downloadZip(const char* tmp_path)
 {
     // fetch zip file to tmp directory using curl
     return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
 }
 
-bool Package::install()
+bool Package::install(const char* pkg_path, const char* tmp_path)
 {
     // assumes that download was called first
     
@@ -108,7 +110,7 @@ bool Package::install()
 //		printf("No manifest found: extracting the Zip\n");
 //		HomebrewZip->ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		std::cout << "No manifest file found! Refusing to extract." << std::endl;
+		std::cout << "No manifest file found (or error writing manifest download)! Refusing to extract." << std::endl;
 		return false;
 	}
 	
@@ -123,7 +125,7 @@ bool Package::install()
     return true;
 }
 
-bool Package::remove()
+bool Package::remove(const char* pkg_path)
 {
     // perform an uninstall of the current package, parsing the cached metadata
     std::string ManifestPathInternal = "manifest.install";
@@ -136,6 +138,7 @@ bool Package::remove()
 	{
 		// there should've been one!
         // TODO: generate a temporary one
+		printf("--> ERROR: no manifest found at %s\n", ManifestPath.c_str());
         return false;
 	}
 	
@@ -191,7 +194,7 @@ bool Package::remove()
     return true;
 }
 
-void Package::updateStatus()
+void Package::updateStatus(const char* pkg_path)
 {
     // check if the manifest for this package exists
     std::string ManifestPathInternal = "manifest.install";

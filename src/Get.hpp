@@ -28,6 +28,11 @@ private:
     int validateRepos();
     
     const char* defaultRepo;
+	
+	// config paths (TODO: replace with a Config class)
     const char* repos_path;
+	const char* pkg_path;
+	const char* tmp_path;
+	
 };
 #endif
