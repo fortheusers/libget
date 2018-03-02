@@ -12,16 +12,8 @@
 #include <iostream>
 #include <fstream>
 
-#if defined(__linux__) || defined(__APPLE__)
-	// these platforms use curl
-	#include <curl/curl.h>
-	#include <curl/easy.h>
-
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-	#include <sys/ioctl.h>
-#else
-	// custom impl (for switch)
+#if defined(__SWITCH__)
+	// custom HTTP impl (for switch)
 	extern "C"
 	{
 		#include<libtransistor/ipc/bsd.h>
@@ -30,6 +22,14 @@
 		#define make_ip(a,b,c,d)	((a) | ((b) << 8) | ((c) << 16) | ((d) << 24))
 	}
 	#include <sstream>
+#else
+	// these platforms use curl
+	#include <curl/curl.h>
+	#include <curl/easy.h>
+
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <sys/ioctl.h>
 #endif
 
 #include "Utils.hpp"
@@ -80,8 +80,14 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
 bool downloadFileToMemory(std::string path, std::string* buffer)
 {
-	// these platforms have curl, use that
-	#if defined(__linux__) || defined(__APPLE__)
+	#if defined(__SWITCH__)
+		// no libcurl yet, manually HTTP download over bsd sockets
+		int ret = http_get_file(path, buffer);
+	
+		// if size is positive, return true
+		return ret > 0;		
+	#else
+		// these platforms have curl, use that
 		CURL *curl;
 		CURLcode res;
 
@@ -100,10 +106,6 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 			return true;
 		}
-	#else
-		// these platforms don't have curl, manually download HTTP over bsd sockets
-		int ret = http_get_file(path, buffer);
-		return ret < 0;
 	#endif
 
 	return false;
@@ -126,11 +128,33 @@ const char* plural(int amount)
 	return (amount == 1)? "" : "s";
 }
 
+#if defined(__SWITCH__)
+static FILE http_stdout;
+static const char http_get_template[] = "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: appstore-nx\r\nAccept-Encoding: none\r\nConnection: close\r\n\r\n";
+
+static int http_socket;
+
+char server_ip_addr[4] = {127, 0, 0, 1};
+
+static struct sockaddr_in server_addr =
+{
+	.sin_family = AF_INET,
+	.sin_port = htons(80),
+	.sin_addr = {
+		.s_addr = *(uint32_t*) server_ip_addr
+	}
+};
+
+static int stdout_http(struct _reent *reent, void *v, const char *ptr, int len)
+{
+	bsd_send(http_socket, ptr, len, 0);
+	return len;
+}
+#endif
+
 int init_networking()
 {
-	#if defined(__linux__) || defined(__APPLE__)
-		// no initialization required
-	#else
+	#if defined(__SWITCH__)
 		svcSleepThread(100000000);
 
 		if(sm_init() != RESULT_OK || bsd_init() != RESULT_OK) {
@@ -155,31 +179,8 @@ int init_networking()
 
 // everything below here is switch/other OS
 // ideally all of the below would be removed to use libcurl
-#if defined(__linux__) || defined(__APPLE__)
-#else
-static FILE http_stdout;
-static const char http_get_template[] = "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: appstore-nx\r\nAccept-Encoding: none\r\nConnection: close\r\n\r\n";
-
-char server_ip_addr[4] = {127, 0, 0, 1};
-
-static struct sockaddr_in server_addr =
-{
-	.sin_family = AF_INET,
-	.sin_port = htons(80),
-	.sin_addr = {
-		.s_addr = *(uint32_t*) server_ip_addr
-	}
-};
-
+#if defined(__SWITCH__)
 // -temporary
-
-static int http_socket;
-
-static int stdout_http(struct _reent *reent, void *v, const char *ptr, int len)
-{
-	bsd_send(http_socket, ptr, len, 0);
-	return len;
-}
 
 static int parse_header(char *buf, int len, int *offset, int *got)
 {

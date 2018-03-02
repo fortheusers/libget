@@ -7,14 +7,13 @@ bool CreateSubfolder( char* cstringpath );
 
 // networking stuff
 int init_networking();
-bool downloadFileToMemory(std::string path, std::string* buffer);
-bool downloadFileToDisk(std::string remote_path, std::string local_path);
+bool downloadFileToMemory(std::string path, std::string* buffer);			// appends file to buffer
+bool downloadFileToDisk(std::string remote_path, std::string local_path);	// saves file to local_path
 
 // helper methods
 const char* plural(int amount);
 
-// switch/other platform specific
-#if defined(__linux__) || defined(__APPLE__)
-#else
-	int http_get_file(std::string path, std::string* buff);
+// switch specific methods
+#if defined(__SWITCH__)
+	int http_get_file(std::string path, std::string* buff);		// appends file to buffer
 #endif

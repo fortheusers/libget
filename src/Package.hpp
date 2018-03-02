@@ -1,8 +1,8 @@
 #ifndef PACKAGE_H
 #define PACKAGE_H
 #include <string>
-#include "rapidjson/rapidjson.h"
-#include "rapidjson/document.h"
+#include "libs/rapidjson/include/rapidjson/rapidjson.h"
+#include "libs/rapidjson/include/rapidjson/document.h"
 
 class Package
 {

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 #include "rapidjson/istreamwrapper.h"
 #include "rapidjson/document.h"
 #define u8 uint8_t
@@ -186,6 +187,7 @@ bool Package::remove(const char* pkg_path)
 	
 	std::remove(ManifestPath.c_str());
 	std::remove((std::string(pkg_path) + this->pkg_name + "/info.json").c_str());
+	
 	rmdir((std::string(pkg_path) + this->pkg_name).c_str());
 	
 	
