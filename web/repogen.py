@@ -1,9 +1,12 @@
+#!/usr/bin/python
 import os, json, zipfile
+
+print("Content-type: text/html\n\n")
 
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):        
         for file in files:
-            if root == "." and (file == "icon.png"):
+            if root == "." and (file == "info.json" or file == "icon.png"):
                 continue
             ziph.write(os.path.join(root, file))
 
@@ -35,7 +38,8 @@ for package in os.listdir("packages"):
     manifest_file = open("manifest.install", "w")
     manifest_file.write(manifest)
     manifest_file.close()
-            
+    
+    print("Zipping %s...<br>" % package)
     zipdir(".", zipf)
     zipf.close()
 
@@ -56,3 +60,5 @@ for package in os.listdir("packages"):
 out = open("repo.json", "w")
 json.dump(packages, out, indent=4)
 out.close()
+
+print("All Done!<br>")

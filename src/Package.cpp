@@ -1,6 +1,6 @@
 #include "Package.hpp"
 #include "Utils.hpp"
-#include "Zip.hpp"
+#include "ZipUtil.hpp"
 #include "constants.h"
 #include <sys/stat.h>
 #include <fstream>

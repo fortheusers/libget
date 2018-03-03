@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <unistd.h>
 
-#include "Zip.hpp"
+#include "ZipUtil.hpp"
 #include "Utils.hpp"
 
 #define u32 uint32_t
