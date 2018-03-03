@@ -12,8 +12,3 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path);	// sav
 
 // helper methods
 const char* plural(int amount);
-
-// switch specific methods
-#if defined(__SWITCH__)
-	int http_get_file(std::string path, std::string* buff);		// appends file to buffer
-#endif

@@ -52,13 +52,11 @@ int Zip::AddDir(const char * internalDir, const char * externalDir) {
 		realPath += '/';
 		realPath += dirent->d_name;
 
-		#if !defined(__SWITCH__)
 		if(dirent->d_type & DT_DIR) {
 			AddDir(zipPath.c_str(), realPath.c_str());
 		} else {
 			AddFile(zipPath.c_str(),realPath.c_str());
 		}
-		#endif
 	}
 	closedir(dir);
 	return 0;
