@@ -51,9 +51,9 @@ Any installed packages specified after the `--delete` flag will be removed
 This command parses the `manifest.install` file fetched when the package was installed, and uses it to determine which files to remove. Currently empty folders are left behind after the files are deleted.
 
 ## Building for PC
-First clone the repo recursively
+First clone the repo
 ```
-git clone --recursive https://github.com/vgmoose/get.git
+git clone https://github.com/vgmoose/get.git
 ```
 
 and cd into the folder and run make:
@@ -62,7 +62,7 @@ cd get
 make
 ```
 
-The `minizip` library is used to provide zip.h and zip.c files.
+Zlib and libcurl are required to build the above package, other dependencies (rapidjson, minizip) are included in this repo.
 
 ## License
 This software is licensed under the GPLv3.

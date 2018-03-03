@@ -1,8 +1,8 @@
 #pragma once
 	
 // use included minizip library
-#include "libs/zlib/contrib/minizip/zip.h"
-#include "libs/zlib/contrib/minizip/unzip.h"
+#include "zip.h"
+#include "unzip.h"
 
 #include <string>
 

@@ -60,7 +60,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	bool success = downloadFileToMemory(directoryUrl, &response);
 	
 	std::string* response_copy = new std::string(response);
-	
+
 	if (!success)
 	{
 		std::cout << "--> Could not update repository metadata for \"" << this->name << "\" repo!" << std::endl;
