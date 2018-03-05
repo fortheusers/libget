@@ -42,41 +42,37 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 {
 	// assumes that download was called first
 	
-//	printf("-> HomebrewManager::installZip");
-//	if(UseProgressBar)
-//		Progress->setTitle("Installing Homebrew to SDCard...");
-	
 	//! Open the Zip file
 	UnZip * HomebrewZip = new UnZip((tmp_path + this->pkg_name + ".zip").c_str());
-	
-	//! First extract the Manifest	
+
+	//! First extract the Manifest
 	std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 	HomebrewZip->ExtractFile(ManifestPathInternal.c_str(), ManifestPath.c_str());
-	
+
 	//! Then extract the info.json file (to know what version we have installed and stuff)
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
 	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
-	
+
 	//! Open the Manifest
 	std::ifstream ManifestFile;
 	ManifestFile.open(ManifestPath.c_str());
-		
+
 	//! Make sure the manifest is present and not empty
 	if (ManifestFile.good())
 	{
-		//! Parse the manifest	
+		//! Parse the manifest
 		std::stringstream Manifest;
 		Manifest << ManifestFile.rdbuf();
-		
+
 		std::string CurrentLine;
 		while(std::getline(Manifest, CurrentLine))
-		{		
+		{
 			char Mode = CurrentLine.at(0);
 			std::string Path = CurrentLine.substr(3);
-			std::string ExtractPath = "sdroot/" + Path;
-			
+			std::string ExtractPath = "./sdroot/" + Path;
+
 			switch(Mode)
 			{
 				case 'E':
@@ -101,7 +97,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 					break;
 			}
 		}
-		
+
 		//! Close the manifest
 		Manifest.str("");
 	}
@@ -114,12 +110,12 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		std::cout << "No manifest file found (or error writing manifest download)! Refusing to extract." << std::endl;
 		return false;
 	}
-	
+
 	ManifestFile.close();
-	
+
 	//! Close the Zip file
 	delete HomebrewZip;
-	
+
 	//! Delete the Zip file
 	std::remove((tmp_path + this->pkg_name + ".zip").c_str());
 	

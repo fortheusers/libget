@@ -125,7 +125,6 @@ int UnZip::ExtractFile(const char * internalPath,const char * path) {
 	unz_file_info_s * fileInfo = GetFileInfo();
 	
 	std::string fullPath(path);
-	fullPath + GetFileName(fileInfo);
 	printf("Extracting %s to: %s\n",internalPath,fullPath.c_str());
 	code = Extract(fullPath.c_str(),fileInfo);
 	free(fileInfo);
@@ -247,7 +246,7 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 }
 
 std::string UnZip::GetFileName(unz_file_info_s * fileInfo) {
-	char * fileName = (char*)malloc(fileInfo->size_filename);
+	char fileName[fileInfo->size_filename+1];
 	std::string path;
 	strcpy(fileName,GetFullFileName(fileInfo).c_str());
 	char * pos = strrchr(fileName, '/');
@@ -257,17 +256,15 @@ std::string UnZip::GetFileName(unz_file_info_s * fileInfo) {
 	} else {
 		path = fileName;
 	}
-	free(fileName);
 	return path;
 }
 
 std::string UnZip::GetFullFileName(unz_file_info_s * fileInfo) {
-	char * filePath = (char*)malloc(fileInfo->size_filename);
+	char filePath[fileInfo->size_filename+1];
 	unzGetCurrentFileInfo(fileToUnzip,fileInfo,filePath,fileInfo->size_filename,NULL,0,NULL,0);
 	filePath[fileInfo->size_filename] = '\0';
 	std::string path(filePath);
 	path.resize(fileInfo->size_filename);
-	free(filePath);
 	return path;
 }
 

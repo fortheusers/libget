@@ -112,6 +112,13 @@ void Get::loadRepos()
 		if (!ifs->good())
 		{
 			cout << "--> Could not generate a new repos.json" << endl;
+			
+			// manually create a repo, no file access
+			Repo* repo = new Repo();
+			repo->name = "Switchbru";
+			repo->url = this->defaultRepo;
+			repo->enabled = true;
+			repos.push_back(repo);
 			return;
 		}
 		
