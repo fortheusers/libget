@@ -173,7 +173,11 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
 	std::ofstream file(local_path);
 	file << fileContents;
 	file.close();
-	usleep(1000);
+	
+	#if defined(SWITCH)
+		usleep(1000);
+	#endif
+	
 	return true;
 }
 
