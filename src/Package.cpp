@@ -11,6 +11,8 @@
 #include "rapidjson/document.h"
 #define u8 uint8_t
 
+#define ROOT_PATH "./sdroot/"
+
 Package::Package(int state)
 {
 	this->pkg_name = "?";
@@ -35,6 +37,7 @@ std::string Package::toString()
 bool Package::downloadZip(const char* tmp_path)
 {
 	// fetch zip file to tmp directory using curl
+	std::cout << "--> Downloading " << this->pkg_name << " to " << tmp_path << std::endl;
 	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
 }
 
@@ -71,30 +74,37 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		{
 			char Mode = CurrentLine.at(0);
 			std::string Path = CurrentLine.substr(3);
-			std::string ExtractPath = "./sdroot/" + Path;
+			std::string ExtractPath = ROOT_PATH + Path;
 
+			int resp = 0;
 			switch(Mode)
 			{
 				case 'E':
 					//! Simply Extract, with no checks or anything, won't be deleted upon removal
 					printf("%s : EXTRACT\n", Path.c_str());
-					HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+					resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 					break;
 				case 'U':
 					printf("%s : UPDATE\n", Path.c_str());
-					HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+					resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 					break;
 				case 'G':
 					printf("%s : GET\n", Path.c_str());
 					struct stat sbuff;
 					if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
-						HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+						resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 					else
 						printf("File already exists, skipping...");
 					break;
 				default:
 					printf("%s : NOP\n", Path.c_str());
 					break;
+			}
+			
+			if (resp < 0)
+			{
+				std::cout << "--> Some issue happened while extracting! Error: " << resp << std::endl;
+				return false;
 			}
 		}
 

@@ -12,12 +12,15 @@
 #include <iostream>
 #include <fstream>
 
-#if !defined(SWITCH)
-	#include <curl/curl.h>
-	#include <curl/easy.h>
-#else
+#if defined(SWITCH) || defined(NOCURL)
 	#include <arpa/inet.h>
 	#include <unistd.h>
+#else
+	#include <curl/curl.h>
+	#include <curl/easy.h>
+#endif
+
+#if defined(SWITCH)
 	#include <switch.h>
 #endif
 
@@ -65,7 +68,7 @@ bool mkpath( std::string path )
 		return bSuccess;
 }
 
-#if !defined(SWITCH)
+#if !defined(SWITCH) && !defined(NOCURL)
 	static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 	{
 		((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -83,7 +86,7 @@ bool mkpath( std::string path )
 		struct sockaddr_in remoteaddr;
 		remoteaddr.sin_family = AF_INET;
 		remoteaddr.sin_addr.s_addr = inet_addr("95.142.154.181");	// hardcoded to switchbru IP, no DNS
-	//	remoteaddr.sin_addr.s_addr = inet_addr("192.168.1.104");
+//		remoteaddr.sin_addr.s_addr = inet_addr("192.168.1.104");
 		remoteaddr.sin_port = htons(80);
 		connect(clientfd, (struct sockaddr *)&remoteaddr, sizeof(remoteaddr));
 		
@@ -101,7 +104,7 @@ bool mkpath( std::string path )
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
 bool downloadFileToMemory(std::string path, std::string* buffer)
 {
-	#if defined(SWITCH)
+	#if defined(SWITCH) || defined(NOCURL)
 		int clientfd;
 		char buf[SOCK_BUFFERSIZE];
 	

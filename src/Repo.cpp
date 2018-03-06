@@ -71,8 +71,14 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	Document doc;
 	doc.Parse(response_copy->c_str());
 	
-	const Value& packages_doc = doc["packages"];
+	if (!doc.IsObject() || !doc.HasMember("packages"))
+	{
+		std::cout << "--> Invalid format in downloaded repo.json for " << this->url << std::endl;
+		return;
+	}
 	
+	const Value& packages_doc = doc["packages"];
+
 	// for every repo
 	for(Value::ConstValueIterator it=packages_doc.Begin(); it != packages_doc.End(); it++)
 	{
@@ -89,10 +95,10 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		if ((*it).HasMember("version"))
 			package->version = (*it)["version"].GetString();
 		package->repoUrl = &this->url;
-		
+
 		// save the response string to cleanup later
 		package->contents = response_copy;
-		
+
 		packages->push_back(package);
 	}
 }
