@@ -1,12 +1,12 @@
 #!/usr/bin/python
-import os, json, zipfile
+import os, json, zipfile, time, datetime
 
 print("Content-type: text/html\n\n")
 
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):        
         for file in files:
-            if root == "." and (file == "info.json" or file == "icon.png"):
+            if root == "." and (file == "icon.png"):
                 continue
             ziph.write(os.path.join(root, file))
 
@@ -32,7 +32,7 @@ for package in os.listdir("packages"):
     manifest = ""
     for root, dirs, files in os.walk("."):
         for file in files:
-            if file == "manifest.install" or file == "icon.png" or file == "info.json":
+            if file == "manifest.install" or file == "icon.png" or file == "info.json" or file == "screen.png":
                 continue
             manifest += "U: %s\n" % os.path.join(root, file)[2:]
     manifest_file = open("manifest.install", "w")
@@ -43,8 +43,14 @@ for package in os.listdir("packages"):
     zipdir(".", zipf)
     zipf.close()
 
-    # this line isn't confusing at all
-    packages["packages"].append({"name": package})
+    # Detail zip package size in KB's
+    filesize = os.path.getsize(curdir + "/zips/" + package + ".zip")/1024
+
+    # Date last updated (assumption is that if the app is updated the info.json would be)
+    updated = time.strftime('%d/%m/%Y', time.gmtime(os.path.getmtime(curdir + "/packages/" + package + "/info.json")))
+
+    # this line isn't confusing at all (additonal info makes it less so)
+    packages["packages"].append({"name": package, "filesize": filesize, "updated": updated})
     
     # if a info.json file exists, load properties from it
     if os.path.exists("info.json"):
