@@ -11,8 +11,11 @@
 #include "rapidjson/document.h"
 #define u8 uint8_t
 
+#if defined (SWITCH)
 #define ROOT_PATH "/"
-//#define ROOT_PATH "sdroot/"
+#else
+#define ROOT_PATH "sdroot/"
+#endif
 
 Package::Package(int state)
 {
