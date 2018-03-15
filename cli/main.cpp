@@ -29,17 +29,16 @@ int main(int argc, char** args)
         else if (cur == "-l" || cur == "--list")
         {
             // list available remote packages
-            cout << "--> Listing available remotes and packages" << endl;
+			printf("--> Listing available remotes and packages\n");
             
-            cout << repos.size() << " repo" << plural(repos.size()) << " loaded!" << endl;
+			printf("%d repo%s loaded!\n", repos.size(), plural(repos.size()));
             for (int x=0; x<repos.size(); x++)
-                cout << "\t" << repos[x]->toString() << endl;
+                printf("\t%s\n", repos[x]->toString().c_str());
             
-            cout << packages.size() << " package" << plural(packages.size()) << " available!" << endl;
+			printf("%d package%s available!\n", packages.size(), plural(packages.size()));
             for (int x=0; x<packages.size(); x++)
-                cout << "\t" << packages[x]->statusString() << " " << packages[x]->toString() << endl;
+                printf("\t%s %s\n", packages[x]->statusString(), packages[x]->toString().c_str());
             
-            //            cout << "--> Listing installed packages" << endl;
             int count = 0;
             int updatecount = 0;
             for (int x=0; x<packages.size(); x++)
@@ -49,7 +48,8 @@ int main(int argc, char** args)
                 if (packages[x]->status == UPDATE)
                     updatecount++;
             }
-            cout << count << " package" << plural(count) << " installed" << endl << updatecount << " update" << plural(updatecount) << " available" << endl;
+			printf("%d package%s installed\n", count, plural(count));
+			printf("%d update%s available\n", updatecount, plural(updatecount));
             
         }
         else // assume argument is a package
@@ -77,7 +77,7 @@ int main(int argc, char** args)
             }
             
             if (!found)
-                cout << "--> No package named [" << cur << "] found in enabled repos!" << endl;
+                printf("--> No package named [%s] found in enabled repos!\n", cur.c_str());
         }
     }
     

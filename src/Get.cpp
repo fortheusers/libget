@@ -36,7 +36,7 @@ Get::Get(const char* config_dir, const char* defaultRepo)
 	mkdir(package_dir->c_str(), 0700);
 	mkdir(tmp_dir->c_str(), 0700);
 	
-	cout << "--> Using \"" << *repo_file << "\" as repo list" << endl;
+	printf("--> Using \"%s\" as repo list\n", repo_file->c_str());
 	
 	// load repo info
 	this->loadRepos();
@@ -52,14 +52,14 @@ int Get::install(Package* package)
 	{
 		// according to the repo list, the package zip file should've been here
 		// but we got a 404 and couldn't find it
-		cout << "--> Error retrieving remote file for [" << package->pkg_name << "] (check network or 404 error?)" << endl;
+		printf("--> Error retrieving remote file for [%s] (check network or 404 error?)\n", package->pkg_name.c_str());
 		return false;
 	}
 	
 	// install the package, (extracts manifest, etc)
 	package->install(this->pkg_path, this->tmp_path);
 	
-	cout << "--> Downloaded [" << package->pkg_name << "] to sdroot/" << endl;
+	printf("--> Downloaded [%s] to sdroot/\n", package->pkg_name.c_str());
 	
 	// update again post-install
 	update();
@@ -69,7 +69,7 @@ int Get::install(Package* package)
 int Get::remove(Package* package)
 {
 	package->remove(this->pkg_path);
-	cout << "--> Uninstalled [" << package->pkg_name << "] package" << endl;
+	printf("--> Uninstalled [%s] package\n", package->pkg_name.c_str());
 	update();
 	
 	return true;
@@ -94,7 +94,7 @@ void Get::loadRepos()
 	
 	if (!ifs->good() || ifs->peek() == std::ifstream::traits_type::eof())
 	{
-		cout << "--> Could not load repos from " << config_path << ", generating default repos.json" << endl;
+		printf("--> Could not load repos from %s, generating default repos.json\n", config_path);
 		
 		Repo* defaultRepo = new Repo("Default Repo", this->defaultRepo);
 		
@@ -111,7 +111,7 @@ void Get::loadRepos()
 		
 		if (!ifs->good())
 		{
-			cout << "--> Could not generate a new repos.json" << endl;
+			printf("--> Could not generate a new repos.json\n");
 			
 			// manually create a repo, no file access
 			Repo* repo = new Repo();
@@ -127,11 +127,11 @@ void Get::loadRepos()
 	IStreamWrapper isw(*ifs);
 	
 	Document doc;
-	doc.ParseStream(isw);
+	ParseResult ok = doc.ParseStream(isw);
 	
-	if (!doc.HasMember("repos"))
+	if (!ok || !doc.HasMember("repos"))
 	{
-		cout << "--> Invalid format in " << config_path << endl;
+		printf("--> Invalid format in %s", config_path);
 		return;
 	}
 	
@@ -165,6 +165,7 @@ void Get::update()
 	// check for any installed packages to update their status
 	for (int x=0; x<packages.size(); x++)
 		packages[x]->updateStatus(this->pkg_path);
+
 }
 
 int Get::validateRepos()

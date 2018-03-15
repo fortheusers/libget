@@ -125,7 +125,7 @@ int UnZip::ExtractFile(const char * internalPath,const char * path) {
 	unz_file_info_s * fileInfo = GetFileInfo();
 	
 	std::string fullPath(path);
-	printf("Extracting %s to: %s\n",internalPath,fullPath.c_str());
+	printf("Extracting file %s to: %s\n",internalPath,fullPath.c_str());
 	code = Extract(fullPath.c_str(),fileInfo);
 	free(fileInfo);
 	return code;
@@ -200,7 +200,7 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 	if(unzOpenCurrentFile(fileToUnzip) != UNZ_OK)
 		return -2;
 	
-	char folderPath[strlen(path)];
+	char folderPath[strlen(path)+1];
 	strcpy(folderPath,path);
 	char * pos = strrchr(folderPath,'/');
 
@@ -209,16 +209,19 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 		CreateSubfolder(folderPath);
 	}
 	
+
+	
 	u32 blocksize = 0x8000;
 	u8 * buffer = (u8*)malloc(blocksize);
 	if(buffer == NULL)
 		return -3;
 	u32 done = 0;
 	int writeBytes = 0;
-	
-	int fileNumber = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 
-	if(fileNumber == -1) {
+	
+	FILE* fp = fopen(path, "w");
+
+	if(fp == NULL) {
 		free(buffer);
 		return -4;		
 	}
@@ -228,14 +231,17 @@ int UnZip::Extract(const char * path, unz_file_info_s * fileInfo) {
 		if(done + blocksize > fileInfo->uncompressed_size) {
 			blocksize = fileInfo->uncompressed_size - done;
 		}
-		unzReadCurrentFile(fileToUnzip,buffer,blocksize);
-		writeBytes = write(fileNumber, buffer, blocksize);
+		unzReadCurrentFile(fileToUnzip, buffer, blocksize);
+		writeBytes = write(fileno(fp), buffer, blocksize);
 		if(writeBytes <= 0) {
 			break;
 		}
 		done += writeBytes;
 	}
-	close(fileNumber);
+	
+	fflush(fp);
+	fclose(fp);
+	
 	free(buffer);
 
 	if (done != fileInfo->uncompressed_size)

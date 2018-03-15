@@ -11,7 +11,8 @@
 #include "rapidjson/document.h"
 #define u8 uint8_t
 
-#define ROOT_PATH "./sdroot/"
+#define ROOT_PATH "/"
+//#define ROOT_PATH "sdroot/"
 
 Package::Package(int state)
 {
@@ -37,7 +38,7 @@ std::string Package::toString()
 bool Package::downloadZip(const char* tmp_path)
 {
 	// fetch zip file to tmp directory using curl
-	std::cout << "--> Downloading " << this->pkg_name << " to " << tmp_path << std::endl;
+	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path);
 	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
 }
 
@@ -57,7 +58,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
 	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
-
+	
 	//! Open the Manifest
 	std::ifstream ManifestFile;
 	ManifestFile.open(ManifestPath.c_str());
@@ -68,8 +69,8 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		//! Parse the manifest
 		std::stringstream Manifest;
 		Manifest << ManifestFile.rdbuf();
-
 		std::string CurrentLine;
+
 		while(std::getline(Manifest, CurrentLine))
 		{
 			char Mode = CurrentLine.at(0);
@@ -100,10 +101,10 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 					printf("%s : NOP\n", Path.c_str());
 					break;
 			}
-			
+
 			if (resp < 0)
 			{
-				std::cout << "--> Some issue happened while extracting! Error: " << resp << std::endl;
+				printf("--> Some issue happened while extracting! Error: %d\n", resp);
 				return false;
 			}
 		}
@@ -117,7 +118,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 //		printf("No manifest found: extracting the Zip\n");
 //		HomebrewZip->ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		std::cout << "No manifest file found (or error writing manifest download)! Refusing to extract." << std::endl;
+		printf("No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 		return false;
 	}
 
@@ -128,7 +129,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	//! Delete the Zip file
 	std::remove((tmp_path + this->pkg_name + ".zip").c_str());
-	
+
 	return true;
 }
 
@@ -196,7 +197,6 @@ bool Package::remove(const char* pkg_path)
 	
 	rmdir((std::string(pkg_path) + this->pkg_name).c_str());
 	
-	
 	printf("Homebrew removed\n");
 	
 	return true;
@@ -227,26 +227,26 @@ void Package::updateStatus(const char* pkg_path)
 		// different than the one on the repo
 		std::ifstream ifs(jsonPath.c_str());
 		rapidjson::IStreamWrapper isw(ifs);
-
+		
 		if (!ifs.good())
 		{
-			std::cout << "--> Could not locate " << jsonPath << std::endl;
+			printf("--> Could not locate %s", jsonPath.c_str());
 			this->status = UPDATE; // issue opening info.json, assume update
 			return;
 		}
 
 		rapidjson::Document doc;
-		doc.ParseStream(isw);
+		rapidjson::ParseResult ok = doc.ParseStream(isw);
 		std::string version;
 		
-		if (doc.HasMember("version"))
+		if (ok && doc.HasMember("version"))
 		{
 			const rapidjson::Value& info_doc = doc["version"];
 			version = info_doc.GetString();
 		}
 		else
 			version = "0.0.0";
-		
+
 		if (version != this->version)
 			this->status = UPDATE;
 		

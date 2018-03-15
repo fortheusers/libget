@@ -63,17 +63,17 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 
 	if (!success)
 	{
-		std::cout << "--> Could not update repository metadata for \"" << this->name << "\" repo!" << std::endl;
+		printf("--> Could not update repository metadata for \"%s\" repo!\n", this->name.c_str());
 		return;
 	}
 	
 	// extract out packages, append to package list
 	Document doc;
-	doc.Parse(response_copy->c_str());
+	ParseResult ok = doc.Parse(response_copy->c_str());
 	
-	if (!doc.IsObject() || !doc.HasMember("packages"))
+	if (!ok || !doc.IsObject() || !doc.HasMember("packages"))
 	{
-		std::cout << "--> Invalid format in downloaded repo.json for " << this->url << std::endl;
+		printf("--> Invalid format in downloaded repo.json for %s\n", this->url.c_str());
 		return;
 	}
 	
