@@ -167,7 +167,7 @@ bool Package::remove(const char* pkg_path)
 	while(std::getline(Manifest, CurrentLine))
 	{		
 		char Mode = CurrentLine.at(0);
-		std::string DeletePath = "sdroot/" + CurrentLine.substr(3);
+		std::string DeletePath = ROOT_PATH + CurrentLine.substr(3);
 		
 		switch(Mode)
 		{
