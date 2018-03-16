@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os, json, zipfile, time, datetime
+import os, json, zipfile, time, datetime, hashlib
 
 print("Content-type: text/html\n\n")
 
@@ -49,8 +49,13 @@ for package in os.listdir("packages"):
     # Date last updated (assumption is that if the app is updated the info.json would be)
     updated = time.strftime('%d/%m/%Y', time.gmtime(os.path.getmtime(curdir + "/packages/" + package + "/info.json")))
 
+    #md5 of package zip
+    filehash = hashlib.md5()
+    filehash.update(open(curdir + "/zips/" + package + ".zip").read())
+    mdhex = filehash.hexdigest()
+
     # this line isn't confusing at all (additonal info makes it less so)
-    packages["packages"].append({"name": package, "filesize": filesize, "updated": updated})
+    packages["packages"].append({"name": package, "filesize": filesize, "updated": updated, "md5": mdhex})
     
     # if a info.json file exists, load properties from it
     if os.path.exists("info.json"):
