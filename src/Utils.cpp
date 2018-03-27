@@ -11,10 +11,10 @@
 #include <cstdint>
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 
-#if defined(SWITCH) || defined(NOCURL)
+#if defined(NOCURL)
 	#include <arpa/inet.h>
-	#include <unistd.h>
 #else
 	#include <curl/curl.h>
 	#include <curl/easy.h>
@@ -68,7 +68,7 @@ bool mkpath( std::string path )
 		return bSuccess;
 }
 
-#if !defined(SWITCH) && !defined(NOCURL)
+#if !defined(NOCURL)
 	static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 	{
 		((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -102,9 +102,9 @@ bool mkpath( std::string path )
 #endif
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
-bool downloadFileToMemory(std::string path, std::string* buffer)
+bool downloadFileToMemory(std::string path, std::string* buffer, float* progress)
 {
-	#if defined(SWITCH) || defined(NOCURL)
+	#if defined(NOCURL)
 		int clientfd;
 		char buf[SOCK_BUFFERSIZE];
 	
@@ -120,6 +120,9 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 		// send GET request to remote
 		GET(clientfd, path.c_str());
 	
+		int size = 1;
+		int cumulative = 0;
+	
 		int got;
 		while (true)
 		{
@@ -131,6 +134,28 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 			
 			// save string to return later
 			buffer->append((char*)buf, got);
+			
+			// if the size is 1, try to parse the size out of the header
+			if (size == 1)
+			{
+				// TODO: better way to do this (probably best just to move to libcurl)
+				int lpos = buffer->find("Content-Length: ");
+				int rpos = buffer->find("\r\n", lpos);
+				if (lpos <=0 || rpos <= 0)
+				{
+					size = 2;
+					continue;
+				}
+				std::string size_string = buffer->substr(lpos+16, rpos-lpos);
+				size = std::stoi(size_string);		// get size out of header
+			}
+			
+			// update total downloaded so far
+			cumulative += got;
+			
+			// update progress bar, if present
+			if (progress != NULL)
+				*progress = cumulative / (size + 0.0f);
 		}
 	
 		close(clientfd);
@@ -139,7 +164,7 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 		int pos = buffer->find("\r\n\r\n");
 		buffer->erase(0, (pos == std::string::npos)? buffer->size() : pos+4);
 
-		return !buffer->empty();
+		return !buffer->empty() && *buffer != "404";
 	
 	#else
 		// below code uses libcurl, not available on the switch
@@ -156,7 +181,7 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 			res = curl_easy_perform(curl);
 			curl_easy_cleanup(curl);
 
-			if (*buffer == "")
+			if (*buffer == "" || *buffer == "404")
 				return false;
 
 			return true;
@@ -166,10 +191,10 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 	return false;
 }
 
-bool downloadFileToDisk(std::string remote_path, std::string local_path)
+bool downloadFileToDisk(std::string remote_path, std::string local_path, float* progress)
 {
 	std::string fileContents;
-	bool resp = downloadFileToMemory(remote_path, &fileContents);
+	bool resp = downloadFileToMemory(remote_path, &fileContents, progress);
 	if (!resp)
 		return false;
 	
@@ -197,4 +222,12 @@ int init_networking()
 		socketInitializeDefault();
 	#endif
 	return 1;
+}
+
+void cp(const char* from, const char* to)
+{
+	std::ifstream  src(from, std::ios::binary);
+	std::ofstream  dst(to,   std::ios::binary);
+	
+	dst << src.rdbuf();
 }

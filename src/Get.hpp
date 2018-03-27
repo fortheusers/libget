@@ -10,7 +10,7 @@ public:
 	// constructor takes path to the .get directory, and a fallback default repo url
 	Get(const char* config_dir, const char* defaultRepo);
 	
-	int install(Package* pkg_name);	   // download the given package name and manifest data
+	int install(Package* pkg_name);	   	// download the given package name and manifest data
 	int remove(Package* pkg_name);		// delete and remove all files for the given package name
 	int toggleRepo(Repo* repo);			// enable/disable the specified repo (and write changes)
 	
@@ -22,17 +22,17 @@ public:
 	//	  void enqueue(int count, ...)	// add a number of packages to the download queue
 	//	  void downloadAll()			// download all of the queued packages
 	
+	// config paths (TODO: replace with a Config class)
+	const char* repos_path;
+	const char* pkg_path;
+	const char* tmp_path;
+	
 private:
 	void loadRepos();
 	void update();
 	int validateRepos();
 	
 	const char* defaultRepo;
-	
-	// config paths (TODO: replace with a Config class)
-	const char* repos_path;
-	const char* pkg_path;
-	const char* tmp_path;
 	
 };
 #endif

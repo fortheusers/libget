@@ -38,11 +38,11 @@ std::string Package::toString()
 	return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
 }
 
-bool Package::downloadZip(const char* tmp_path)
+bool Package::downloadZip(const char* tmp_path, float* progress)
 {
 	// fetch zip file to tmp directory using curl
 	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path);
-	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
+	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip", progress);
 }
 
 bool Package::install(const char* pkg_path, const char* tmp_path)
@@ -275,13 +275,13 @@ const char* Package::statusString()
 	switch (this->status)
 	{
 		case LOCAL:
-			return "LOCAL	 ";
+			return "LOCAL";
 		case INSTALLED:
 			return "INSTALLED";
 		case UPDATE:
-			return "UPDATE	 ";
+			return "UPDATE";
 		case GET:
-			return "GET		 ";
+			return "GET";
 	}
 	return "UNKNOWN";
 }

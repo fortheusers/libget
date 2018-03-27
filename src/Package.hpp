@@ -11,7 +11,7 @@ class Package
 	~Package();
 	
 	std::string toString();
-	bool downloadZip(const char* tmp_path);
+	bool downloadZip(const char* tmp_path, float* progress = NULL);
 	bool install(const char* pkg_path, const char* tmp_path);
 	bool remove(const char* pkg_path);
 	const char* statusString();
@@ -31,7 +31,7 @@ class Package
 	int status;	 // local, update, installed, get
 	
 	// see top of file for enums
-	char category;
+	const char* category;
 	
 	// bitmask for permissions, from left to right:
 	// unused, iosu, kernel, nand, usb, sd, wifi, sound
