@@ -94,6 +94,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 			package->short_desc = (*it)["description"].GetString();
 		if ((*it).HasMember("version"))
 			package->version = (*it)["version"].GetString();
+		if ((*it).HasMember("category"))
+			package->category = (*it)["category"].GetString();
 		package->repoUrl = &this->url;
 
 		// save the response string to cleanup later

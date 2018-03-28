@@ -24,6 +24,7 @@ Package::Package(int state)
 	this->author = "Unknown";
 	this->version = "0.0.0";
 	this->short_desc = "N/A";
+	this->category = "*";
 	
 	this->status = state;
 }
@@ -42,7 +43,7 @@ bool Package::downloadZip(const char* tmp_path, float* progress)
 {
 	// fetch zip file to tmp directory using curl
 	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path);
-	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip", progress);
+	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
 }
 
 bool Package::install(const char* pkg_path, const char* tmp_path)

@@ -15,6 +15,9 @@
 
 #if defined(NOCURL)
 	#include <arpa/inet.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <sys/ioctl.h>
 #else
 	#include <curl/curl.h>
 	#include <curl/easy.h>
@@ -25,11 +28,10 @@
 #endif
 
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/ioctl.h>
 
 #include "Utils.hpp"
+
+void (*networking_callback)(float) = NULL;
 
 bool CreateSubfolder(char* cpath)
 {
@@ -102,7 +104,7 @@ bool mkpath( std::string path )
 #endif
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
-bool downloadFileToMemory(std::string path, std::string* buffer, float* progress)
+bool downloadFileToMemory(std::string path, std::string* buffer)
 {
 	#if defined(NOCURL)
 		int clientfd;
@@ -154,8 +156,8 @@ bool downloadFileToMemory(std::string path, std::string* buffer, float* progress
 			cumulative += got;
 			
 			// update progress bar, if present
-			if (progress != NULL)
-				*progress = cumulative / (size + 0.0f);
+			if (networking_callback != NULL)
+				networking_callback(cumulative / (size + 0.0f));
 		}
 	
 		close(clientfd);
@@ -191,10 +193,10 @@ bool downloadFileToMemory(std::string path, std::string* buffer, float* progress
 	return false;
 }
 
-bool downloadFileToDisk(std::string remote_path, std::string local_path, float* progress)
+bool downloadFileToDisk(std::string remote_path, std::string local_path)
 {
 	std::string fileContents;
-	bool resp = downloadFileToMemory(remote_path, &fileContents, progress);
+	bool resp = downloadFileToMemory(remote_path, &fileContents);
 	if (!resp)
 		return false;
 	

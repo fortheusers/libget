@@ -23,16 +23,14 @@ class Package
 	std::string author;
 	std::string short_desc;
 	std::string version;
+	std::string category;
 	
 	// Sorting attributes
 //	  Repo* parentRepo;
 	std::string* repoUrl;
 	
 	int status;	 // local, update, installed, get
-	
-	// see top of file for enums
-	const char* category;
-	
+		
 	// bitmask for permissions, from left to right:
 	// unused, iosu, kernel, nand, usb, sd, wifi, sound
 	char permissions;
