@@ -6,7 +6,7 @@ get is a WIP mini package manager. It's my intent to use this as the backend to 
 ## Why?
 **get** is intended for use in smaller systems, such as homebrew'd video game consoles, where there is code execution but not a full stack of tools that package managers usually utilize, such as shell scripts or external libraries.
 
-For early documentation on the proposed metadata syntax, see [this gist](https://gist.github.com/vgmoose/90f48949c95927c8e92c990bd6985b38).
+For early documentation, metadata syntax, and repo setup, see [the wiki](https://github.com/vgmoose/get/wiki).
 
 ## Usage
 ### Setting up repos
