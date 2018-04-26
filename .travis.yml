@@ -5,4 +5,4 @@ matrix:
     - os: linux
       dist: trusty
   
-script: make && make run_tests
+script: make && curl https://vgmoose.github.io/get/tests/server/a/repo.json && make run_tests
