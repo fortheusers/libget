@@ -182,7 +182,7 @@ std::cout << "curl init successful" << std::endl;
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
 			curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-			curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_MAX_DEFAULT);
+			curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 
 			res = curl_easy_perform(curl);
 			curl_easy_cleanup(curl);
