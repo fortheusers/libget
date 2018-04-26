@@ -185,7 +185,7 @@ std::cout << "curl init successful" << std::endl;
 
 			res = curl_easy_perform(curl);
 			curl_easy_cleanup(curl);
-std::cout << "downloaded the file maybe" << std::endl;
+std::cout << "downloaded the file maybe: " << res << std::endl;
 
 
 			if (*buffer == "" || *buffer == "404")
