@@ -2,12 +2,12 @@
     "repos": [
         {
             "name": "Test Repo A",
-            "url": "https://vgmoose.github.io/get/tests/server/a",
+            "url": "http://127.0.0.1:8000/a",
             "enabled": true
         },
         {
             "name": "Test Repo B",
-            "url": "https://vgmoose.github.io/get/tests/server/b",
+            "url": "http://127.0.0.1:8000/b",
             "enabled": false
         },
         {
