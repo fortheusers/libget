@@ -74,6 +74,7 @@ bool mkpath( std::string path )
 	static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 	{
 		((std::string*)userp)->append((char*)contents, size * nmemb);
+std::cout << "fetching.... [" << (char*)contents << "]" << std::endl;
 		return size * nmemb;
 	}
 #else
@@ -169,12 +170,14 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 		return !buffer->empty() && *buffer != "404";
 	
 	#else
+std::cout << "Starting curl download..." << std::endl;
 		// below code uses libcurl, not available on the switch
 		CURL *curl;
 		CURLcode res;
 
 		curl = curl_easy_init();
 		if(curl) {
+std::cout << "curl init successful" << std::endl;
 			curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
@@ -182,14 +185,19 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 			res = curl_easy_perform(curl);
 			curl_easy_cleanup(curl);
+std::cout << "downloaded the file maybe" << std::endl;
+
 
 			if (*buffer == "" || *buffer == "404")
 				return false;
+
+std::cout << "it wasn't empty" << std::endl;
 
 			return true;
 		}
 
 	#endif
+std::cout << "got here" << std::endl;
 	return false;
 }
 
