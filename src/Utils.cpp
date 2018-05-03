@@ -13,6 +13,10 @@
 #include <fstream>
 #include <unistd.h>
 
+#if defined(WIIU)
+	#include <dynamic_libs/socket_functions.h>
+#endif
+
 #if defined(NOCURL)
 	#include <arpa/inet.h>
 	#include <sys/socket.h>
@@ -27,9 +31,19 @@
 	#include <switch.h>
 #endif
 
-
-
 #include "Utils.hpp"
+
+#if defined(WIIU)
+	#include <dynamic_libs/curl_functions.h>
+	#define curl_easy_init n_curl_easy_init
+	#define curl_easy_setopt n_curl_easy_setopt
+	#define curl_easy_setopt n_curl_easy_setopt
+	#define curl_easy_setopt n_curl_easy_setopt
+	#define curl_easy_setopt n_curl_easy_setopt
+	#define curl_easy_perform n_curl_easy_perform
+	#define curl_easy_cleanup n_curl_easy_cleanup
+#endif
+
 
 void (*networking_callback)(float) = NULL;
 
