@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
+#include <algorithm>
 
 #if defined(WIIU)
 	#include <dynamic_libs/socket_functions.h>
@@ -97,7 +98,7 @@ bool mkpath( std::string path )
 	int establishConnection()
 	{
 		int clientfd = socket(AF_INET, SOCK_STREAM, 0);
-		
+
 		// Connect to the remote server
 		struct sockaddr_in remoteaddr;
 		remoteaddr.sin_family = AF_INET;
@@ -105,7 +106,7 @@ bool mkpath( std::string path )
 //		remoteaddr.sin_addr.s_addr = inet_addr("192.168.1.104");
 		remoteaddr.sin_port = htons(80);
 		connect(clientfd, (struct sockaddr *)&remoteaddr, sizeof(remoteaddr));
-		
+
 		return clientfd;
 	}
 
@@ -123,34 +124,34 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 	#if defined(NOCURL)
 		int clientfd;
 		char buf[SOCK_BUFFERSIZE];
-	
+
 		static int sock_buffersize = SOCK_BUFFERSIZE;
-	
+
 		// Establish connection with <hostname>:<port>
 		clientfd = establishConnection();
-	
+
 		// increase buffer size
 		setsockopt(clientfd, SOL_SOCKET, SO_RCVBUF, &sock_buffersize, sizeof(sock_buffersize));
 		setsockopt(clientfd, SOL_SOCKET, SO_SNDBUF, &sock_buffersize, sizeof(sock_buffersize));
-	
+
 		// send GET request to remote
 		GET(clientfd, path.c_str());
-	
+
 		int size = 1;
 		int cumulative = 0;
-	
+
 		int got;
 		while (true)
 		{
 			// receive SOCK_BUFFERSIZE bytes at a time
 			got = recv(clientfd, buf, SOCK_BUFFERSIZE, 0);
-			
+
 			// break if nothing received
 			if (got <= 0) break;
-			
+
 			// save string to return later
 			buffer->append((char*)buf, got);
-			
+
 			// if the size is 1, try to parse the size out of the header
 			if (size == 1)
 			{
@@ -165,23 +166,23 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 				std::string size_string = buffer->substr(lpos+16, rpos-lpos);
 				size = std::stoi(size_string);		// get size out of header
 			}
-			
+
 			// update total downloaded so far
 			cumulative += got;
-			
+
 			// update progress bar, if present
 			if (networking_callback != NULL)
 				networking_callback(cumulative / (size + 0.0f));
 		}
-	
+
 		close(clientfd);
-	
+
 		// chop off the header (and also totally ignore anything it said)
 		int pos = buffer->find("\r\n\r\n");
 		buffer->erase(0, (pos == std::string::npos)? buffer->size() : pos+4);
 
 		return !buffer->empty() && *buffer != "404";
-	
+
 	#else
 		// below code uses libcurl, not available on the switch
 		CURL *curl;
@@ -213,15 +214,15 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
 	bool resp = downloadFileToMemory(remote_path, &fileContents);
 	if (!resp)
 		return false;
-	
+
 	std::ofstream file(local_path);
 	file << fileContents;
 	file.close();
-	
+
 	#if defined(SWITCH)
 		usleep(1000);
 	#endif
-	
+
 	return true;
 }
 
@@ -244,6 +245,13 @@ void cp(const char* from, const char* to)
 {
 	std::ifstream  src(from, std::ios::binary);
 	std::ofstream  dst(to,   std::ios::binary);
-	
+
 	dst << src.rdbuf();
+}
+
+std::string toLower(const std::string& str)
+{
+    std::string lower;
+    transform(str.begin(), str.end(), std::back_inserter(lower), tolower);
+    return lower;
 }

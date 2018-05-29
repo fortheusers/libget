@@ -10,7 +10,7 @@ using namespace rapidjson;
 
 Repo::Repo()
 {
-	
+
 }
 
 Repo::Repo(const char* name, const char* url)
@@ -31,18 +31,18 @@ std::string Repo::toJson()
 std::string generateRepoJson(int count, ...)
 {
 	va_list ap;
-	
+
 	std::stringstream response;
 	response << "{\n\t\"repos\": [\n";
-	
+
 	va_start(ap, count);
-	
+
 	for (int x=0; x<count; x++)
 		response << (va_arg(ap, Repo*))->toJson();
-		
+
 	va_end(ap);
 	response << "\t]\n}\n";
-			
+
 	return response.str();
 }
 
@@ -54,11 +54,11 @@ std::string Repo::toString()
 void Repo::loadPackages(std::vector<Package*>* packages)
 {
 	std::string directoryUrl = this->url + "/repo.json";
-	
+
 	// fetch current repository json
 	std::string response;
 	bool success = downloadFileToMemory(directoryUrl, &response);
-	
+
 	std::string* response_copy = new std::string(response);
 
 	if (!success)
@@ -66,17 +66,17 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		printf("--> Could not update repository metadata for \"%s\" repo!\n", this->name.c_str());
 		return;
 	}
-	
+
 	// extract out packages, append to package list
 	Document doc;
 	ParseResult ok = doc.Parse(response_copy->c_str());
-	
+
 	if (!ok || !doc.IsObject() || !doc.HasMember("packages"))
 	{
 		printf("--> Invalid format in downloaded repo.json for %s\n", this->url.c_str());
 		return;
 	}
-	
+
 	const Value& packages_doc = doc["packages"];
 
 	// for every repo
@@ -92,6 +92,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 			package->author = (*it)["author"].GetString();
 		if ((*it).HasMember("description"))
 			package->short_desc = (*it)["description"].GetString();
+		if ((*it).HasMember("details"))
+			package->long_desc = (*it)["details"].GetString();
 		if ((*it).HasMember("version"))
 			package->version = (*it)["version"].GetString();
 		if ((*it).HasMember("category"))

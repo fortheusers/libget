@@ -17,4 +17,4 @@ extern void (*networking_callback)(float);
 // helper methods
 const char* plural(int amount);
 void cp(const char* from, const char* to);
-
+std::string toLower(const std::string& str);

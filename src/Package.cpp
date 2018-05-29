@@ -24,8 +24,9 @@ Package::Package(int state)
 	this->author = "Unknown";
 	this->version = "0.0.0";
 	this->short_desc = "N/A";
+	this->long_desc = "N/A";
 	this->category = "*";
-	
+
 	this->status = state;
 }
 
@@ -49,7 +50,7 @@ bool Package::downloadZip(const char* tmp_path, float* progress)
 bool Package::install(const char* pkg_path, const char* tmp_path)
 {
 	// assumes that download was called first
-	
+
 	//! Open the Zip file
 	UnZip * HomebrewZip = new UnZip((tmp_path + this->pkg_name + ".zip").c_str());
 
@@ -62,7 +63,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
 	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
-	
+
 	//! Open the Manifest
 	std::ifstream ManifestFile;
 	ManifestFile.open(ManifestPath.c_str());
@@ -142,9 +143,9 @@ bool Package::remove(const char* pkg_path)
 	// perform an uninstall of the current package, parsing the cached metadata
 	std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
-	
+
 	printf("-> HomebrewManager::Delete\n");
-	
+
 	struct stat sbuff;
 	if (stat(ManifestPath.c_str(), &sbuff) != 0) //! There's no manifest
 	{
@@ -153,23 +154,23 @@ bool Package::remove(const char* pkg_path)
 		printf("--> ERROR: no manifest found at %s\n", ManifestPath.c_str());
 		return false;
 	}
-	
+
 	//! Open the manifest normally
 	std::ifstream ManifestFile;
 	ManifestFile.open(ManifestPath.c_str());
-	
+
 	std::stringstream Manifest;
 	Manifest << ManifestFile.rdbuf();
-	
+
 	//! Parse the manifest
 	printf("Parsing the Manifest\n");
-	
+
 	std::string CurrentLine;
 	while(std::getline(Manifest, CurrentLine))
-	{		
+	{
 		char Mode = CurrentLine.at(0);
 		std::string DeletePath = ROOT_PATH + CurrentLine.substr(3);
-		
+
 		switch(Mode)
 		{
 			case 'U':
@@ -191,18 +192,18 @@ bool Package::remove(const char* pkg_path)
 				break;
 		}
 	}
-	
+
 	printf("Removing manifest...\n");
-	
+
 	ManifestFile.close();
-	
+
 	std::remove(ManifestPath.c_str());
 	std::remove((std::string(pkg_path) + this->pkg_name + "/info.json").c_str());
-	
+
 	rmdir((std::string(pkg_path) + this->pkg_name).c_str());
-	
+
 	printf("Homebrew removed\n");
-	
+
 	return true;
 }
 
@@ -210,28 +211,28 @@ void Package::updateStatus(const char* pkg_path)
 {
 	// check if the manifest for this package exists
 	std::string ManifestPathInternal = "manifest.install";
-	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;	
-	
+	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
+
 	struct stat sbuff;
 	if (stat(ManifestPath.c_str(), &sbuff) == 0)
 	{
 		// manifest exists, we are at least installed
 		this->status = INSTALLED;
 	}
-	
+
 	// TODO: check for info.json, parse version out of it
 	// and compare against the package's to know whether
 	// it's an update or not
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
-	
+
 	if (INSTALLED && stat(jsonPath.c_str(), &sbuff) == 0)
 	{
 		// pull out the version number and check if it's
 		// different than the one on the repo
 		std::ifstream ifs(jsonPath.c_str());
 		rapidjson::IStreamWrapper isw(ifs);
-		
+
 		if (!ifs.good())
 		{
 			printf("--> Could not locate %s", jsonPath.c_str());
@@ -242,7 +243,7 @@ void Package::updateStatus(const char* pkg_path)
 		rapidjson::Document doc;
 		rapidjson::ParseResult ok = doc.ParseStream(isw);
 		std::string version;
-		
+
 		if (ok && doc.HasMember("version"))
 		{
 			const rapidjson::Value& info_doc = doc["version"];
@@ -253,7 +254,7 @@ void Package::updateStatus(const char* pkg_path)
 
 		if (version != this->version)
 			this->status = UPDATE;
-		
+
 		// we're eithe ran update or an install at this point
 		return;
 	}
@@ -262,13 +263,13 @@ void Package::updateStatus(const char* pkg_path)
 		this->status = UPDATE; // manifest, but no info, always update
 		return;
 	}
-	
+
 	// if we're down here, and it's not a local package
 	// already, it's probably a get package (package was
 	// available, but the manifest wasn't installed)
 	if (this->status != LOCAL)
 		this->status = GET;
-		
+
 }
 
 const char* Package::statusString()
