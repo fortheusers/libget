@@ -205,7 +205,7 @@ bool Package::remove(const char* pkg_path)
 	// package removed, clean up empty directories
 	// TODO: potentially prompt user to remove some known config files for a given package
 	// see: https://github.com/vgmoose/get/issues/1
-	remove_empty_dirs("./sdroot", 0);
+	remove_empty_dirs(ROOT_PATH, 0);
 
 	printf("Homebrew removed\n");
 
