@@ -18,3 +18,4 @@ extern void (*networking_callback)(float);
 const char* plural(int amount);
 void cp(const char* from, const char* to);
 std::string toLower(const std::string& str);
+int remove_empty_dirs(const char* name, int count);

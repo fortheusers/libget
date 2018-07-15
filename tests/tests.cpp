@@ -26,6 +26,15 @@ bool install(Get* get, const char* name)
     return false;
 }
 
+bool remove(Get* get, const char* name)
+{
+    for (int x=0; x<get->packages.size(); x++)
+        if (get->packages[x]->pkg_name == name)
+            return get->remove(get->packages[x]);
+
+    return false;
+}
+
 bool exists(const char* path)
 {
     struct stat sbuff;
@@ -106,6 +115,23 @@ int main()
       cout << "Searching for \"t\" returned " << results.size() << " results instead of 2" << endl;
       return 4;
     }
+
+    // make sure that empty folders are cleaned up afterwards... when removing a package
+    remove(get, "four");
+    if (exists("./sdroot/folder1") || exists("./sdroot/folder2") || exists("./sdroot/folder3"))
+    {
+      cout << "Tried to remove \"four\", but directory remained behind (should be empty)." << endl;
+      return 5;
+    }
+
+    // make sure it goes down (total installed/updated package count)
+    int sum = count(get, INSTALLED) + count(get, UPDATE);
+    if (sum != 2)
+    {
+      cout << "There should only be 2 packages installed after removing one" << endl;
+      return 6;
+    }
+
     // tests passed!
     return 0;
 }

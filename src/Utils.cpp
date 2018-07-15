@@ -251,7 +251,59 @@ void cp(const char* from, const char* to)
 
 std::string toLower(const std::string& str)
 {
-    std::string lower;
-    transform(str.begin(), str.end(), std::back_inserter(lower), tolower);
-    return lower;
+  std::string lower;
+  transform(str.begin(), str.end(), std::back_inserter(lower), tolower);
+  return lower;
+}
+
+int remove_empty_dirs(const char* name, int count)
+{
+  // from incoming path, recursively ensure all directories are deleted
+  // return the number of files remaining (0 if totally erased and successful)
+
+	// based on https://stackoverflow.com/a/8438663
+
+	int starting_count = count;
+
+	DIR *dir;
+	struct dirent *entry;
+
+	// already deleted
+	if (!(dir = opendir(name)))
+			return true;
+
+	// go through files in directory
+	while ((entry = readdir(dir)) != NULL)
+	{
+		if (entry->d_type == DT_DIR)
+		{
+			char path[1024];
+			// skip current dir or parent dir
+			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+					continue;
+
+			// update path so far
+			snprintf(path, sizeof(path), "%s/%s", name, entry->d_name);
+
+			// recursively go into this directory too
+			count += remove_empty_dirs(path, count);
+		}
+		else
+		{
+			// file found, increase file count
+			count ++;
+		}
+	}
+
+	// now that we've been through this directory, check if it was an empty directory
+	if (count == starting_count)
+	{
+		// empty, try rmdir (should only remove if empty anyway)
+		rmdir(name);
+	}
+
+	closedir(dir);
+
+	// return number of files at this level (total count minus starting)
+	return count - starting_count;
 }
