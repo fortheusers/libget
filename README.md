@@ -1,12 +1,12 @@
 # get
 [![Build Status](https://travis-ci.org/vgmoose/get.svg?branch=master)](https://travis-ci.org/vgmoose/get)
 
-get is a WIP mini package manager. It's my intent to use this as the backend to [Homebrew App Store](http://github.com/vgmoose/hbas) to allow more formal package management.
+get is a mini package manager that is used as the backend to [Homebrew App Store](http://github.com/vgmoose/hbas) to allow more formal package management.
 
 ## Why?
 **get** is intended for use in smaller systems, such as homebrew'd video game consoles, where there is code execution but not a full stack of tools that package managers usually utilize, such as shell scripts or external libraries.
 
-For early documentation, metadata syntax, and repo setup, see [the wiki](https://github.com/vgmoose/get/wiki).
+For documentation, metadata syntax, and repo setup, see [the wiki](https://github.com/vgmoose/get/wiki).
 
 ## Usage
 ### Setting up repos
@@ -38,8 +38,15 @@ Installing a package requires the desired package name to exist in one of the re
 It will try to fetch `/zips/space.zip` from the repo that contains the `space` package, and save it in `sd:/`.
 
 ### Listing all available packages
+All available remote packages and their current status on disk will be listed.
 ```
 ./get -l
+```
+
+### Searching for a specific package
+Search for a given string in the remote packages' name and description.
+```
+./get -s spa
 ```
 
 ### Removing an installed package
