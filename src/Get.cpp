@@ -195,6 +195,7 @@ std::vector<Package*> Get::search(std::string query)
 		Package* cur = packages[x];
 		if (cur != NULL &&
 			(toLower(cur->title).find(lower_query) != std::string::npos
+				|| toLower(cur->author).find(lower_query) != std::string::npos
 				|| toLower(cur->short_desc).find(lower_query) != std::string::npos
 				|| toLower(cur->long_desc).find(lower_query) != std::string::npos))
 		{

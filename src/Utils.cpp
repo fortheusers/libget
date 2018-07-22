@@ -235,7 +235,6 @@ int init_networking()
 {
 	#if defined (SWITCH)
 		usleep(1000);
-		gfxInitDefault();
 		socketInitializeDefault();
 	#endif
 	return 1;
