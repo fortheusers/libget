@@ -3,6 +3,6 @@ sudo: required
 matrix:
   include:
     - os: linux
-      dist: trusty
-  
+      dist: xenial
+
 script: make && make run_tests
