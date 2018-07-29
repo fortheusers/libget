@@ -4,6 +4,7 @@
 #include "rapidjson/document.h"
 #include "constants.h"
 #include <sstream>
+#include <regex>
 #include <stdarg.h>		/* va_list, va_start, va_arg, va_end */
 
 using namespace rapidjson;
@@ -93,7 +94,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		if ((*it).HasMember("description"))
 			package->short_desc = (*it)["description"].GetString();
 		if ((*it).HasMember("details"))
-			package->long_desc = (*it)["details"].GetString();
+			package->long_desc = std::regex_replace((*it)["details"].GetString(), std::regex("\\\\n"), "\n");
 		if ((*it).HasMember("version"))
 			package->version = (*it)["version"].GetString();
 		if ((*it).HasMember("category"))
