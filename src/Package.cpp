@@ -25,6 +25,16 @@ Package::Package(int state)
 	this->version = "0.0.0";
 	this->short_desc = "N/A";
 	this->long_desc = "N/A";
+    
+    this->license = "";
+    this->changelog = "";
+    this->url = "";
+    this->updated = "";
+    
+    this->download_size = 0;
+    this->extracted_size = 0;
+    this->downloads = 0;
+    
 	this->category = "*";
 
 	this->status = state;

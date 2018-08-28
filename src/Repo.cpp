@@ -65,6 +65,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	if (!success)
 	{
 		printf("--> Could not update repository metadata for \"%s\" repo!\n", this->name.c_str());
+        this->loaded = false;
 		return;
 	}
 
@@ -75,6 +76,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	if (!ok || !doc.IsObject() || !doc.HasMember("packages"))
 	{
 		printf("--> Invalid format in downloaded repo.json for %s\n", this->url.c_str());
+        this->loaded = false;
 		return;
 	}
 
@@ -84,6 +86,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	for(Value::ConstValueIterator it=packages_doc.Begin(); it != packages_doc.End(); it++)
 	{
 		Package* package = new Package(GET);
+        
+        // mostly essential attributes
 		package->pkg_name = (*it)["name"].GetString();
 		if ((*it).HasMember("title"))
 			package->title = (*it)["title"].GetString();
@@ -97,6 +101,27 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 			package->long_desc = std::regex_replace((*it)["details"].GetString(), std::regex("\\\\n"), "\n");
 		if ((*it).HasMember("version"))
 			package->version = (*it)["version"].GetString();
+        
+        // more information and details
+        if ((*it).HasMember("license"))
+            package->license = (*it)["license"].GetString();
+        if ((*it).HasMember("changelog"))
+            package->changelog = (*it)["changelog"].GetString();
+        if ((*it).HasMember("url"))
+            package->url = (*it)["url"].GetString();
+        if ((*it).HasMember("updated"))
+            package->updated = (*it)["updated"].GetString();
+        
+        // even more details
+        if ((*it).HasMember("app_dls"))
+            package->downloads += (*it)["app_dls"].GetInt();
+        if ((*it).HasMember("web_dls"))
+            package->downloads += (*it)["web_dls"].GetInt();
+        if ((*it).HasMember("extracted"))
+            package->extracted_size += (*it)["extracted"].GetInt();
+        if ((*it).HasMember("filesize"))
+            package->download_size += (*it)["filesize"].GetInt();
+        
 		if ((*it).HasMember("category"))
 			package->category = (*it)["category"].GetString();
 		package->repoUrl = &this->url;

@@ -24,6 +24,17 @@ class Package
 	std::string short_desc;
 	std::string long_desc;
 	std::string version;
+    
+    std::string license;
+    std::string changelog;
+    std::string url;
+    std::string updated;
+    
+    int downloads = 0;
+    int extracted_size = 0;
+    int download_size = 0;
+    
+    
 	std::string category;
 
 	// Sorting attributes

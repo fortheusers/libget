@@ -16,6 +16,7 @@ class Repo
 	std::string name;
 	std::string url;
 	bool enabled;
+    bool loaded = true; // whether this server could be reached or not
 };
 
 std::string generateRepoJson(int count, ...);
