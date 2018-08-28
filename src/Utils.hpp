@@ -12,7 +12,7 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path);	// sav
 
 // callback for networking progress
 // if set, will be invoked during the download
-extern void (*networking_callback)(float);
+extern int (*networking_callback) (void*, double, double, double, double);
 
 // helper methods
 const char* plural(int amount);
