@@ -97,14 +97,12 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
         curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
-        curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
-        if (*buffer == "" || *buffer == "404")
+        if (*buffer == "" || *buffer == "404" || res != CURLE_OK)
             return false;
 
         return true;
@@ -124,10 +122,6 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
 	file << fileContents;
 	file.close();
 
-	#if defined(SWITCH)
-		usleep(1000);
-	#endif
-
 	return true;
 }
 
@@ -139,9 +133,9 @@ const char* plural(int amount)
 int init_networking()
 {
 	#if defined (SWITCH)
-		usleep(1000);
 		socketInitializeDefault();
 	#endif
+    curl_global_init(CURL_GLOBAL_ALL);
 	return 1;
 }
 
