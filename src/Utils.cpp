@@ -97,6 +97,7 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
         curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
 
         res = curl_easy_perform(curl);
