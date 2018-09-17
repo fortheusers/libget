@@ -25,6 +25,10 @@
 	#include <switch.h>
 #endif
 
+#if defined (__WIIU__)
+	#include <nsysnet/socket.h>
+#endif
+
 #include "Utils.hpp"
 
 #if defined(WIIU)
@@ -136,6 +140,10 @@ int init_networking()
 	#if defined (SWITCH)
 		socketInitializeDefault();
 	#endif
+	#if defined (__WIIU__)
+		socket_lib_init();
+	#endif
+
     curl_global_init(CURL_GLOBAL_ALL);
 	return 1;
 }
