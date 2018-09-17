@@ -13,6 +13,8 @@
 
 #if defined (SWITCH)
 #define ROOT_PATH "/"
+#elif defined (__WIIU__)
+#define ROOT_PATH "fs:/vol/external01"
 #else
 #define ROOT_PATH "sdroot/"
 #endif
