@@ -37,7 +37,7 @@ Package::Package(int state)
     this->extracted_size = 0;
     this->downloads = 0;
     
-	this->category = "*";
+	this->category = "_all";
 
 	this->status = state;
 }
