@@ -11,14 +11,6 @@
 #include "rapidjson/document.h"
 #define u8 uint8_t
 
-#if defined (SWITCH)
-#define ROOT_PATH "/"
-#elif defined (__WIIU__)
-#define ROOT_PATH "fs:/vol/external01/"
-#else
-#define ROOT_PATH "sdroot/"
-#endif
-
 #if defined(__WIIU__)
 // include xml files for legacy hb app store support
 #include "tinyxml.h"
@@ -37,6 +29,7 @@ Package::Package(int state)
     this->changelog = "";
     this->url = "";
     this->updated = "";
+    this->updated_timestamp = 0;
     
     this->download_size = 0;
     this->extracted_size = 0;

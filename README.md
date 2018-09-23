@@ -1,7 +1,7 @@
 # get
-[![Build Status](https://travis-ci.org/vgmoose/get.svg?branch=master)](https://travis-ci.org/vgmoose/get)
+[![Build Status](https://travis-ci.org/vgmoose/libget.svg?branch=master)](https://travis-ci.org/vgmoose/libget)
 
-get is a mini package manager that is used as the backend to [Homebrew App Store](http://github.com/vgmoose/hbas) to allow more formal package management.
+get is a mini package manager that is used as the backend to [Homebrew App Store](http://github.com/vgmoose/hb-appstore) to allow more formal package management.
 
 ## Why?
 **get** is intended for use in smaller systems, such as homebrew'd video game consoles, where there is code execution but not a full stack of tools that package managers usually utilize, such as shell scripts or external libraries.
