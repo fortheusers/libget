@@ -16,6 +16,8 @@ class Package
 	bool remove(const char* pkg_path);
 	const char* statusString();
 	void updateStatus(const char* pkg_path);
+    
+    int isPreviouslyInstalled();
 
 	// Package attributes
 	std::string pkg_name;
