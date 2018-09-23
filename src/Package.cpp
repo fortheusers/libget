@@ -318,7 +318,7 @@ int Package::isPreviouslyInstalled()
                 if (this->version != node->FirstChild()->Value())
                     return UPDATE;
                 else
-                    return INSTALLED;
+                    return LOCAL;
             }
         }
     }
