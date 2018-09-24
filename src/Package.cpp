@@ -33,7 +33,7 @@ Package::Package(int state)
     this->url = "";
     this->updated = "";
     this->updated_timestamp = 0;
-    
+
     this->download_size = 0;
     this->extracted_size = 0;
     this->downloads = 0;
@@ -217,21 +217,31 @@ bool Package::remove(const char* pkg_path)
 		folders.push_back(folder);
 	std::sort(folders.begin(), folders.end(), compareLen);
 
+std::vector<std::string> intermediate_folders;
+
 	// rmdir (only works if folders are empty!) out all uniq dirs...
 	for (auto& folder : folders)
 	{
 		auto parent = dir_name(folder);
 		while (parent != "")
 		{
+			std::cout << "processing... " << parent << "\n";
 			if (uniq_folders.find(parent) == uniq_folders.end())
 			{
+				std::cout << "adding " << parent << "\n";
+
 				// folder not already seen, track it
 				uniq_folders.insert(parent);
-				folders.push_back(parent);
+				intermediate_folders.push_back(parent);
 			}
 			parent = dir_name(parent);
 		}
 	}
+
+	// have to re-add these outside of the loop because we can't
+	// modify the vector while iterating through it
+	for (auto& folder : intermediate_folders)
+		folders.push_back(folder);
 
 	//re-sort it
 	std::sort(folders.begin(), folders.end(), compareLen);
@@ -320,7 +330,7 @@ void Package::updateStatus(const char* pkg_path)
 	// available, but the manifest wasn't installed)
 	if (this->status != LOCAL)
 		this->status = GET;
-    
+
     // check for any homebrew that may have been previously installed
     // TODO: see https://github.com/vgmoose/hb-appstore/issues/20
     this->status = this->isPreviouslyInstalled();
@@ -334,7 +344,7 @@ int Package::isPreviouslyInstalled()
     // and if it exists check the version based on that
     TiXmlDocument xmlDoc((std::string(ROOT_PATH) + "wiiu/apps/" + this->pkg_name + "/meta.xml").c_str());
     bool xmlExists = xmlDoc.LoadFile();
-                      
+
     if (xmlExists)
     {
         TiXmlElement* appNode =  xmlDoc.FirstChildElement("app");
