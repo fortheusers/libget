@@ -14,13 +14,9 @@
 #include "rapidjson/document.h"
 #define u8 uint8_t
 
-// different default paths for each platform
-#if defined (SWITCH)
-#define ROOT_PATH "/"
-#elif defined (__WIIU__)
-#define ROOT_PATH "fs:/vol/external01"
-#else
-#define ROOT_PATH "sdroot/"
+#if defined(__WIIU__)
+// include xml files for legacy hb app store support
+#include "tinyxml.h"
 #endif
 
 Package::Package(int state)
@@ -36,7 +32,8 @@ Package::Package(int state)
     this->changelog = "";
     this->url = "";
     this->updated = "";
-
+    this->updated_timestamp = 0;
+    
     this->download_size = 0;
     this->extracted_size = 0;
     this->downloads = 0;
@@ -323,7 +320,39 @@ void Package::updateStatus(const char* pkg_path)
 	// available, but the manifest wasn't installed)
 	if (this->status != LOCAL)
 		this->status = GET;
+    
+    // check for any homebrew that may have been previously installed
+    // TODO: see https://github.com/vgmoose/hb-appstore/issues/20
+    this->status = this->isPreviouslyInstalled();
 
+}
+
+int Package::isPreviouslyInstalled()
+{
+#if defined(__WIIU__)
+    // we're on a Wii U, so let's check for any HBL meta.xml files that match this package's name,
+    // and if it exists check the version based on that
+    TiXmlDocument xmlDoc((std::string(ROOT_PATH) + "wiiu/apps/" + this->pkg_name + "/meta.xml").c_str());
+    bool xmlExists = xmlDoc.LoadFile();
+                      
+    if (xmlExists)
+    {
+        TiXmlElement* appNode =  xmlDoc.FirstChildElement("app");
+        if (appNode)
+        {
+            TiXmlElement *node = appNode->FirstChildElement("version");
+            if(node && node->FirstChild() && node->FirstChild()->Value())
+            {
+                // version exists, we should compare the value to the one on the server (this package)
+                if (this->version != node->FirstChild()->Value())
+                    return UPDATE;
+                else
+                    return LOCAL;
+            }
+        }
+    }
+#endif
+    return this->status;
 }
 
 const char* Package::statusString()

@@ -4,6 +4,14 @@
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 
+#if defined (SWITCH)
+#define ROOT_PATH "/"
+#elif defined (__WIIU__)
+#define ROOT_PATH "fs:/vol/external01/"
+#else
+#define ROOT_PATH "sdroot/"
+#endif
+
 class Package
 {
 	public:
@@ -16,6 +24,8 @@ class Package
 	bool remove(const char* pkg_path);
 	const char* statusString();
 	void updateStatus(const char* pkg_path);
+    
+    int isPreviouslyInstalled();
 
 	// Package attributes
 	std::string pkg_name;
@@ -29,6 +39,7 @@ class Package
     std::string changelog;
     std::string url;
     std::string updated;
+    int updated_timestamp = 0;
     
     int downloads = 0;
     int extracted_size = 0;

@@ -110,7 +110,18 @@ void Repo::loadPackages(std::vector<Package*>* packages)
         if ((*it).HasMember("url"))
             package->url = (*it)["url"].GetString();
         if ((*it).HasMember("updated"))
+        {
             package->updated = (*it)["updated"].GetString();
+            struct tm tm;
+            time_t ts;
+            
+            auto res = strptime(package->updated.c_str(), "%d/%m/%Y", &tm);
+            if (res)
+            {
+                ts = mktime(&tm);
+                package->updated_timestamp = (int)ts;
+            }
+        }
         
         // even more details
         if ((*it).HasMember("app_dls"))
