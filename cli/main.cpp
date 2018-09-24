@@ -10,6 +10,8 @@ using namespace std;
 
 int main(int argc, char** args)
 {
+    init_networking();
+    
     // create main Get object
     Get* get = new Get("./.get/", "http://switchbru.com/appstore");
 

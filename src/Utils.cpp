@@ -45,6 +45,8 @@
 
 int (*networking_callback) (void*, double, double, double, double);
 
+// reference to the curl handle so that we can re-use the connection
+CURL* curl = NULL;
 
 bool CreateSubfolder(char* cpath)
 {
@@ -92,11 +94,8 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
 bool downloadFileToMemory(std::string path, std::string* buffer)
 {
-    // below code uses libcurl, not available on the switch
-    CURL *curl;
     CURLcode res;
 
-    curl = curl_easy_init();
     if(curl) {
         curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -105,7 +104,6 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
 
         res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
 
         if (*buffer == "" || *buffer == "404" || res != CURLE_OK)
             return false;
@@ -135,6 +133,24 @@ const char* plural(int amount)
 	return (amount == 1)? "" : "s";
 }
 
+const std::string dir_name(std::string file_path)
+{
+	// turns "/hi/man/thing.txt to /hi/man"
+	int pos = file_path.find_last_of("/");
+
+	// no "/" in string, return empty string
+	if (pos == std::string::npos)
+		return "";
+
+	return file_path.substr(0, pos);
+}
+
+// sorting function: put bigger strings at the front
+bool compareLen(const std::string& a, const std::string& b)
+{
+    return (a.size() > b.size());
+}
+
 int init_networking()
 {
 	#if defined (SWITCH)
@@ -145,6 +161,16 @@ int init_networking()
 	#endif
 
     curl_global_init(CURL_GLOBAL_ALL);
+
+		// init our curl handle
+		curl = curl_easy_init();
+
+	return 1;
+}
+
+int deinit_networking()
+{
+	curl_easy_cleanup(curl);
 	return 1;
 }
 

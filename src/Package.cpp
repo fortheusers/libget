@@ -7,10 +7,14 @@
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
+#include <unordered_set>
+#include <vector>
+#include <algorithm>
 #include "rapidjson/istreamwrapper.h"
 #include "rapidjson/document.h"
 #define u8 uint8_t
 
+// different default paths for each platform
 #if defined (SWITCH)
 #define ROOT_PATH "/"
 #elif defined (__WIIU__)
@@ -27,16 +31,16 @@ Package::Package(int state)
 	this->version = "0.0.0";
 	this->short_desc = "N/A";
 	this->long_desc = "N/A";
-    
+
     this->license = "";
     this->changelog = "";
     this->url = "";
     this->updated = "";
-    
+
     this->download_size = 0;
     this->extracted_size = 0;
     this->downloads = 0;
-    
+
 	this->category = "_all";
 
 	this->status = state;
@@ -157,6 +161,7 @@ bool Package::remove(const char* pkg_path)
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 
 	printf("-> HomebrewManager::Delete\n");
+	std::unordered_set<std::string> uniq_folders;
 
 	struct stat sbuff;
 	if (stat(ManifestPath.c_str(), &sbuff) != 0) //! There's no manifest
@@ -183,6 +188,10 @@ bool Package::remove(const char* pkg_path)
 		char Mode = CurrentLine.at(0);
 		std::string DeletePath = ROOT_PATH + CurrentLine.substr(3);
 
+		// the current directory
+		std::string cur_dir = dir_name(DeletePath);
+		uniq_folders.insert(cur_dir);
+
 		switch(Mode)
 		{
 			case 'U':
@@ -205,6 +214,34 @@ bool Package::remove(const char* pkg_path)
 		}
 	}
 
+	// sort unique folders from longest to shortest
+	std::vector<std::string> folders;
+	for (auto& folder : uniq_folders)
+		folders.push_back(folder);
+	std::sort(folders.begin(), folders.end(), compareLen);
+
+	// rmdir (only works if folders are empty!) out all uniq dirs...
+	for (auto& folder : folders)
+	{
+		auto parent = dir_name(folder);
+		while (parent != "")
+		{
+			if (uniq_folders.find(parent) == uniq_folders.end())
+			{
+				// folder not already seen, track it
+				uniq_folders.insert(parent);
+				folders.push_back(parent);
+			}
+			parent = dir_name(parent);
+		}
+	}
+
+	//re-sort it
+	std::sort(folders.begin(), folders.end(), compareLen);
+
+	for (auto& folder : folders)
+		rmdir(folder.c_str());
+
 	printf("Removing manifest...\n");
 
 	ManifestFile.close();
@@ -217,7 +254,7 @@ bool Package::remove(const char* pkg_path)
 	// package removed, clean up empty directories
 	// TODO: potentially prompt user to remove some known config files for a given package
 	// see: https://github.com/vgmoose/get/issues/1
-	remove_empty_dirs(ROOT_PATH, 0);
+	// remove_empty_dirs(ROOT_PATH, 0);
 
 	printf("Homebrew removed\n");
 
