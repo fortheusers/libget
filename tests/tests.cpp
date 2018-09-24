@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <vector>
 #include "../src/Get.hpp"
+#include "../src/Utils.hpp"
 
 #define URL "https://vgmoose.github.io/get/tests/server/"
 //#define URL "http://localhost:8000/server/"
@@ -43,6 +44,8 @@ bool exists(const char* path)
 
 int main()
 {
+  init_networking();
+
     // create a Get object
     Get* get = new Get("./tests/.get/", URL "a");
     vector<Package*> packages = get->packages;
