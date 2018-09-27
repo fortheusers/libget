@@ -87,6 +87,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	{
 		Package* package = new Package(GET);
         
+        // TODO: use arrays and loops for parsing this info, and also check the type first
+        
         // mostly essential attributes
 		package->pkg_name = (*it)["name"].GetString();
 		if ((*it).HasMember("title"))
@@ -106,7 +108,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
         if ((*it).HasMember("license"))
             package->license = (*it)["license"].GetString();
         if ((*it).HasMember("changelog"))
-            package->changelog = (*it)["changelog"].GetString();
+            package->changelog = std::regex_replace((*it)["changelog"].GetString(), std::regex("\\\\n"), "\n");
         if ((*it).HasMember("url"))
             package->url = (*it)["url"].GetString();
         if ((*it).HasMember("updated"))
