@@ -85,11 +85,9 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	if (ManifestFile.good())
 	{
 		//! Parse the manifest
-		std::stringstream Manifest;
-		Manifest << ManifestFile.rdbuf();
 		std::string CurrentLine;
 
-		while(std::getline(Manifest, CurrentLine))
+		while(std::getline(ManifestFile, CurrentLine))
 		{
 			char Mode = CurrentLine.at(0);
 			std::string Path = CurrentLine.substr(3);
@@ -126,9 +124,6 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 				return false;
 			}
 		}
-
-		//! Close the manifest
-		Manifest.str("");
 	}
 	else
 	{
