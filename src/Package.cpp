@@ -357,6 +357,19 @@ int Package::isPreviouslyInstalled()
         }
     }
 #endif
+    
+    // since we are appstore and know that what version we're supposed to be, mark us local or updated if needed
+    // TODO: make version check here dynamic, and also support other NROs or hint files
+    // notice: this means that even if appstore isn't installed but is running, it will show as an update
+    if (this->pkg_name == "appstore")
+    {
+        // it's app store, but wasn't detected as installed
+        if (this->version == "2.0")
+            return LOCAL;
+        else
+            return UPDATE;
+    }
+    
     return this->status;
 }
 
