@@ -168,14 +168,11 @@ bool Package::remove(const char* pkg_path)
 	std::ifstream ManifestFile;
 	ManifestFile.open(ManifestPath.c_str());
 
-	std::stringstream Manifest;
-	Manifest << ManifestFile.rdbuf();
-
 	//! Parse the manifest
 	printf("Parsing the Manifest\n");
 
 	std::string CurrentLine;
-	while(std::getline(Manifest, CurrentLine))
+	while(std::getline(ManifestFile, CurrentLine))
 	{
 		char Mode = CurrentLine.at(0);
 		std::string DeletePath = ROOT_PATH + CurrentLine.substr(3);
@@ -215,13 +212,14 @@ bool Package::remove(const char* pkg_path)
 std::vector<std::string> intermediate_folders;
 
 	// rmdir (only works if folders are empty!) out all uniq dirs...
+	std::string fsroot(ROOT_PATH);
 	for (auto& folder : folders)
 	{
 		auto parent = dir_name(folder);
 		while (parent != "")
 		{
 			std::cout << "processing... " << parent << "\n";
-			if (uniq_folders.find(parent) == uniq_folders.end())
+			if ((uniq_folders.find(parent) == uniq_folders.end()) && (parent.length() > fsroot.length()))
 			{
 				std::cout << "adding " << parent << "\n";
 
