@@ -39,6 +39,7 @@ Package::Package(int state)
     this->downloads = 0;
 
 	this->category = "_all";
+	this->binary = "none";
 
 	this->status = state;
 }

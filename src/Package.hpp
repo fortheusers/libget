@@ -39,6 +39,7 @@ class Package
     std::string changelog;
     std::string url;
     std::string updated;
+    std::string binary;
     int updated_timestamp = 0;
     
     int downloads = 0;
