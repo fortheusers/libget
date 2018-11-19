@@ -137,6 +137,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
         
 		if ((*it).HasMember("category"))
 			package->category = (*it)["category"].GetString();
+		if ((*it).HasMember("binary"))
+			package->binary = (*it)["binary"].GetString();
 		package->repoUrl = &this->url;
 
 		// save the response string to cleanup later
