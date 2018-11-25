@@ -1,18 +1,17 @@
+#include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <iostream>
-#include <algorithm>
-
 
 #include "constants.h"
 
 #include "Get.hpp"
 #include "Utils.hpp"
 #include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
 #include "rapidjson/istreamwrapper.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 using namespace std;
 using namespace rapidjson;
@@ -30,7 +29,6 @@ Get::Get(const char* config_dir, const char* defaultRepo)
 	this->pkg_path = package_dir->c_str();
 	string* tmp_dir = new string(config_path + "tmp/");
 	this->tmp_path = tmp_dir->c_str();
-
 
 	//	  printf("--> Using \"./sdroot\" as local download root directory\n");
 	//	  mkdir("./sdroot", 0700);
@@ -124,7 +122,6 @@ void Get::loadRepos()
 			repos.push_back(repo);
 			return;
 		}
-
 	}
 
 	IStreamWrapper isw(*ifs);
@@ -141,7 +138,7 @@ void Get::loadRepos()
 	const Value& repos_doc = doc["repos"];
 
 	// for every repo
-	for(Value::ConstValueIterator it=repos_doc.Begin(); it != repos_doc.End(); it++)
+	for (Value::ConstValueIterator it = repos_doc.Begin(); it != repos_doc.End(); it++)
 	{
 		Repo* repo = new Repo();
 		repo->name = (*it)["name"].GetString();
@@ -159,16 +156,15 @@ void Get::update()
 	packages.clear();
 
 	// fetch recent package list from enabled repos
-	for (int x=0; x<repos.size(); x++)
+	for (int x = 0; x < repos.size(); x++)
 	{
 		if (repos[x]->enabled)
-				repos[x]->loadPackages(&packages);
+			repos[x]->loadPackages(&packages);
 	}
 
 	// check for any installed packages to update their status
-	for (int x=0; x<packages.size(); x++)
+	for (int x = 0; x < packages.size(); x++)
 		packages[x]->updateStatus(this->pkg_path);
-
 }
 
 int Get::validateRepos()
@@ -190,14 +186,10 @@ std::vector<Package*> Get::search(std::string query)
 	std::vector<Package*> results = std::vector<Package*>();
 	std::string lower_query = toLower(query);
 
-	for (int x=0; x<packages.size(); x++)
+	for (int x = 0; x < packages.size(); x++)
 	{
 		Package* cur = packages[x];
-		if (cur != NULL &&
-			(toLower(cur->title).find(lower_query) != std::string::npos
-				|| toLower(cur->author).find(lower_query) != std::string::npos
-				|| toLower(cur->short_desc).find(lower_query) != std::string::npos
-				|| toLower(cur->long_desc).find(lower_query) != std::string::npos))
+		if (cur != NULL && (toLower(cur->title).find(lower_query) != std::string::npos || toLower(cur->author).find(lower_query) != std::string::npos || toLower(cur->short_desc).find(lower_query) != std::string::npos || toLower(cur->long_desc).find(lower_query) != std::string::npos))
 		{
 			// matches, add to return vector, and continue
 			results.push_back(cur);

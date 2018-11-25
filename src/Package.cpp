@@ -2,16 +2,16 @@
 #include "Utils.hpp"
 #include "ZipUtil.hpp"
 #include "constants.h"
-#include <sys/stat.h>
+#include "rapidjson/document.h"
+#include "rapidjson/istreamwrapper.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <unordered_set>
 #include <vector>
-#include <algorithm>
-#include "rapidjson/istreamwrapper.h"
-#include "rapidjson/document.h"
 #define u8 uint8_t
 
 #if defined(__WIIU__)
@@ -28,15 +28,15 @@ Package::Package(int state)
 	this->short_desc = "N/A";
 	this->long_desc = "N/A";
 
-    this->license = "";
-    this->changelog = "";
-    this->url = "";
-    this->updated = "";
-    this->updated_timestamp = 0;
+	this->license = "";
+	this->changelog = "";
+	this->url = "";
+	this->updated = "";
+	this->updated_timestamp = 0;
 
-    this->download_size = 0;
-    this->extracted_size = 0;
-    this->downloads = 0;
+	this->download_size = 0;
+	this->extracted_size = 0;
+	this->downloads = 0;
 
 	this->category = "_all";
 	this->binary = "none";
@@ -66,7 +66,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	// assumes that download was called first
 
 	//! Open the Zip file
-	UnZip * HomebrewZip = new UnZip((tmp_path + this->pkg_name + ".zip").c_str());
+	UnZip* HomebrewZip = new UnZip((tmp_path + this->pkg_name + ".zip").c_str());
 
 	//! First extract the Manifest
 	std::string ManifestPathInternal = "manifest.install";
@@ -88,35 +88,35 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		//! Parse the manifest
 		std::string CurrentLine;
 
-		while(std::getline(ManifestFile, CurrentLine))
+		while (std::getline(ManifestFile, CurrentLine))
 		{
 			char Mode = CurrentLine.at(0);
 			std::string Path = CurrentLine.substr(3);
 			std::string ExtractPath = ROOT_PATH + Path;
 
 			int resp = 0;
-			switch(Mode)
+			switch (Mode)
 			{
-				case 'E':
-					//! Simply Extract, with no checks or anything, won't be deleted upon removal
-					printf("%s : EXTRACT\n", Path.c_str());
+			case 'E':
+				//! Simply Extract, with no checks or anything, won't be deleted upon removal
+				printf("%s : EXTRACT\n", Path.c_str());
+				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+				break;
+			case 'U':
+				printf("%s : UPDATE\n", Path.c_str());
+				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+				break;
+			case 'G':
+				printf("%s : GET\n", Path.c_str());
+				struct stat sbuff;
+				if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
 					resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
-					break;
-				case 'U':
-					printf("%s : UPDATE\n", Path.c_str());
-					resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
-					break;
-				case 'G':
-					printf("%s : GET\n", Path.c_str());
-					struct stat sbuff;
-					if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
-						resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
-					else
-						printf("File already exists, skipping...");
-					break;
-				default:
-					printf("%s : NOP\n", Path.c_str());
-					break;
+				else
+					printf("File already exists, skipping...");
+				break;
+			default:
+				printf("%s : NOP\n", Path.c_str());
+				break;
 			}
 
 			if (resp < 0)
@@ -129,8 +129,8 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	else
 	{
 		//! Extract the whole zip
-//		printf("No manifest found: extracting the Zip\n");
-//		HomebrewZip->ExtractAll("sdroot/");
+		//		printf("No manifest found: extracting the Zip\n");
+		//		HomebrewZip->ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
 		printf("No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 		return false;
@@ -173,7 +173,7 @@ bool Package::remove(const char* pkg_path)
 	printf("Parsing the Manifest\n");
 
 	std::string CurrentLine;
-	while(std::getline(ManifestFile, CurrentLine))
+	while (std::getline(ManifestFile, CurrentLine))
 	{
 		char Mode = CurrentLine.at(0);
 		std::string DeletePath = ROOT_PATH + CurrentLine.substr(3);
@@ -182,25 +182,25 @@ bool Package::remove(const char* pkg_path)
 		std::string cur_dir = dir_name(DeletePath);
 		uniq_folders.insert(cur_dir);
 
-		switch(Mode)
+		switch (Mode)
 		{
-			case 'U':
-				printf("%s : UPDATE\n", DeletePath.c_str());
-				printf("Removing %s\n", DeletePath.c_str());
-				std::remove(DeletePath.c_str());
-				break;
-			case 'G':
-				printf("%s : GET\n", DeletePath.c_str());
-				printf("Removing %s\n", DeletePath.c_str());
-				std::remove(DeletePath.c_str());
-				break;
-			case 'L':
-				printf("%s : LOCAL\n", DeletePath.c_str());
-				printf("Removing %s\n", DeletePath.c_str());
-				std::remove(DeletePath.c_str());
-				break;
-			default:
-				break;
+		case 'U':
+			printf("%s : UPDATE\n", DeletePath.c_str());
+			printf("Removing %s\n", DeletePath.c_str());
+			std::remove(DeletePath.c_str());
+			break;
+		case 'G':
+			printf("%s : GET\n", DeletePath.c_str());
+			printf("Removing %s\n", DeletePath.c_str());
+			std::remove(DeletePath.c_str());
+			break;
+		case 'L':
+			printf("%s : LOCAL\n", DeletePath.c_str());
+			printf("Removing %s\n", DeletePath.c_str());
+			std::remove(DeletePath.c_str());
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -210,7 +210,7 @@ bool Package::remove(const char* pkg_path)
 		folders.push_back(folder);
 	std::sort(folders.begin(), folders.end(), compareLen);
 
-std::vector<std::string> intermediate_folders;
+	std::vector<std::string> intermediate_folders;
 
 	// rmdir (only works if folders are empty!) out all uniq dirs...
 	std::string fsroot(ROOT_PATH);
@@ -325,65 +325,64 @@ void Package::updateStatus(const char* pkg_path)
 	if (this->status != LOCAL)
 		this->status = GET;
 
-    // check for any homebrew that may have been previously installed
-    // TODO: see https://github.com/vgmoose/hb-appstore/issues/20
-    this->status = this->isPreviouslyInstalled();
-
+	// check for any homebrew that may have been previously installed
+	// TODO: see https://github.com/vgmoose/hb-appstore/issues/20
+	this->status = this->isPreviouslyInstalled();
 }
 
 int Package::isPreviouslyInstalled()
 {
 #if defined(__WIIU__)
-    // we're on a Wii U, so let's check for any HBL meta.xml files that match this package's name,
-    // and if it exists check the version based on that
-    TiXmlDocument xmlDoc((std::string(ROOT_PATH) + "wiiu/apps/" + this->pkg_name + "/meta.xml").c_str());
-    bool xmlExists = xmlDoc.LoadFile();
+	// we're on a Wii U, so let's check for any HBL meta.xml files that match this package's name,
+	// and if it exists check the version based on that
+	TiXmlDocument xmlDoc((std::string(ROOT_PATH) + "wiiu/apps/" + this->pkg_name + "/meta.xml").c_str());
+	bool xmlExists = xmlDoc.LoadFile();
 
-    if (xmlExists)
-    {
-        TiXmlElement* appNode =  xmlDoc.FirstChildElement("app");
-        if (appNode)
-        {
-            TiXmlElement *node = appNode->FirstChildElement("version");
-            if(node && node->FirstChild() && node->FirstChild()->Value())
-            {
-                // version exists, we should compare the value to the one on the server (this package)
-                if (this->version != node->FirstChild()->Value())
-                    return UPDATE;
-                else
-                    return LOCAL;
-            }
-        }
-    }
+	if (xmlExists)
+	{
+		TiXmlElement* appNode = xmlDoc.FirstChildElement("app");
+		if (appNode)
+		{
+			TiXmlElement* node = appNode->FirstChildElement("version");
+			if (node && node->FirstChild() && node->FirstChild()->Value())
+			{
+				// version exists, we should compare the value to the one on the server (this package)
+				if (this->version != node->FirstChild()->Value())
+					return UPDATE;
+				else
+					return LOCAL;
+			}
+		}
+	}
 #endif
-    
-    // since we are appstore and know that what version we're supposed to be, mark us local or updated if needed
-    // TODO: make version check here dynamic, and also support other NROs or hint files
-    // notice: this means that even if appstore isn't installed but is running, it will show as an update
-    if (this->pkg_name == "appstore")
-    {
-        // it's app store, but wasn't detected as installed
-        if (this->version == "2.0")
-            return LOCAL;
-        else
-            return UPDATE;
-    }
-    
-    return this->status;
+
+	// since we are appstore and know that what version we're supposed to be, mark us local or updated if needed
+	// TODO: make version check here dynamic, and also support other NROs or hint files
+	// notice: this means that even if appstore isn't installed but is running, it will show as an update
+	if (this->pkg_name == "appstore")
+	{
+		// it's app store, but wasn't detected as installed
+		if (this->version == "2.0")
+			return LOCAL;
+		else
+			return UPDATE;
+	}
+
+	return this->status;
 }
 
 const char* Package::statusString()
 {
 	switch (this->status)
 	{
-		case LOCAL:
-			return "LOCAL";
-		case INSTALLED:
-			return "INSTALLED";
-		case UPDATE:
-			return "UPDATE";
-		case GET:
-			return "GET";
+	case LOCAL:
+		return "LOCAL";
+	case INSTALLED:
+		return "INSTALLED";
+	case UPDATE:
+		return "UPDATE";
+	case GET:
+		return "GET";
 	}
 	return "UNKNOWN";
 }
