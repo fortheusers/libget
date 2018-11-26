@@ -1,10 +1,10 @@
-# get
+# libget
 [![Build Status](https://travis-ci.org/vgmoose/libget.svg?branch=master)](https://travis-ci.org/vgmoose/libget)
 
 get is a mini package manager that is used as the backend to [Homebrew App Store](http://github.com/vgmoose/hb-appstore) to allow more formal package management.
 
 ## Why?
-**get** is intended for use in smaller systems, such as homebrew'd video game consoles, where there is code execution but not a full stack of tools that package managers usually utilize, such as shell scripts or external libraries.
+**libget** is intended for use in smaller systems, such as homebrew'd video game consoles, where there is code execution but not a full stack of tools that package managers usually utilize, such as shell scripts or external libraries.
 
 For documentation, metadata syntax, and repo setup, see [the wiki](https://github.com/vgmoose/get/wiki).
 
@@ -77,3 +77,9 @@ This software is licensed under the GPLv3.
 Contributors:
 - rw-r-r_0644 - manifest file parsing code
 - zarklord - zip folder extraction library
+
+## Contributing
+It's not required, but running a clang-format before making a PR helps to clean up styling issues:
+```
+find . -name "*.cpp" -not -path "./src/libs/*" -exec clang-format -i {} \;
+```
