@@ -78,8 +78,8 @@ Contributors:
 - rw-r-r_0644 - manifest file parsing code
 - zarklord - zip folder extraction library
 
-## Contributing
+### Contributing
 It's not required, but running a clang-format before making a PR helps to clean up styling issues:
 ```
-find . -name "*.cpp" -not -path "./src/libs/*" -exec clang-format -i {} \;
+find . -name "*.cpp" -o -name "*.hpp" -not -path "./src/libs/*" -exec clang-format -i {} \;
 ```

@@ -1,8 +1,8 @@
 #ifndef GET_H
 #define GET_H
-#include <vector>
 #include "Repo.hpp"
 #include "constants.h"
+#include <vector>
 
 class Get
 {
@@ -10,11 +10,11 @@ public:
 	// constructor takes path to the .get directory, and a fallback default repo url
 	Get(const char* config_dir, const char* defaultRepo);
 
-	int install(Package* pkg_name);	   	// download the given package name and manifest data
-	int remove(Package* pkg_name);		// delete and remove all files for the given package name
-	int toggleRepo(Repo* repo);			// enable/disable the specified repo (and write changes)
+	int install(Package* pkg_name); // download the given package name and manifest data
+	int remove(Package* pkg_name);  // delete and remove all files for the given package name
+	int toggleRepo(Repo* repo);		// enable/disable the specified repo (and write changes)
 
-	std::vector<Package*> search(std::string query);	// return a list of packages matching query
+	std::vector<Package*> search(std::string query); // return a list of packages matching query
 
 	// the remote repos and packages
 	std::vector<Repo*> repos;
@@ -39,6 +39,5 @@ private:
 	int validateRepos();
 
 	const char* defaultRepo;
-
 };
 #endif

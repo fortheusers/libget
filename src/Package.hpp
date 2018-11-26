@@ -1,12 +1,12 @@
 #ifndef PACKAGE_H
 #define PACKAGE_H
-#include <string>
-#include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
+#include "rapidjson/rapidjson.h"
+#include <string>
 
-#if defined (SWITCH)
+#if defined(SWITCH)
 #define ROOT_PATH "/"
-#elif defined (__WIIU__)
+#elif defined(__WIIU__)
 #define ROOT_PATH "fs:/vol/external01/"
 #else
 #define ROOT_PATH "sdroot/"
@@ -14,7 +14,7 @@
 
 class Package
 {
-	public:
+public:
 	Package(int state);
 	~Package();
 
@@ -24,8 +24,8 @@ class Package
 	bool remove(const char* pkg_path);
 	const char* statusString();
 	void updateStatus(const char* pkg_path);
-    
-    int isPreviouslyInstalled();
+
+	int isPreviouslyInstalled();
 
 	// Package attributes
 	std::string pkg_name;
@@ -34,26 +34,25 @@ class Package
 	std::string short_desc;
 	std::string long_desc;
 	std::string version;
-    
-    std::string license;
-    std::string changelog;
-    std::string url;
-    std::string updated;
-    std::string binary;
-    int updated_timestamp = 0;
-    
-    int downloads = 0;
-    int extracted_size = 0;
-    int download_size = 0;
-    
-    
+
+	std::string license;
+	std::string changelog;
+	std::string url;
+	std::string updated;
+	std::string binary;
+	int updated_timestamp = 0;
+
+	int downloads = 0;
+	int extracted_size = 0;
+	int download_size = 0;
+
 	std::string category;
 
 	// Sorting attributes
-//	  Repo* parentRepo;
+	//	  Repo* parentRepo;
 	std::string* repoUrl;
 
-	int status;	 // local, update, installed, get
+	int status; // local, update, installed, get
 
 	// bitmask for permissions, from left to right:
 	// unused, iosu, kernel, nand, usb, sd, wifi, sound
@@ -61,7 +60,6 @@ class Package
 
 	// the downloaded contents file, to keep memory around to cleanup later
 	std::string* contents;
-
 };
 
 #endif
