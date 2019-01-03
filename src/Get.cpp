@@ -199,3 +199,16 @@ std::vector<Package*> Get::search(std::string query)
 
 	return results;
 }
+
+Package* Get::lookup(std::string pkg_name)
+{
+	for (int x = 0; x < packages.size(); x++)
+	{
+		Package* cur = packages[x];
+		if (cur != NULL && cur->pkg_name == pkg_name)
+		{
+			return cur;
+		}
+	}
+	return NULL;
+}
