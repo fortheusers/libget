@@ -15,6 +15,7 @@ public:
 	int toggleRepo(Repo* repo);		// enable/disable the specified repo (and write changes)
 
 	std::vector<Package*> search(std::string query); // return a list of packages matching query
+	Package* lookup(std::string pkg_name);
 
 	// the remote repos and packages
 	std::vector<Repo*> repos;
