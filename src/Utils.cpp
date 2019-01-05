@@ -82,6 +82,10 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 	if (curl)
 	{
+#if defined(__WIIU__)
+		curl_easy_setopt(curl, (CURLoption)213, 1);
+		curl_easy_setopt(curl, (CURLoption)212, 0x20000);
+#endif
 		curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
