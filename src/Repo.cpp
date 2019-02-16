@@ -51,7 +51,7 @@ std::string Repo::toString()
 	return "[" + this->name + "] <" + this->url + "> - " + ((this->enabled) ? "enabled" : "disabled");
 }
 
-void Repo::loadPackages(std::vector<Package*>* packages)
+void Repo::loadPackages(std::vector<Package*>* packages, std::string pkg_path)
 {
 	std::string directoryUrl = this->url + "/repo.json";
 
@@ -140,6 +140,9 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 			package->binary = (*it)["binary"].GetString();
 		package->repoUrl = &this->url;
 
+		std::string ManifestPathInternal = "manifest.install";
+		package->parseManifest(pkg_path + package->pkg_name + "/" + ManifestPathInternal);
+		
 		// save the response string to cleanup later
 		package->contents = response_copy;
 

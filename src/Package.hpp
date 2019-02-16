@@ -2,7 +2,9 @@
 #define PACKAGE_H
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
+#include "ManifestEntry.hpp"
 #include <string>
+#include <vector>
 
 #if defined(SWITCH)
 #define ROOT_PATH "/"
@@ -24,6 +26,7 @@ public:
 	bool remove(const char* pkg_path);
 	const char* statusString();
 	void updateStatus(const char* pkg_path);
+	bool parseManifest(std::string manifestPath);
 
 	int isPreviouslyInstalled();
 
@@ -40,6 +43,7 @@ public:
 	std::string url;
 	std::string updated;
 	std::string binary;
+	std::vector<ManifestEntry*> manifest;
 	int updated_timestamp = 0;
 
 	int downloads = 0;

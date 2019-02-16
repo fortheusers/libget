@@ -11,7 +11,7 @@ public:
 	Repo(const char* name, const char* url);
 	std::string toJson();
 	std::string toString();
-	void loadPackages(std::vector<Package*>* package);
+	void loadPackages(std::vector<Package*>* package, std::string pkg_path);
 
 	std::string name;
 	std::string url;

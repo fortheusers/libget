@@ -159,7 +159,7 @@ void Get::update()
 	for (int x = 0; x < repos.size(); x++)
 	{
 		if (repos[x]->enabled)
-			repos[x]->loadPackages(&packages);
+			repos[x]->loadPackages(&packages, this->pkg_path);
 	}
 
 	// check for any installed packages to update their status
