@@ -2,7 +2,7 @@
 #define PACKAGE_H
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
-#include "ManifestEntry.hpp"
+#include "Manifest.hpp"
 #include <string>
 #include <vector>
 
@@ -43,7 +43,7 @@ public:
 	std::string url;
 	std::string updated;
 	std::string binary;
-	std::vector<ManifestEntry*> manifest;
+	Manifest* manifest;
 	int updated_timestamp = 0;
 
 	int downloads = 0;

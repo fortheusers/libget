@@ -42,6 +42,7 @@ Package::Package(int state)
 	this->binary = "none";
 
 	this->status = state;
+	this->manifest = new Manifest();
 }
 
 Package::~Package()
@@ -66,8 +67,7 @@ bool Package::parseManifest(std::string manifestPath)
 		return false;
 	}
 
-	std::vector<ManifestEntry*> sw;
-	manifest.swap(sw);
+	std::vector<ManifestEntry*> manifest;
 	std::ifstream ManifestFile;
 	ManifestFile.open(manifestPath.c_str());
 
@@ -75,10 +75,11 @@ bool Package::parseManifest(std::string manifestPath)
 		std::string CurrentLine;
 		while (std::getline(ManifestFile, CurrentLine))
 		{
-			this->manifest.push_back(new ManifestEntry(CurrentLine));
+			manifest.push_back(new ManifestEntry(CurrentLine));
 		}
 		ManifestFile.close();
-		return manifest.size() != 0;
+		this->manifest->entries.swap(manifest);
+		return this->manifest->entries.size() != 0;
 	} else {
 		ManifestFile.close();
 		printf("--> ERROR: manifest file not good: %s\n", manifestPath.c_str());
@@ -114,9 +115,9 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		return false;
 	}
 
-	for (int i = 0; i <= this->manifest.size()-1; i++)
+	for (int i = 0; i <= this->manifest->entries.size()-1; i++)
 	{
-		ManifestEntry* line = this->manifest[i];
+		ManifestEntry* line = this->manifest->entries[i];
 		std::string Path = line->path;
 		std::string ExtractPath = ROOT_PATH + Path;
 
@@ -170,16 +171,16 @@ bool Package::remove(const char* pkg_path)
 	printf("-> HomebrewManager::Delete\n");
 	std::unordered_set<std::string> uniq_folders;
 
-	for (int i = 0; i <= manifest.size()-1; i++)
+	for (int i = 0; i <= manifest->entries.size()-1; i++)
 	{
-		ManifestEntry* line = this->manifest[i];
+		ManifestEntry* line = this->manifest->entries[i];
 		std::string DeletePath = ROOT_PATH + line->path;
 
 		// the current directory
 		std::string cur_dir = dir_name(DeletePath);
 		uniq_folders.insert(cur_dir);
 
-		switch (this->manifest[i]->action)
+		switch (this->manifest->entries[i]->action)
 		{
 		case ManifestAction::Update:
 			printf("%s : UPDATE\n", DeletePath.c_str());
