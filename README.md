@@ -58,18 +58,32 @@ Any installed packages specified after the `--delete` flag will be removed
 This command parses the `manifest.install` file fetched when the package was installed, and uses it to determine which files to remove. Currently empty folders are left behind after the files are deleted.
 
 ## Building for PC
-First clone the repo
+This project uses [Buck](https://github.com/facebook/buck) to build and [Buckaroo](https://github.com/LoopPerfect/buckaroo/) for dependency management.
+
+1. Install a [precompiled Buck](https://github.com/facebook/buck/releases), and [precompiled Buckaroo](https://github.com/LoopPerfect/buckaroo/releases) for your platform, or build them from source
+2. Run the following:
 ```
-git clone https://github.com/vgmoose/get.git
+git clone https://github.com/vgmoose/libget.git
+buckaroo install
+buck build :get
 ```
 
-and cd into the folder and run make:
+The get CLI binary should now be sitting in: `./buck-out/gen/get`
+
+## Building without Buck
+You can also use the old Makefile to build the project. You will need to obtain the following dependencies:
+- zlib
+- libcurl
+
+For your convenience, rapidjson and minizip are included in this repo in the `./src/libs` folder.
+
+## Including the library
+The easiest way to include the project is to use Buck and Buckaroo in your project, and run:
 ```
-cd get
-make
+buckaroo add github.com/vgmoose/libget
 ```
 
-Zlib and libcurl are required to build the above package, other dependencies (rapidjson, minizip) are included in this repo.
+But you can also manually include it by downloading the repo and pointing to the root folder in your Makefile. See Makefile for information on how the library can be used from a GNU Makefile.
 
 ## License
 This software is licensed under the GPLv3.

@@ -1,0 +1,18 @@
+targets = [ "//:get" ]
+
+[[dependency]]
+package = "github.com/buckaroo-pm/madler-zlib"
+version = "*"
+
+[[dependency]]
+package = "github.com/buckaroo-pm/mapbox-rapidjson"
+version = "*"
+
+[[dependency]]
+package = "github.com/vgmoose/nmoinvaz-minizip"
+version = "branch=1.1"
+
+[[dependency]]
+package = "github.com/buckaroo-pm/pkg-config-curl"
+version = "*"
+

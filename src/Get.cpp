@@ -4,14 +4,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "constants.h"
-
-#include "Get.hpp"
-#include "Utils.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+
+#include "Get.hpp"
+#include "Utils.hpp"
 
 using namespace std;
 using namespace rapidjson;

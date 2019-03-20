@@ -1,0 +1,33 @@
+manifest = "5d7ddb311c802cd91c16095812210d5131ba7e16095f5eac35573491aa772bbc"
+
+[[dependency]]
+package = "github.com/buckaroo-pm/madler-zlib"
+target = "//:zlib"
+
+[[dependency]]
+package = "github.com/buckaroo-pm/mapbox-rapidjson"
+target = "//:rapidjson"
+
+[[dependency]]
+package = "github.com/buckaroo-pm/pkg-config-curl"
+target = "//:curl"
+
+[[dependency]]
+package = "github.com/vgmoose/nmoinvaz-minizip"
+target = "//:minizip"
+
+[lock."github.com/buckaroo-pm/madler-zlib"]
+versions = [ "1.2.11" ]
+revision = "94a70f3274f15bf98b472178e91fd57a6e6c53d8"
+
+[lock."github.com/buckaroo-pm/mapbox-rapidjson"]
+versions = [ "branch=master" ]
+revision = "44ccecfb229c4862ef4fa924a4841749196abfc7"
+
+[lock."github.com/buckaroo-pm/pkg-config-curl"]
+versions = [ "branch=master" ]
+revision = "172dabe81beabe3f4dce71d66a5ff9251ef9ef11"
+
+[lock."github.com/vgmoose/nmoinvaz-minizip"]
+versions = [ "branch=1.1" ]
+revision = "68847bea4dab1a8a3d7d4bac5429b7a7e3ec0197"

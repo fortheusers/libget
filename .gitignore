@@ -1,3 +1,10 @@
 *.o
 *.gch
 *.DS_Store
+
+.buckd
+buck-out
+.buckconfig.local
+.buckconfig.d
+buckaroo
+buckaroo_macros.bzl
