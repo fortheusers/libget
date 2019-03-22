@@ -13,6 +13,7 @@ cxx_library(
   ],
   srcs = glob(['./src/*.cpp']),
   licenses = [ 'LICENSE' ],
+  visibility = [ 'PUBLIC' ],
   deps = buckaroo_deps(),
 )
 

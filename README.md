@@ -71,11 +71,9 @@ buck build :get
 The get CLI binary should now be sitting in: `./buck-out/gen/get`
 
 ## Building without Buck
-You can also use the old Makefile to build the project. You will need to obtain the following dependencies:
-- zlib
-- libcurl
+You can also use the old Makefile to build the project. You will need to obtain the following dependencies: zlib, libcurl, rapidjson, and minizip
 
-For your convenience, rapidjson and minizip are included in this repo in the `./src/libs` folder.
+For your convenience, rapidjson and minizip sources are included in this repo in the `./src/libs` folder.
 
 ## Including the library
 The easiest way to include the project is to use Buck and Buckaroo in your project, and run:
