@@ -1,4 +1,4 @@
-targets = [ "//:get" ]
+targets = [ "//:libget" ]
 
 [[dependency]]
 package = "github.com/buckaroo-pm/madler-zlib"
