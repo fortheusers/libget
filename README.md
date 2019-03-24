@@ -1,5 +1,5 @@
 # libget
-[![Build Status](https://travis-ci.org/vgmoose/libget.svg?branch=master)](https://travis-ci.org/vgmoose/libget)
+[![Build Status](https://travis-ci.org/vgmoose/libget.svg?branch=master)](https://travis-ci.org/vgmoose/libget) [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 
 get is a mini package manager that is used as the backend to [Homebrew App Store](http://github.com/vgmoose/hb-appstore) to allow more formal package management.
 
