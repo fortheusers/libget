@@ -362,7 +362,7 @@ int Package::isPreviouslyInstalled()
 	if (this->pkg_name == "appstore")
 	{
 		// it's app store, but wasn't detected as installed
-		if (this->version == "2.0")
+		if (this->version == "2.1")
 			return LOCAL;
 		else
 			return UPDATE;
