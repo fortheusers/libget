@@ -90,7 +90,7 @@ for package in os.listdir("packages"):
 
     #md5 of package zip
     filehash = hashlib.md5()
-    filehash.update(open(curdir + "/zips/" + package + ".zip").read())
+    filehash.update(open(curdir + "/zips/" + package + ".zip", "rb").read())
     mdhex = filehash.hexdigest()
 
     # this line isn't confusing at all (additional info makes it less so)
