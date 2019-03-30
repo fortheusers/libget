@@ -2,7 +2,7 @@
     "repos": [
         {
             "name": "Wiiubru Default",
-            "url": "http://wiiubru.com/appstore",
+            "url": "https://wiiubru.com/appstore",
             "enabled": false
         },
         {
@@ -12,7 +12,7 @@
         },
         {
             "name": "Sample repo",
-            "url": "http://localhost:8000",
+            "url": "https://localhost:8000",
             "enabled": false
         }
     ]
