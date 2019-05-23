@@ -75,6 +75,7 @@ class Manifest
                             std::smatch match;
                             std::regex_search(Path, match, std::regex("[^.]+$"));
                             CurrentLState.extension = match[0];
+                            entries.push_back(CurrentLState);
                         }
                     }
                 }else{
