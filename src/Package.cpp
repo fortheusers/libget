@@ -78,35 +78,28 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
 	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
 
-	//! Open the Manifest
-	std::ifstream ManifestFile;
-	ManifestFile.open(ManifestPath.c_str());
+	this->manifest = new Manifest(ManifestPath, ROOT_PATH);
 
-	//! Make sure the manifest is present and not empty
-	if (ManifestFile.good())
+	if (manifest->valid)
 	{
-		//! Parse the manifest
-		std::string CurrentLine;
-
-		while (std::getline(ManifestFile, CurrentLine))
+		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)		
 		{
-			char Mode = CurrentLine.at(0);
-			std::string Path = CurrentLine.substr(3);
-			std::string ExtractPath = ROOT_PATH + Path;
+			std::string Path = manifest->entries[i].zip_path;
+			std::string ExtractPath = manifest->entries[i].path;
 
 			int resp = 0;
-			switch (Mode)
+			switch (manifest->entries[i].operation)
 			{
-			case 'E':
+			case MEXTRACT:
 				//! Simply Extract, with no checks or anything, won't be deleted upon removal
 				printf("%s : EXTRACT\n", Path.c_str());
 				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 				break;
-			case 'U':
+			case MUPDATE:
 				printf("%s : UPDATE\n", Path.c_str());
 				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 				break;
-			case 'G':
+			case MGET:
 				printf("%s : GET\n", Path.c_str());
 				struct stat sbuff;
 				if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
@@ -132,11 +125,9 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		//		printf("No manifest found: extracting the Zip\n");
 		//		HomebrewZip->ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		printf("No manifest file found (or error writing manifest download)! Refusing to extract.\n");
+		printf("Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 		return false;
 	}
-
-	ManifestFile.close();
 
 	//! Close the Zip file
 	delete HomebrewZip;
@@ -156,53 +147,45 @@ bool Package::remove(const char* pkg_path)
 	printf("-> HomebrewManager::Delete\n");
 	std::unordered_set<std::string> uniq_folders;
 
-	struct stat sbuff;
-	if (stat(ManifestPath.c_str(), &sbuff) != 0) //! There's no manifest
-	{
-		// there should've been one!
-		// TODO: generate a temporary one
-		printf("--> ERROR: no manifest found at %s\n", ManifestPath.c_str());
-		return false;
-	}
-
-	//! Open the manifest normally
-	std::ifstream ManifestFile;
-	ManifestFile.open(ManifestPath.c_str());
-
 	//! Parse the manifest
 	printf("Parsing the Manifest\n");
-
-	std::string CurrentLine;
-	while (std::getline(ManifestFile, CurrentLine))
+	if(!manifest) this->manifest = new Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
+	if(this->manifest->valid)
 	{
-		char Mode = CurrentLine.at(0);
-		std::string DeletePath = ROOT_PATH + CurrentLine.substr(3);
-
-		// the current directory
-		std::string cur_dir = dir_name(DeletePath);
-		uniq_folders.insert(cur_dir);
-
-		switch (Mode)
+		for (int i = 0; i <= this->manifest->entries.size() - 1; i++)
 		{
-		case 'U':
-			printf("%s : UPDATE\n", DeletePath.c_str());
-			printf("Removing %s\n", DeletePath.c_str());
-			std::remove(DeletePath.c_str());
-			break;
-		case 'G':
-			printf("%s : GET\n", DeletePath.c_str());
-			printf("Removing %s\n", DeletePath.c_str());
-			std::remove(DeletePath.c_str());
-			break;
-		case 'L':
-			printf("%s : LOCAL\n", DeletePath.c_str());
-			printf("Removing %s\n", DeletePath.c_str());
-			std::remove(DeletePath.c_str());
-			break;
-		default:
-			break;
+			std::string DeletePath = manifest->entries[i].path;
+
+			// the current directory
+			std::string cur_dir = dir_name(DeletePath);
+			uniq_folders.insert(cur_dir);
+
+			switch (this->manifest->entries[i].operation)
+			{
+			case MUPDATE:
+				printf("%s : UPDATE\n", DeletePath.c_str());
+				printf("Removing %s\n", DeletePath.c_str());
+				std::remove(DeletePath.c_str());
+				break;
+			case MGET:
+				printf("%s : GET\n", DeletePath.c_str());
+				printf("Removing %s\n", DeletePath.c_str());
+				std::remove(DeletePath.c_str());
+				break;
+			case MLOCAL:
+				printf("%s : LOCAL\n", DeletePath.c_str());
+				printf("Removing %s\n", DeletePath.c_str());
+				std::remove(DeletePath.c_str());
+				break;
+			default:
+				break;
+			}
 		}
+	}else{
+		printf("ERROR: Manifest missing or invalid at %s\n", ManifestPath.c_str());
+		return false;
 	}
+	
 
 	// sort unique folders from longest to shortest
 	std::vector<std::string> folders;
@@ -245,10 +228,9 @@ bool Package::remove(const char* pkg_path)
 
 	printf("Removing manifest...\n");
 
-	ManifestFile.close();
-
 	std::remove(ManifestPath.c_str());
 	std::remove((std::string(pkg_path) + this->pkg_name + "/info.json").c_str());
+	delete this->manifest;
 
 	rmdir((std::string(pkg_path) + this->pkg_name).c_str());
 
@@ -273,6 +255,8 @@ void Package::updateStatus(const char* pkg_path)
 	{
 		// manifest exists, we are at least installed
 		this->status = INSTALLED;
+
+		this->manifest = new Manifest(ManifestPath, ROOT_PATH);
 	}
 
 	// TODO: check for info.json, parse version out of it
