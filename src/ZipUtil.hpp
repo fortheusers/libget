@@ -5,7 +5,7 @@
 #include "zip.h"
 
 #include <string>
-
+#include <vector>
 class Zip
 {
 public:
@@ -28,6 +28,7 @@ public:
 	int ExtractFile(const char* internalPath, const char* path);
 	int ExtractAll(const char* dirToExtract);
 	int ExtractDir(const char* internalDir, const char* externalDir);
+	std::vector<std::string> PathDump();
 
 private:
 	int Extract(const char* path, unz_file_info_s* fileInfo);
