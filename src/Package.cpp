@@ -80,6 +80,18 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	this->manifest = new Manifest(ManifestPath, ROOT_PATH);
 
+	if (!manifest->valid && manifest->fakeManifestPossible)
+	{
+		printf("Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
+		this->manifest = new Manifest(HomebrewZip->PathDump(), ROOT_PATH);
+		std::ofstream pseudomanifest (ManifestPath);
+		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)
+		{
+			pseudomanifest << manifest->entries[i].raw << std::endl;
+		}
+		pseudomanifest.close();
+	}
+
 	if (manifest->valid)
 	{
 		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)		
@@ -125,8 +137,10 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		//		printf("No manifest found: extracting the Zip\n");
 		//		HomebrewZip->ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		printf("Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
-		return false;
+		if (!manifest->fakeManifestPossible){
+			printf("Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
+			return false;
+		}
 	}
 
 	//! Close the Zip file

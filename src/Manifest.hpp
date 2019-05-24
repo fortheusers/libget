@@ -28,6 +28,24 @@ class Manifest
     public:
         std::vector<ManifestState> entries;
         bool valid = true;
+        bool fakeManifestPossible = true;
+        Manifest(std::vector<std::string> paths, std::string root_path)
+        {
+            for (size_t i = 0; i <= paths.size() - 1; i++)
+            {
+                std::string ExtractPath = root_path + paths[i];
+                ManifestState CurrentPath;
+                CurrentPath.path = ExtractPath;
+                CurrentPath.raw = "U: " + paths[i];
+                CurrentPath.zip_path = paths[i];
+                CurrentPath.operation = MUPDATE;
+                std::smatch match;
+                std::regex_search(CurrentPath.zip_path, match, std::regex("[^.]+$"));
+                CurrentPath.extension = match[0];
+                entries.push_back(CurrentPath);
+            }
+        }
+        
         Manifest(std::string ManifestPath, std::string root_path)
         {
             struct stat buf;
@@ -80,6 +98,7 @@ class Manifest
                     }
                 }else{
                     this->valid = false;
+                    this->fakeManifestPossible = false;
                 }
                 ManifestFile.close();
             }else{
