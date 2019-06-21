@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <vector>
 #include <unistd.h>
 
 #include "Utils.hpp"
@@ -219,6 +220,35 @@ int UnZip::ExtractAll(const char* dirToExtract)
 			//file
 			printf("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), fileName.c_str());
 			Extract(fileName.c_str(), fileInfo);
+		}
+		free(fileInfo);
+	}
+}
+
+vector<std::string> UnZip::PathDump()
+{
+	int i = 0;
+	vector<std::string> paths;
+	for (;;)
+	{
+		int code;
+		if (i == 0)
+		{
+			code = unzGoToFirstFile(fileToUnzip);
+			i++;
+		}
+		else
+		{
+			code = unzGoToNextFile(fileToUnzip);
+		}
+		if (code == UNZ_END_OF_LIST_OF_FILE) return paths;
+
+		unz_file_info_s* fileInfo = GetFileInfo();
+		std::string fileName = GetFullFileName(fileInfo);
+		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
+		{
+			printf("PathDump: %s\n", fileName.c_str());
+			paths.push_back(fileName);
 		}
 		free(fileInfo);
 	}

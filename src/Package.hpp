@@ -3,7 +3,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
 #include <string>
-
+#include "Manifest.hpp"
 #if defined(SWITCH)
 #define ROOT_PATH "/"
 #elif defined(__WIIU__)
@@ -40,6 +40,7 @@ public:
 	std::string url;
 	std::string updated;
 	std::string binary;
+	Manifest* manifest;
 	int updated_timestamp = 0;
 
 	int downloads = 0;

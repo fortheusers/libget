@@ -77,12 +77,12 @@ for package in os.listdir("packages"):
             fname = os.path.join(root, file)
             folder_size += os.path.getsize(fname)/1024
 
-	# Include the nro name in json if exists
-	binary = "none"
-	for (root, dirs, files) in os.walk('.'):
-		for file in files:
-			if file.endswith(".nro"):
-				binary = (root + "/" + file)[1:]
+    # Include the nro name in json if exists
+    binary = "none"
+    for (root, dirs, files) in os.walk('.'):
+        for file in files:
+            if file.endswith(".nro"):
+                binary = (root + "/" + file)[1:]
 
 
     # Date last updated (assumption is that if the app is updated the info.json would be)
@@ -90,7 +90,7 @@ for package in os.listdir("packages"):
 
     #md5 of package zip
     filehash = hashlib.md5()
-    filehash.update(open(curdir + "/zips/" + package + ".zip").read())
+    filehash.update(open(curdir + "/zips/" + package + ".zip", "rb").read())
     mdhex = filehash.hexdigest()
 
     # this line isn't confusing at all (additional info makes it less so)

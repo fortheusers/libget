@@ -14,7 +14,7 @@ int main(int argc, char** args)
 	init_networking();
 
 	// create main Get object
-	Get* get = new Get("./.get/", "http://switchbru.com/appstore");
+	Get* get = new Get("./.get/", "https://switchbru.com/appstore");
 
 	vector<Repo*> repos = get->repos;
 	vector<Package*> packages = get->packages;
