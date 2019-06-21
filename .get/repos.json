@@ -1,14 +1,14 @@
 {
     "repos": [
         {
-            "name": "Wiiubru Default",
-            "url": "http://wiiubru.com/appstore",
-            "enabled": false
+            "name": "Switchbru Default",
+            "url": "https://switchbru.com/appstore",
+            "enabled": true
         },
         {
             "name": "VGMoose Apps",
             "url": "http://hbas3.vgmoose.com",
-            "enabled": true
+            "enabled": false
         },
         {
             "name": "Sample repo",
