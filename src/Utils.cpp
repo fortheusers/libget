@@ -23,6 +23,8 @@
 
 #if defined(__WIIU__)
 #include <nsysnet/socket.h>
+#include <nsysnet/nssl.h>
+#include <nn/ac.h>
 #endif
 
 #include "Utils.hpp"
@@ -31,6 +33,10 @@ int (*networking_callback)(void*, double, double, double, double);
 
 // reference to the curl handle so that we can re-use the connection
 CURL* curl = NULL;
+
+#if defined(__WIIU__)
+NSSLContextHandle nsslctx;
+#endif
 
 bool CreateSubfolder(char* cpath)
 {
@@ -82,10 +88,19 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 	if (curl)
 	{
+		// clear buffer content
+		buffer->clear();
+
 #if defined(__WIIU__)
+		// enable ssl support (TLSv1 only)
+		curl_easy_setopt(curl, CURLOPT_NSSL_CONTEXT, nsslctx);
+		curl_easy_setopt(curl, (CURLoption)211, 0);
+
+		// network optimizations
 		curl_easy_setopt(curl, (CURLoption)213, 1);
 		curl_easy_setopt(curl, (CURLoption)212, 0x20000);
 #endif
+
 		curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
@@ -146,7 +161,19 @@ int init_networking()
 	socketInitializeDefault();
 #endif
 #if defined(__WIIU__)
+	nn::ac::ConfigIdNum configId;
+
+	// setup network connection
+	nn::ac::Initialize();
+	nn::ac::GetStartupId(&configId);
+	nn::ac::Connect(configId);
+
+	// init socket lib
 	socket_lib_init();
+
+	// init nintendo ssl lib
+	NSSLInit();
+	NSSLContextHandle nsslctx = NSSLCreateContext(0);
 #endif
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -160,6 +187,14 @@ int init_networking()
 int deinit_networking()
 {
 	curl_easy_cleanup(curl);
+
+#if defined(__WIIU__)
+	NSSLDestroyContext(nsslctx);
+	NSSLFinish();
+	socket_lib_finish();
+	nn::ac::Finalize();
+#endif
+
 	return 1;
 }
 
