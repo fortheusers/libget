@@ -1,6 +1,16 @@
 // operating system level utilities
 // contains directory utils, http utils, and helper methods
 
+#if defined(__WIIU__)
+#include <nsysnet/socket.h>
+#include <nsysnet/nssl.h>
+#include <nn/ac.h>
+#endif
+
+#if defined(SWITCH)
+#include <switch.h>
+#endif
+
 #include <algorithm>
 #include <cstdint>
 #include <dirent.h>
@@ -16,16 +26,6 @@
 
 #include <curl/curl.h>
 #include <curl/easy.h>
-
-#if defined(SWITCH)
-#include <switch.h>
-#endif
-
-#if defined(__WIIU__)
-#include <nsysnet/socket.h>
-#include <nsysnet/nssl.h>
-#include <nn/ac.h>
-#endif
 
 #include "Utils.hpp"
 
@@ -140,7 +140,7 @@ const char* plural(int amount)
 const std::string dir_name(std::string file_path)
 {
 	// turns "/hi/man/thing.txt to /hi/man"
-	int pos = file_path.find_last_of("/");
+	size_t pos = file_path.find_last_of("/");
 
 	// no "/" in string, return empty string
 	if (pos == std::string::npos)
@@ -173,7 +173,7 @@ int init_networking()
 
 	// init nintendo ssl lib
 	NSSLInit();
-	NSSLContextHandle nsslctx = NSSLCreateContext(0);
+	nsslctx = NSSLCreateContext(0);
 #endif
 
 	curl_global_init(CURL_GLOBAL_ALL);
