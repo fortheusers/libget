@@ -119,16 +119,16 @@ class Manifest
             return vec;
         }
 
-        ManifestState regexMatchPathFirst(std::string expression)
-        {
-            for (size_t i = 0; i < entries.size(); i++)
-            {
-                if(std::regex_match(entries[i].path, std::regex(expression)))
-                {
-                    return entries[i];
-                }
-            }
-        }
+        // ManifestState regexMatchPathFirst(std::string expression)
+        // {
+        //     for (size_t i = 0; i < entries.size(); i++)
+        //     {
+        //         if(std::regex_match(entries[i].path, std::regex(expression)))
+        //         {
+        //             return entries[i];
+        //         }
+        //     }
+        // }
 };
 
 #endif
