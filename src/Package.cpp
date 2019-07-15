@@ -94,7 +94,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	if (manifest->valid)
 	{
-		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)		
+		for (size_t i = 0; i < manifest->entries.size(); i++)
 		{
 			std::string Path = manifest->entries[i].zip_path;
 			std::string ExtractPath = manifest->entries[i].path;
@@ -166,7 +166,7 @@ bool Package::remove(const char* pkg_path)
 	if(!manifest) this->manifest = new Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
 	if(this->manifest->valid)
 	{
-		for (int i = 0; i <= this->manifest->entries.size() - 1; i++)
+		for (size_t i = 0; i < this->manifest->entries.size(); i++)
 		{
 			std::string DeletePath = manifest->entries[i].path;
 
@@ -199,7 +199,7 @@ bool Package::remove(const char* pkg_path)
 		printf("ERROR: Manifest missing or invalid at %s\n", ManifestPath.c_str());
 		return false;
 	}
-	
+
 
 	// sort unique folders from longest to shortest
 	std::vector<std::string> folders;

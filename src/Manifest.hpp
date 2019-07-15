@@ -45,7 +45,7 @@ class Manifest
                 entries.push_back(CurrentPath);
             }
         }
-        
+
         Manifest(std::string ManifestPath, std::string root_path)
         {
             struct stat buf;
@@ -109,7 +109,7 @@ class Manifest
         std::vector<ManifestState> regexMatchPath(std::string expression)
         {
             std::vector<ManifestState> vec;
-            for (int i = 0; i <= entries.size() - 1; i++)
+            for (size_t i = 0; i < entries.size(); i++)
             {
                 if(std::regex_match(entries[i].path, std::regex(expression)))
                 {
@@ -119,16 +119,16 @@ class Manifest
             return vec;
         }
 
-        ManifestState regexMatchPathFirst(std::string expression)
-        {
-            for (int i = 0; i <= entries.size() - 1; i++)
-            {
-                if(std::regex_match(entries[i].path, std::regex(expression)))
-                {
-                    return entries[i];
-                }
-            }
-        }
+        // ManifestState regexMatchPathFirst(std::string expression)
+        // {
+        //     for (size_t i = 0; i < entries.size(); i++)
+        //     {
+        //         if(std::regex_match(entries[i].path, std::regex(expression)))
+        //         {
+        //             return entries[i];
+        //         }
+        //     }
+        // }
 };
 
 #endif

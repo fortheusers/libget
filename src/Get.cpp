@@ -155,14 +155,14 @@ void Get::update()
 	packages.clear();
 
 	// fetch recent package list from enabled repos
-	for (int x = 0; x < repos.size(); x++)
+	for (size_t x = 0; x < repos.size(); x++)
 	{
 		if (repos[x]->enabled)
 			repos[x]->loadPackages(&packages);
 	}
 
 	// check for any installed packages to update their status
-	for (int x = 0; x < packages.size(); x++)
+	for (size_t x = 0; x < packages.size(); x++)
 		packages[x]->updateStatus(this->pkg_path);
 }
 
@@ -185,7 +185,7 @@ std::vector<Package*> Get::search(std::string query)
 	std::vector<Package*> results = std::vector<Package*>();
 	std::string lower_query = toLower(query);
 
-	for (int x = 0; x < packages.size(); x++)
+	for (size_t x = 0; x < packages.size(); x++)
 	{
 		Package* cur = packages[x];
 		if (cur != NULL && (toLower(cur->title).find(lower_query) != std::string::npos || toLower(cur->author).find(lower_query) != std::string::npos || toLower(cur->short_desc).find(lower_query) != std::string::npos || toLower(cur->long_desc).find(lower_query) != std::string::npos))
@@ -201,7 +201,7 @@ std::vector<Package*> Get::search(std::string query)
 
 Package* Get::lookup(std::string pkg_name)
 {
-	for (int x = 0; x < packages.size(); x++)
+	for (size_t x = 0; x < packages.size(); x++)
 	{
 		Package* cur = packages[x];
 		if (cur != NULL && cur->pkg_name == pkg_name)

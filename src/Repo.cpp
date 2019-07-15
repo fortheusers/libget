@@ -59,7 +59,18 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	std::string response;
 	bool success = downloadFileToMemory(directoryUrl, &response);
 
-	std::string* response_copy = new std::string(response);
+	// attempt fallback to http in case of https repos failure
+	if (!success && (this->url.rfind("https", 0) == 0))
+	{
+		printf("--> Attempting http fallback for https repo \"%s\" after loading failure\n", this->name.c_str());
+
+		// update repo url
+		this->url.replace(0, 5, "http");
+		directoryUrl = this->url + "/repo.json";
+
+		// retry fetch
+		success = downloadFileToMemory(directoryUrl, &response);
+	}
 
 	if (!success)
 	{
@@ -67,6 +78,8 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		this->loaded = false;
 		return;
 	}
+
+	std::string* response_copy = new std::string(response);
 
 	// extract out packages, append to package list
 	Document doc;
