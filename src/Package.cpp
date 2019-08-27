@@ -384,3 +384,13 @@ const char* Package::statusString()
 	}
 	return "UNKNOWN";
 }
+
+std::string Package::getIconUrl()
+{
+	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/icon.png";
+}
+
+std::string Package::getBannerUrl()
+{
+	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen.png";
+}

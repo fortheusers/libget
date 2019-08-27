@@ -25,6 +25,11 @@ public:
 	const char* statusString();
 	void updateStatus(const char* pkg_path);
 
+	std::string getIconUrl();
+#if !defined(__WIIU__)
+	std::string getBannerUrl();
+#endif
+
 	int isPreviouslyInstalled();
 
 	// Package attributes
