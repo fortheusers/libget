@@ -115,7 +115,7 @@ void Get::loadRepos()
 
 			// manually create a repo, no file access
 			Repo* repo = new Repo();
-			repo->name = "Switchbru";
+			repo->name = "4TU Switch Repo";
 			repo->url = this->defaultRepo;
 			repo->enabled = true;
 			repos.push_back(repo);
