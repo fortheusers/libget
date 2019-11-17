@@ -97,6 +97,9 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	// for every repo
 	for (Value::ConstValueIterator it = packages_doc.Begin(); it != packages_doc.End(); it++)
 	{
+		if (networking_callback != NULL)
+			networking_callback(0, 0, 0, 0, 0);
+
 		Package* package = new Package(GET);
 
 		// TODO: use arrays and loops for parsing this info, and also check the type first

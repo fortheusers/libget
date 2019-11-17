@@ -109,7 +109,7 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 		res = curl_easy_perform(curl);
 
-		if (*buffer == "" || *buffer == "404" || res != CURLE_OK)
+		if (res != CURLE_OK || *buffer == "" || *buffer == "404")
 			return false;
 
 		return true;
