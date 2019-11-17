@@ -164,8 +164,8 @@ void Get::update()
 	// check for any installed packages to update their status
 	for (size_t x = 0; x < packages.size(); x++)
 	{
-		if (networking_callback != NULL)
-			networking_callback(0, 0, 0, 0, 0);
+		// if (networking_callback != NULL)
+		// 	networking_callback(0, 0, 0, 0, 0);
 		packages[x]->updateStatus(this->pkg_path);
 	}
 }

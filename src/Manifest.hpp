@@ -19,7 +19,7 @@ struct ManifestState
     std::string raw;
     std::string path;
     std::string zip_path;
-    std::string extension;
+    std::string extension = "?";
     enum ManifestOp operation;
 };
 
@@ -39,9 +39,9 @@ class Manifest
                 CurrentPath.raw = "U: " + paths[i];
                 CurrentPath.zip_path = paths[i];
                 CurrentPath.operation = MUPDATE;
-                std::smatch match;
-                std::regex_search(CurrentPath.zip_path, match, std::regex("[^.]+$"));
-                CurrentPath.extension = match[0];
+                std::string::size_type idx = paths[i].rfind('.');
+                if(idx != std::string::npos)
+                    CurrentPath.extension = paths[i].substr(idx+1);
                 entries.push_back(CurrentPath);
             }
         }
@@ -90,9 +90,9 @@ class Manifest
                             CurrentLState.path = ExtractPath;
                             CurrentLState.raw = CurrentLine;
                             CurrentLState.zip_path = Path;
-                            std::smatch match;
-                            std::regex_search(Path, match, std::regex("[^.]+$"));
-                            CurrentLState.extension = match[0];
+                            std::string::size_type idx = Path.rfind('.');
+                            if(idx != std::string::npos)
+                                CurrentLState.extension = Path.substr(idx+1);
                             entries.push_back(CurrentLState);
                         }
                     }
