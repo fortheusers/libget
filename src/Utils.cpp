@@ -33,14 +33,6 @@
 
 #define BUF_SIZE 0x800000 //8MB.
 
-typedef struct
-{
-    uint8_t *data;
-    size_t data_size;
-    u_int64_t offset;
-    FILE *out;
-} ntwrk_struct_t;
-
 
 int (*networking_callback)(void*, double, double, double, double);
 
