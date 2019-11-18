@@ -35,7 +35,7 @@
 
 typedef struct
 {
-    char *data;
+    uint8_t *data;
     size_t data_size;
     u_int64_t offset;
     FILE *out;
@@ -139,7 +139,7 @@ bool downloadFileToMemory(std::string path, ntwrk_struct_t *data_struct)
 
 bool downloadFileToDisk(std::string remote_path, std::string local_path)
 {
-	FILE *out_file = fopen(local_path, "wb");
+	FILE *out_file = fopen(local_path.c_str(), "wb");
 	if (!out_file)
 		return false;
 
