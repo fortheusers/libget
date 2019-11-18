@@ -110,36 +110,31 @@ bool downloadFileToMemory(std::string path, ntwrk_struct_t *data_struct)
 {
 	CURLcode res;
 
-	if (curl)
-	{
-		// clear buffer content
-		buffer->clear();
+	if (!curl)
+		return false;
 
 #if defined(__WIIU__)
-		// enable ssl support (TLSv1 only)
-		curl_easy_setopt(curl, CURLOPT_NSSL_CONTEXT, nsslctx);
-		curl_easy_setopt(curl, (CURLoption)211, 0);
+	// enable ssl support (TLSv1 only)
+	curl_easy_setopt(curl, CURLOPT_NSSL_CONTEXT, nsslctx);
+	curl_easy_setopt(curl, (CURLoption)211, 0);
 
-		// network optimizations
-		curl_easy_setopt(curl, (CURLoption)213, 1);
-		curl_easy_setopt(curl, (CURLoption)212, 0x20000);
+	// network optimizations
+	curl_easy_setopt(curl, (CURLoption)213, 1);
+	curl_easy_setopt(curl, (CURLoption)212, 0x20000);
 #endif
 
-		curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_struct);
+	curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
+	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_struct);
 
-		res = curl_easy_perform(curl);
+	res = curl_easy_perform(curl);
 
-		if (*data_struct->data == "" || *data_struct->data == "404" || res != CURLE_OK)
-			return false;
+	if (/**data_struct->data == "" || *data_struct->data == "404" || */res != CURLE_OK)
+		return false;
 
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 bool downloadFileToDisk(std::string remote_path, std::string local_path)
@@ -148,7 +143,7 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
 	if (!out_file)
 		return false;
 
-	char *buf = malloc(BUF_SIZE); // 8MB.
+	uint8_t *buf = (uint8_t *)malloc(BUF_SIZE); // 8MB.
 	if (buf == NULL)
 	{
 		fclose(out_file);
