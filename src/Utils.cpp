@@ -88,7 +88,7 @@ bool mkpath(std::string path)
 	return bSuccess;
 }
 
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+static size_t WriteCallback(void* contents, size_t size, size_t num_files, void* userp)
 {
 	ntwrk_struct_t *data_struct = (ntwrk_struct_t *)userp;
     size_t realsize = size * num_files;
