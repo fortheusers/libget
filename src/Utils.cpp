@@ -19,6 +19,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <sys/stat.h>
@@ -28,6 +29,18 @@
 #include <curl/easy.h>
 
 #include "Utils.hpp"
+
+
+#define BUF_SIZE 0x800000 //8MB.
+
+typedef struct
+{
+    u_int8_t *data;
+    size_t data_size;
+    u_int64_t offset;
+    FILE *out;
+} ntwrk_struct_t;
+
 
 int (*networking_callback)(void*, double, double, double, double);
 
@@ -77,12 +90,23 @@ bool mkpath(std::string path)
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
-	((std::string*)userp)->append((char*)contents, size * nmemb);
-	return size * nmemb;
+	ntwrk_struct_t *data_struct = (ntwrk_struct_t *)userp;
+    size_t realsize = size * num_files;
+
+	if (realsize + data_struct->offset >= data_struct->data_size)
+    {
+        fwrite(data_struct->data, data_struct->offset, 1, data_struct->out);
+        data_struct->offset = 0;
+    }
+
+    memcpy(&data_struct->data[data_struct->offset], contents, realsize);
+    data_struct->offset += realsize;
+    data_struct->data[data_struct->offset] = 0;
+    return realsize;
 }
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
-bool downloadFileToMemory(std::string path, std::string* buffer)
+bool downloadFileToMemory(std::string path, ntwrk_struct_t *data_struct)
 {
 	CURLcode res;
 
@@ -105,11 +129,11 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_struct);
 
 		res = curl_easy_perform(curl);
 
-		if (*buffer == "" || *buffer == "404" || res != CURLE_OK)
+		if (*data_struct->data == "" || *data_struct->data == "404" || res != CURLE_OK)
 			return false;
 
 		return true;
@@ -120,14 +144,30 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 bool downloadFileToDisk(std::string remote_path, std::string local_path)
 {
-	std::string fileContents;
-	bool resp = downloadFileToMemory(remote_path, &fileContents);
-	if (!resp)
+	FILE *out_file = fopen(local_path, "wb");
+	if (!out_file)
 		return false;
 
-	std::ofstream file(local_path);
-	file << fileContents;
-	file.close();
+	uint8_t *buf = malloc(BUF_SIZE) // 8MB.
+	if (buf == NULL)
+	{
+		fclose(out_file);
+		return false;
+	}
+
+	ntwrk_struct_t data_struct = { buf, BUF_SIZE, 0, out_file };
+
+	if (!downloadFileToMemory(remote_path, &data_struct))
+	{
+		free(data_struct.data);
+		fclose(data_struct.out);
+		return false;
+	}
+
+	// write remaning data to file before free.
+    fwrite(data_struct.data, data_struct.offset, 1, data_struct.out);
+    free(data_struct.data);
+	fclose(data_struct.out);
 
 	return true;
 }
