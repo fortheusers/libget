@@ -35,7 +35,7 @@
 
 typedef struct
 {
-    u_int8_t *data;
+    char *data;
     size_t data_size;
     u_int64_t offset;
     FILE *out;
@@ -148,7 +148,7 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
 	if (!out_file)
 		return false;
 
-	uint8_t *buf = malloc(BUF_SIZE) // 8MB.
+	char *buf = malloc(BUF_SIZE); // 8MB.
 	if (buf == NULL)
 	{
 		fclose(out_file);
