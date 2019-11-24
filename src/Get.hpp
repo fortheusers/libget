@@ -1,7 +1,7 @@
 #ifndef GET_H
 #define GET_H
 #include <vector>
-#include "libget/src/constants.h"
+#include "constants.h"
 #include "Repo.hpp"
 
 class Get
