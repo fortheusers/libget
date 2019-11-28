@@ -4,8 +4,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "../libs/get/src/Get.hpp"
-#include "../libs/get/src/Utils.hpp"
+#include "../src/Get.hpp"
+#include "../src/Utils.hpp"
 
 using namespace std;
 
