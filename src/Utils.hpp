@@ -17,7 +17,7 @@ bool CreateSubfolder(char* cstringpath);
 
 // networking stuff
 int init_networking();
-bool downloadFileToMemory(std::string path, ntwrk_struct_t *data_struct); // writes to disk in BUF_SIZE chunks.
+bool downloadFileToMemory(std::string path, std::string* buffer); // writes to disk in BUF_SIZE chunks.
 bool downloadFileToDisk(std::string remote_path, std::string local_path); // saves file to local_path.
 
 // callback for networking progress

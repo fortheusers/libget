@@ -80,7 +80,13 @@ bool mkpath(std::string path)
 	return bSuccess;
 }
 
-static size_t WriteCallback(void* contents, size_t size, size_t num_files, void* userp)
+static size_t MemoryWriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+ {
+ 	((std::string*)userp)->append((char*)contents, size * nmemb);
+ 	return size * nmemb;
+ }
+
+static size_t DiskWriteCallback(void* contents, size_t size, size_t num_files, void* userp)
 {
 	ntwrk_struct_t *data_struct = (ntwrk_struct_t *)userp;
     size_t realsize = size * num_files;
@@ -98,7 +104,8 @@ static size_t WriteCallback(void* contents, size_t size, size_t num_files, void*
 }
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
-bool downloadFileToMemory(std::string path, ntwrk_struct_t *data_struct)
+// if data_struct is specified, file will go straight to disk as it downloads
+bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_struct_t* data_struct = NULL)
 {
 	CURLcode res;
 
@@ -116,17 +123,24 @@ bool downloadFileToMemory(std::string path, ntwrk_struct_t *data_struct)
 #endif
 
 	curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_struct);
 
-	res = curl_easy_perform(curl);
+	bool skipDisk = data_struct == NULL;
 
-	if (/**data_struct->data == "" || *data_struct->data == "404" || */res != CURLE_OK)
-		return false;
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, skipDisk ? MemoryWriteCallback : DiskWriteCallback);
+	
+	if (skipDisk)
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
+	else
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_struct);
 
-	return true;
+	return curl_easy_perform(curl) == CURLE_OK;
+}
+
+bool downloadFileToMemory(std::string path, std::string* buffer)
+{
+	return downloadFileCommon(path, buffer, NULL);
 }
 
 bool downloadFileToDisk(std::string remote_path, std::string local_path)
@@ -144,7 +158,7 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
 
 	ntwrk_struct_t data_struct = { buf, BUF_SIZE, 0, out_file };
 
-	if (!downloadFileToMemory(remote_path, &data_struct))
+	if (!downloadFileCommon(remote_path, NULL, &data_struct))
 	{
 		free(data_struct.data);
 		fclose(data_struct.out);
