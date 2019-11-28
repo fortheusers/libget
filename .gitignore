@@ -2,6 +2,7 @@
 *.gch
 *.DS_Store
 
+.vscode/**
 .buckd
 buck-out
 .buckconfig.local
