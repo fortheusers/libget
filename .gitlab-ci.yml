@@ -2,7 +2,7 @@ image: ubuntu:18.10
 
 CLI:
   script:
-    - apt-get update && apt-get -y install wget zlib1g-dev gcc g++ libcurl4-openssl-dev libxml2 xz-utils lzma build-essential
+    - apt-get update && apt-get -y install python3 wget zlib1g-dev gcc g++ libcurl4-openssl-dev libxml2 xz-utils lzma build-essential
     - make && make run_tests
   artifacts:
     paths:
