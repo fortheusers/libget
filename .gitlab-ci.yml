@@ -1,0 +1,9 @@
+image: ubuntu:18.10
+
+CLI:
+  script:
+    - apt-get install zlib1g-dev gcc g++ libcurl4-openssl-dev
+    - make && make run_tests
+  artifacts:
+    paths:
+      - get
