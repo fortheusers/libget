@@ -8,7 +8,7 @@
 #include "4_InstallPackages2.hpp"
 #include "5_Search.hpp"
 #include "6_RemovePackages.hpp"
-// #include "7_UpgradePackages.hpp"
+#include "7_UpgradePackages.hpp"
 
 using namespace std;
 
@@ -44,7 +44,7 @@ int main()
 		new InstallPackages2(),
 		new Search(),
 		new RemovePackages(),
-		// UpgradePackages
+		new UpgradePackages()
 	};
 
 	// main test loop that goes through all our tests, and prints out

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <unordered_set>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -161,6 +162,9 @@ void Get::update()
 			repos[x]->loadPackages(&packages);
 	}
 
+  // remove duplicates, prioritizing later packages over earlier ones
+  this->removeDuplicates();
+
 	// check for any installed packages to update their status
 	for (size_t x = 0; x < packages.size(); x++)
 	{
@@ -214,4 +218,27 @@ Package* Get::lookup(std::string pkg_name)
 		}
 	}
 	return NULL;
+}
+
+void Get::removeDuplicates()
+{
+  std::unordered_set<std::string> packageSet;
+  std::unordered_set<Package*> removalSet;
+
+  // going backards, fill out our sets
+  // (prioritizes later repo packages over earlier ones, regardless of versioning)
+  // TODO: semantic versioning or have a versionCode int that increments every update
+  for (int x = packages.size()-1; x >= 0; x--)
+  {
+    std::string name = packages[x]->pkg_name;
+    if (packageSet.find(name) == packageSet.end())
+      packageSet.insert(name);
+    else
+      removalSet.insert(packages[x]);
+  }
+
+  // remove them, if they are in the removal set
+  packages.erase(std::remove_if(packages.begin(), packages.end(), [removalSet](Package* p) {
+    return removalSet.find(p) != removalSet.end();
+  }), packages.end());
 }
