@@ -94,8 +94,11 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	if (manifest->valid)
 	{
-		for (size_t i = 0; i < manifest->entries.size(); i++)
+		for (int i = 0; i < manifest->entries.size(); i++)
 		{
+      if (networking_callback != NULL)
+			  networking_callback(0, manifest->entries.size(), i, 0, 0);
+
 			std::string Path = manifest->entries[i].zip_path;
 			std::string ExtractPath = manifest->entries[i].path;
 
@@ -166,8 +169,11 @@ bool Package::remove(const char* pkg_path)
 	if(!manifest) this->manifest = new Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
 	if(this->manifest->valid)
 	{
-		for (size_t i = 0; i < this->manifest->entries.size(); i++)
+		for (int i = 0; i < this->manifest->entries.size(); i++)
 		{
+      if (networking_callback != NULL)
+			  networking_callback(0, manifest->entries.size(), i, 0, 0);
+
 			std::string DeletePath = manifest->entries[i].path;
 
 			// the current directory

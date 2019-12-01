@@ -28,5 +28,6 @@ int count(Get* get, int state);
 bool install(Get* get, const char* name);
 bool remove(Get* get, const char* name);
 bool exists(const char* path);
+std::string calculateMD5(const char* path);
 
 #endif
