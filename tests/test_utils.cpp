@@ -70,7 +70,7 @@ std::string calculateMD5(const char* path)
   int i;
   std::stringstream ss;
   for(i=0; i <MD5_DIGEST_LENGTH; i++) {
-    ss << std::hex << std::setfill('0') << std::setw(2) << (int)result[i];
+    ss << std::hex << std::setfill('0') << (int)result[i];
   }
 
   return ss.str();
