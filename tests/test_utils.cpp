@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 
+#include <iomanip>
+
 int count(Get* get, int state)
 {
 	int count = 0;
