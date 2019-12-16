@@ -65,12 +65,29 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 {
 	// assumes that download was called first
 
+  // our internal path of where the manifest will be
+  std::string ManifestPathInternal = "manifest.install";
+	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
+
+  // before we uninstall, open up the current manifest, and get all the files in it
+  // (later we will remove any that aren't in the new manifest)
+  Manifest existingManifest(ManifestPath, ROOT_PATH);
+
+  std::unordered_set<std::string> existing_package_paths;
+  if (existingManifest.valid) {
+    // go through its paths, add them our existing set
+    for (int i = 0; i < manifest->entries.size(); i++)
+    {
+      ManifestOp op = this->manifest->entries[i].operation;
+      if (op == MUPDATE || op == MEXTRACT)
+        existing_package_paths.insert(manifest->entries[i].path);
+    }
+  }
+
 	//! Open the Zip file
 	UnZip* HomebrewZip = new UnZip((tmp_path + this->pkg_name + ".zip").c_str());
 
 	//! First extract the Manifest
-	std::string ManifestPathInternal = "manifest.install";
-	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 	HomebrewZip->ExtractFile(ManifestPathInternal.c_str(), ManifestPath.c_str());
 
 	//! Then extract the info.json file (to know what version we have installed and stuff)
@@ -92,6 +109,8 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		pseudomanifest.close();
 	}
 
+  std::unordered_set<std::string> incoming_package_paths;
+
 	if (manifest->valid)
 	{
 		for (int i = 0; i < manifest->entries.size(); i++)
@@ -101,6 +120,9 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 			std::string Path = manifest->entries[i].zip_path;
 			std::string ExtractPath = manifest->entries[i].path;
+
+      // track this specific file for later, when we remove files that we don't have entries for
+      incoming_package_paths.insert(ExtractPath);
 
 			int resp = 0;
 			switch (manifest->entries[i].operation)
@@ -133,6 +155,16 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 				return false;
 			}
 		}
+
+    // done installing new files, go through the remaining files that we didn't just visit
+    // and remove them (files that WERE in our old manifest, and AREN'T in the new one we got)
+    for (auto& path : existing_package_paths) {
+      // only continue if it's not in our incoming package path set
+      if (incoming_package_paths.find(path) == incoming_package_paths.end()) {
+        std::remove(path.c_str());
+        // printf("REMOVING: %s\n", path.c_str());
+      }
+    }
 	}
 	else
 	{
@@ -180,32 +212,17 @@ bool Package::remove(const char* pkg_path)
 			std::string cur_dir = dir_name(DeletePath);
 			uniq_folders.insert(cur_dir);
 
-			switch (this->manifest->entries[i].operation)
-			{
-			case MUPDATE:
-				printf("%s : UPDATE\n", DeletePath.c_str());
-				printf("Removing %s\n", DeletePath.c_str());
+      ManifestOp op = this->manifest->entries[i].operation;
+      if (op != NOP && op != MEXTRACT) // get, upgrade, and local
+      {
+        printf("Removing %s\n", DeletePath.c_str());
 				std::remove(DeletePath.c_str());
-				break;
-			case MGET:
-				printf("%s : GET\n", DeletePath.c_str());
-				printf("Removing %s\n", DeletePath.c_str());
-				std::remove(DeletePath.c_str());
-				break;
-			case MLOCAL:
-				printf("%s : LOCAL\n", DeletePath.c_str());
-				printf("Removing %s\n", DeletePath.c_str());
-				std::remove(DeletePath.c_str());
-				break;
-			default:
-				break;
-			}
+      }
 		}
-	}else{
+	} else {
 		printf("ERROR: Manifest missing or invalid at %s\n", ManifestPath.c_str());
 		return false;
 	}
-
 
 	// sort unique folders from longest to shortest
 	std::vector<std::string> folders;

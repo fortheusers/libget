@@ -60,19 +60,19 @@ class UpgradePackages : public Test {
 
     // TODO: this test is good! but the code is bad, see issue https://github.com/vgmoose/libget/issues/8
     // TODO: uncomment these tests, and fix the bug in the code so they pass
-		// ok = true;
-		// ok &= exists("sdroot/dir2/x");
-		// ok &= exists("sdroot/newdir/dogs");
-		// ok &= exists("sdroot/dir2/mario");
-		// ok &= !exists("sdroot/dir2/s");
-		// ok &= !exists("sdroot/dir2/z");
-		// ok &= !exists("sdroot/dir2/dir3/dogs");
-		// ok &= !exists("sdroot/dir1/a");
+		ok = true;
+		ok &= exists("sdroot/dir2/x");
+		ok &= exists("sdroot/newdir/dogs");
+		ok &= exists("sdroot/dir2/mario");
+		ok &= !exists("sdroot/dir2/s");
+		ok &= !exists("sdroot/dir2/z");
+		ok &= !exists("sdroot/dir2/dir3/dogs");
+		ok &= !exists("sdroot/dir1/a");
 
-		// if (!ok) {
-		// 	error << "(2) After upgrading, some unexpected files were left behind" << endl;
-		// 	return false;
-		// }
+		if (!ok) {
+			error << "(2) After upgrading, some unexpected files were left behind" << endl;
+			return false;
+		}
 		
 		return true;
 	}

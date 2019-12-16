@@ -17,6 +17,16 @@ class ContentTest : public Test {
       return false;
     }
 
+    // install one more time, and make sure we're still all good
+    install(get, "raichu");
+
+		sum = calculateMD5("sdroot/image.jpg").c_str();
+		if (rightSum != sum)
+		{
+			error << "The redownloaded file in package 'raichu' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
+      return false;
+    }
+
 		return true;
 	}
 };
