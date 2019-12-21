@@ -159,8 +159,16 @@ void Get::update()
 	for (size_t x = 0; x < repos.size(); x++)
 	{
 		if (repos[x]->enabled)
+		{
+			if (libget_status_callback != NULL)
+				libget_status_callback(STATUS_RELOADING, x, repos.size());
+
 			repos[x]->loadPackages(&packages);
+		}
 	}
+
+	if (libget_status_callback != NULL)
+		libget_status_callback(STATUS_UPDATING_STATUS, 1, 1);
 
   // remove duplicates, prioritizing later packages over earlier ones
   this->removeDuplicates();
@@ -168,8 +176,6 @@ void Get::update()
 	// check for any installed packages to update their status
 	for (size_t x = 0; x < packages.size(); x++)
 	{
-		if (networking_callback != NULL)
-			networking_callback(0, packages.size(), x, 0, 0);
 		packages[x]->updateStatus(this->pkg_path);
 	}
 }

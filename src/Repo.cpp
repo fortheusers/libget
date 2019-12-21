@@ -79,6 +79,9 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		return;
 	}
 
+	if (libget_status_callback != NULL)
+		libget_status_callback(STATUS_UPDATING_STATUS, 1, 1);
+
 	std::string* response_copy = new std::string(response);
 
 	// extract out packages, append to package list

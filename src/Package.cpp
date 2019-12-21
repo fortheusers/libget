@@ -56,6 +56,9 @@ std::string Package::toString()
 
 bool Package::downloadZip(const char* tmp_path, float* progress)
 {
+	if (libget_status_callback != NULL)
+  	libget_status_callback(STATUS_DOWNLOADING, 1, 1);
+
 	// fetch zip file to tmp directory using curl
 	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path);
 	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
@@ -64,6 +67,8 @@ bool Package::downloadZip(const char* tmp_path, float* progress)
 bool Package::install(const char* pkg_path, const char* tmp_path)
 {
 	// assumes that download was called first
+	if (libget_status_callback != NULL)
+  	libget_status_callback(STATUS_INSTALLING, 1, 1);
 
   // our internal path of where the manifest will be
   std::string ManifestPathInternal = "manifest.install";
@@ -189,6 +194,9 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 bool Package::remove(const char* pkg_path)
 {
+	if (libget_status_callback != NULL)
+		libget_status_callback(STATUS_REMOVING, 1, 1);
+
 	// perform an uninstall of the current package, parsing the cached metadata
 	std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;

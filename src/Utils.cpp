@@ -25,9 +25,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <curl/curl.h>
-#include <curl/easy.h>
-
 #include "Utils.hpp"
 
 
@@ -35,6 +32,7 @@
 
 
 int (*networking_callback)(void*, double, double, double, double);
+int (*libget_status_callback)(int, int, int);
 
 // reference to the curl handle so that we can re-use the connection
 CURL* curl = NULL;
@@ -80,11 +78,28 @@ bool mkpath(std::string path)
 	return bSuccess;
 }
 
+void setPlatformCurlFlags(CURL* c)
+{
+#if defined(__WIIU__)
+  // enable ssl support (TLSv1 only)
+	curl_easy_setopt(c, CURLOPT_NSSL_CONTEXT, nsslctx);
+	curl_easy_setopt(c, (CURLoption)211, 0);
+
+	// network optimizations
+	curl_easy_setopt(c, (CURLoption)213, 1);
+	curl_easy_setopt(c, (CURLoption)212, 0x8000);
+#endif
+
+  // ignore cert verification (TODO: not have to do this in the future)
+  curl_easy_setopt(c, CURLOPT_SSL_VERIFYPEER, 0L);
+  curl_easy_setopt(c, CURLOPT_SSL_VERIFYHOST, 0L);
+}
+
 static size_t MemoryWriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
- {
+{
  	((std::string*)userp)->append((char*)contents, size * nmemb);
  	return size * nmemb;
- }
+}
 
 static size_t DiskWriteCallback(void* contents, size_t size, size_t num_files, void* userp)
 {
@@ -112,15 +127,7 @@ bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_stru
 	if (!curl)
 		return false;
 
-#if defined(__WIIU__)
-	// enable ssl support (TLSv1 only)
-	curl_easy_setopt(curl, CURLOPT_NSSL_CONTEXT, nsslctx);
-	curl_easy_setopt(curl, (CURLoption)211, 0);
-
-	// network optimizations
-	curl_easy_setopt(curl, (CURLoption)213, 1);
-	curl_easy_setopt(curl, (CURLoption)212, 0x20000);
-#endif
+  setPlatformCurlFlags(curl);
 
 	curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
