@@ -95,40 +95,43 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	const Value& packages_doc = doc["packages"];
 
 	// for every repo
-	for (Value::ConstValueIterator it = packages_doc.Begin(); it != packages_doc.End(); it++)
+  auto total = packages_doc.Size();
+	for (int i = 0; i < total; i++)
 	{
 		if (networking_callback != NULL)
-			networking_callback(0, 0, 0, 0, 0);
+			networking_callback(0, total, i, 0, 0);
 
 		Package* package = new Package(GET);
 
 		// TODO: use arrays and loops for parsing this info, and also check the type first
 
+    auto& cur = packages_doc[i];
+
 		// mostly essential attributes
-		package->pkg_name = (*it)["name"].GetString();
-		if ((*it).HasMember("title"))
-			package->title = (*it)["title"].GetString();
+		package->pkg_name = cur["name"].GetString();
+		if (cur.HasMember("title"))
+			package->title = cur["title"].GetString();
 		else
 			package->title = package->pkg_name;
-		if ((*it).HasMember("author"))
-			package->author = (*it)["author"].GetString();
-		if ((*it).HasMember("description"))
-			package->short_desc = (*it)["description"].GetString();
-		if ((*it).HasMember("details"))
-			package->long_desc = std::regex_replace((*it)["details"].GetString(), std::regex("\\\\n"), "\n");
-		if ((*it).HasMember("version"))
-			package->version = (*it)["version"].GetString();
+		if (cur.HasMember("author"))
+			package->author = cur["author"].GetString();
+		if (cur.HasMember("description"))
+			package->short_desc = cur["description"].GetString();
+		if (cur.HasMember("details"))
+			package->long_desc = std::regex_replace(cur["details"].GetString(), std::regex("\\\\n"), "\n");
+		if (cur.HasMember("version"))
+			package->version = cur["version"].GetString();
 
 		// more information and details
-		if ((*it).HasMember("license"))
-			package->license = (*it)["license"].GetString();
-		if ((*it).HasMember("changelog"))
-			package->changelog = std::regex_replace((*it)["changelog"].GetString(), std::regex("\\\\n"), "\n");
-		if ((*it).HasMember("url"))
-			package->url = (*it)["url"].GetString();
-		if ((*it).HasMember("updated"))
+		if (cur.HasMember("license"))
+			package->license = cur["license"].GetString();
+		if (cur.HasMember("changelog"))
+			package->changelog = std::regex_replace(cur["changelog"].GetString(), std::regex("\\\\n"), "\n");
+		if (cur.HasMember("url"))
+			package->url = cur["url"].GetString();
+		if (cur.HasMember("updated"))
 		{
-			package->updated = (*it)["updated"].GetString();
+			package->updated = cur["updated"].GetString();
 			struct tm tm;
 			time_t ts;
 
@@ -141,19 +144,19 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		}
 
 		// even more details
-		if ((*it).HasMember("app_dls"))
-			package->downloads += (*it)["app_dls"].GetInt();
-		if ((*it).HasMember("web_dls"))
-			package->downloads += (*it)["web_dls"].GetInt();
-		if ((*it).HasMember("extracted"))
-			package->extracted_size += (*it)["extracted"].GetInt();
-		if ((*it).HasMember("filesize"))
-			package->download_size += (*it)["filesize"].GetInt();
+		if (cur.HasMember("app_dls"))
+			package->downloads += cur["app_dls"].GetInt();
+		if (cur.HasMember("web_dls"))
+			package->downloads += cur["web_dls"].GetInt();
+		if (cur.HasMember("extracted"))
+			package->extracted_size += cur["extracted"].GetInt();
+		if (cur.HasMember("filesize"))
+			package->download_size += cur["filesize"].GetInt();
 
-		if ((*it).HasMember("category"))
-			package->category = (*it)["category"].GetString();
-		if ((*it).HasMember("binary"))
-			package->binary = (*it)["binary"].GetString();
+		if (cur.HasMember("category"))
+			package->category = cur["category"].GetString();
+		if (cur.HasMember("binary"))
+			package->binary = cur["binary"].GetString();
 		package->repoUrl = &this->url;
 
 		// save the response string to cleanup later
