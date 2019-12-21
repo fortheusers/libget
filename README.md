@@ -58,22 +58,17 @@ Any installed packages specified after the `--delete` flag will be removed
 This command parses the `manifest.install` file fetched when the package was installed, and uses it to determine which files to remove. Currently empty folders are left behind after the files are deleted.
 
 ## Building for PC
-This project uses [Buck](https://github.com/facebook/buck) to build and [Buckaroo](https://github.com/LoopPerfect/buckaroo/) for dependency management.
-
-1. Install a [precompiled Buck](https://github.com/facebook/buck/releases), and [precompiled Buckaroo](https://github.com/LoopPerfect/buckaroo/releases) for your platform, or build them from source
-2. Run the following:
+The following system-level dependencies are needed: zlib and libcurl. After obtaining those, it should be as straightforward as cloning the repo and running make:
 ```
-git clone https://github.com/vgmoose/libget.git
-buckaroo install
-buck build :get
+git clone https://gitlab.com/4tu/libget.git
+cd libget
+make
 ```
+The get CLI binary should now be sitting in: `./get`
 
-The get CLI binary should now be sitting in: `./buck-out/gen/get`
+This project also makes use of these libraries: [rapidjson](https://github.com/Tencent/rapidjson), [minizip](https://github.com/nmoinvaz/minizip/tree/1.2), and for some platforms [tinyxml](http://www.grinninglizard.com/tinyxml/). These libraries' sources are included in this repo in the `./src/libs` folder, and automatically included by the makefile.
 
-## Building without Buck
-You can also use the old Makefile to build the project. You will need to obtain the following dependencies: zlib, libcurl, rapidjson, and minizip
-
-For your convenience, rapidjson and minizip sources are included in this repo in the `./src/libs` folder.
+**TODO**: point those libraries to their respective git repos via submodules.
 
 ## Including the library
 The easiest way to include the project is to use Buck and Buckaroo in your project, and run:
