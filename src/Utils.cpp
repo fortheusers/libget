@@ -90,9 +90,11 @@ void setPlatformCurlFlags(CURL* c)
 	curl_easy_setopt(c, (CURLoption)212, 0x8000);
 #endif
 
+#if defined(SWITCH)
   // ignore cert verification (TODO: not have to do this in the future)
   curl_easy_setopt(c, CURLOPT_SSL_VERIFYPEER, 0L);
   curl_easy_setopt(c, CURLOPT_SSL_VERIFYHOST, 0L);
+#endif
 }
 
 static size_t MemoryWriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
