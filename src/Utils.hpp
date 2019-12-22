@@ -40,6 +40,7 @@ const char* plural(int amount);
 void cp(const char* from, const char* to);
 std::string toLower(const std::string& str);
 int remove_empty_dirs(const char* name, int count);
+void libget_reset_data(const char* path);
 
 const std::string dir_name(std::string file_path);
 bool compareLen(const std::string& a, const std::string& b);
