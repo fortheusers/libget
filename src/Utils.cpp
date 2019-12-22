@@ -333,7 +333,7 @@ bool libget_reset_data(const char* path)
 	if (res == 0)
 		printf("Folder renamed!\n");
 	else
-		printf("Issue renaming folder... %d\n", errno);
+		printf("Issue renaming folder... %d: %s\n", errno, strerror(errno));
 
 	return !res;
 }

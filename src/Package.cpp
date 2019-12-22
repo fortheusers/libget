@@ -121,7 +121,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		for (int i = 0; i < manifest->entries.size(); i++)
 		{
       if (networking_callback != NULL)
-			  networking_callback(0, manifest->entries.size(), i, 0, 0);
+			  networking_callback(0, manifest->entries.size(), i+1, 0, 0);
 
 			std::string Path = manifest->entries[i].zip_path;
 			std::string ExtractPath = manifest->entries[i].path;
@@ -212,7 +212,7 @@ bool Package::remove(const char* pkg_path)
 		for (int i = 0; i < this->manifest->entries.size(); i++)
 		{
       if (networking_callback != NULL)
-			  networking_callback(0, manifest->entries.size(), i, 0, 0);
+			  networking_callback(0, manifest->entries.size(), i+1, 0, 0);
 
 			std::string DeletePath = manifest->entries[i].path;
 

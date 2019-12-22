@@ -102,7 +102,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	for (int i = 0; i < total; i++)
 	{
 		if (networking_callback != NULL)
-			networking_callback(0, total, i, 0, 0);
+			networking_callback(0, total, i+1, 0, 0);
 
 		Package* package = new Package(GET);
 

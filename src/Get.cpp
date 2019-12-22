@@ -161,7 +161,7 @@ void Get::update()
 		if (repos[x]->enabled)
 		{
 			if (libget_status_callback != NULL)
-				libget_status_callback(STATUS_RELOADING, x, repos.size());
+				libget_status_callback(STATUS_RELOADING, x+1, repos.size());
 
 			repos[x]->loadPackages(&packages);
 		}
