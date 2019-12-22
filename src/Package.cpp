@@ -421,11 +421,7 @@ std::string Package::getIconUrl()
 	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/icon.png";
 }
 
-#if !defined(__WIIU__)
-
 std::string Package::getBannerUrl()
 {
 	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen.png";
 }
-
-#endif

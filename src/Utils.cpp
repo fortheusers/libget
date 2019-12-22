@@ -317,17 +317,23 @@ int remove_empty_dirs(const char* name, int count)
 	return count - starting_count;
 }
 
-void libget_reset_data(const char* path)
+bool libget_reset_data(const char* path)
 {
   // move the contents of the .get folder to .trash/get_backup_date
 	std::stringstream ss;
-	ss << "./.trash/get_backup_" << std::time(nullptr);
+	ss << path << "../.trash/get_backup_" << std::time(0);
+
 	printf("--> Renaming %s to %s\n", path, ss.str().c_str());
 
-	mkpath("./.trash");
+	std::stringstream ss2;
+	ss2 << path << "../.trash";
+	mkpath(ss2.str().c_str());
+
 	int res = std::rename(path, ss.str().c_str());
 	if (res == 0)
 		printf("Folder renamed!\n");
 	else
-		printf("Issue removing folder... %d\n", errno);
+		printf("Issue renaming folder... %d\n", errno);
+
+	return !res;
 }
