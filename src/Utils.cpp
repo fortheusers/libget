@@ -319,9 +319,15 @@ int remove_empty_dirs(const char* name, int count)
 
 bool libget_reset_data(const char* path)
 {
+	time_t seconds;
+	time(&seconds);
+
+	long int current_time = static_cast<long int>(seconds);
+
   // move the contents of the .get folder to .trash/get_backup_date
 	std::stringstream ss;
-	ss << path << "../.trash/get_backup_" << std::time(0);
+	ss << ".trash/get_backup_" << current_time;
+	printf("--> Info: %ld\n", current_time);
 
 	printf("--> Renaming %s to %s\n", path, ss.str().c_str());
 
