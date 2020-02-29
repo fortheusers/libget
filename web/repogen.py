@@ -1,7 +1,9 @@
 #!/usr/bin/python
-import os, json, zipfile, time, datetime, hashlib
+import os, json, zipfile, time, datetime, hashlib, re
 
 print("Content-type: text/html\n\n")
+
+SCREEN_REGEX = re.compile("^screen[1-9].png$")
 
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):
@@ -31,6 +33,7 @@ for package in os.listdir("packages"):
         zipf = zipfile.ZipFile("zips/" + package + ".zip", 'w', zipfile.ZIP_DEFLATED)
 
     os.chdir(curdir + "/packages/" + package)
+    screen_count = 0
 
     if not skipRebuild:
 
@@ -52,7 +55,7 @@ for package in os.listdir("packages"):
         manifest = ""
         for root, dirs, files in os.walk("."):
             for file in files:
-                if root == "." and (file == "manifest.install" or file == "icon.png" or file == "info.json" or file == "screen.png" or file == ".deletetoupdate"):
+                if root == "." and (file == "manifest.install" or file == "icon.png" or file == "info.json" or file == "screen.png" or file == ".deletetoupdate" or SCREEN_REGEX.match(file)):
                     continue
                 relPath = os.path.join(root, file)[2:]
                 if relPath in existing:
@@ -64,37 +67,58 @@ for package in os.listdir("packages"):
         manifest_file.close()
 
         print("Zipping %s...<br>" % package)
+        print(".speak #hbas-updates WIIU : https://apps.fortheusers.org/switch/%s <br>" % package)
         zipdir(".", zipf)
         zipf.close()
 
-    # Detail zip package size in KB's
-    filesize = os.path.getsize(curdir + "/zips/" + package + ".zip")/1024
+    cached_info = {}
+    needsCaching = True
 
-    # Detail extracted directory size  in KB's
-    folder_size = 0
-    for (root, dirs, files) in os.walk('.'):
-        for file in files:
-            fname = os.path.join(root, file)
-            folder_size += os.path.getsize(fname)/1024
+    try:
+        del_to_update_file = open(".deletetoupdate", "r")
+        cached_info = json.load(del_to_update_file)
+        del_to_update_file.close()
+        filesize = cached_info["filesize"]
+        folder_size = cached_info["extracted"]
+        binary = cached_info["binary"]
+        updated = cached_info["updated"]
+        mdhex = cached_info["md5"]
+        screen_count = cached_info["screens"]
+        needsCaching = False
+    except:
+        # data in .deletetoupdate wasn't useful, let's calculate that info now
 
-    # Include the nro name in json if exists
-    binary = "none"
-    for (root, dirs, files) in os.walk('.'):
-        for file in files:
-            if file.endswith(".nro"):
-                binary = (root + "/" + file)[1:]
+        # Detail zip package size in KB's
+        filesize = os.path.getsize(curdir + "/zips/" + package + ".zip")/1024
 
+        # Detail extracted directory size  in KB's
+        folder_size = 0
+        for (root, dirs, files) in os.walk('.'):
+            for file in files:
+                fname = os.path.join(root, file)
+                folder_size += os.path.getsize(fname)/1024
 
-    # Date last updated (assumption is that if the app is updated the info.json would be)
-    updated = time.strftime('%d/%m/%Y', time.gmtime(os.path.getmtime(curdir + "/packages/" + package + "/info.json")))
+        # Include the nro name in json if exists
+        binary = "none"
+        for (root, dirs, files) in os.walk('.'):
+            for file in files:
+                if file.endswith(".nro"):
+                    binary = (root + "/" + file)[1:]
+                if SCREEN_REGEX.match(file):
+                    screen_count += 1
 
-    #md5 of package zip
-    filehash = hashlib.md5()
-    filehash.update(open(curdir + "/zips/" + package + ".zip", "rb").read())
-    mdhex = filehash.hexdigest()
+        # Date last updated (assumption is that if the app is updated the info.json would be)
+        updated = time.strftime('%d/%m/%Y', time.gmtime(os.path.getmtime(curdir + "/packages/" + package + "/info.json")))
+
+        #md5 of package zip
+        filehash = hashlib.md5()
+        filehash.update(open(curdir + "/zips/" + package + ".zip").read())
+        mdhex = filehash.hexdigest()
+        
+        cached_info = { "filesize": filesize, "extracted": folder_size, "binary": binary, "updated": updated, "md5": mdhex, "screens": screen_count}
 
     # this line isn't confusing at all (additional info makes it less so)
-    packages["packages"].append({"name": package, "filesize": filesize, "updated": updated, "md5": mdhex, "extracted": folder_size,"binary": binary})
+    packages["packages"].append({"name": package, "filesize": filesize, "updated": updated, "extracted": folder_size, "binary": binary, "md5": mdhex, "screens": screen_count})
 
     # if a info.json file exists, load properties from it
     if os.path.exists("info.json"):
@@ -107,8 +131,10 @@ for package in os.listdir("packages"):
             else:
                 target[val] = "n/a"
 
-    open(".deletetoupdate", 'a').close()
-
+    if needsCaching:    # no deletetoupdate loaded, we need to make one
+        del_to_update = open(".deletetoupdate", 'w')
+        json.dump(cached_info, del_to_update, sort_keys=True, indent=4, separators=(',', ': '))
+        del_to_update.close()
     os.chdir(curdir)
 
 # do download counts for app and web for all packages
@@ -134,17 +160,6 @@ try:
                 package["%s_dls" % target] = stats[package["name"]]
 except:
     print("Encountered an issue getting stats<br>")
-
-zipf = zipfile.ZipFile("zips/icons.zip", 'w', zipfile.ZIP_DEFLATED)
-# get all pngs out of the packages folder to add them to one zip
-for package in os.listdir("packages"):
-    if os.path.isfile("packages/" + package) or (len(package) > 0 and package[0] == "."):
-        continue
-    for file in os.listdir("packages/%s" % package):
-        # only write these two pngs
-        if file == "icon.png" or file == "screen.png":
-            zipf.write(os.path.join("packages/%s" % package, file))
-zipf.close()
 
 out = open("repo.json", "w")
 json.dump(packages, out, indent=4)
