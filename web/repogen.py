@@ -58,6 +58,7 @@ for package in os.listdir("packages"):
                 if root == "." and (file == "manifest.install" or file == "icon.png" or file == "info.json" or file == "screen.png" or file == ".deletetoupdate" or SCREEN_REGEX.match(file)):
                     continue
                 relPath = os.path.join(root, file)[2:]
+                relPath.replace("\\", "/")
                 if relPath in existing:
                     manifest += existing[relPath]
                 else:
