@@ -138,12 +138,14 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 			struct tm tm;
 			time_t ts;
 
+#ifndef _3DS
 			auto res = strptime(package->updated.c_str(), "%d/%m/%Y", &tm);
 			if (res)
 			{
 				ts = mktime(&tm);
 				package->updated_timestamp = (int)ts;
 			}
+#endif
 		}
 
 		// even more details
