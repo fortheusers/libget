@@ -11,6 +11,11 @@
 #include <switch.h>
 #endif
 
+#if defined(_3DS)
+#include <3ds.h>
+#include <malloc.h>
+#endif
+
 #include <algorithm>
 #include <cstdint>
 #include <dirent.h>
@@ -39,8 +44,15 @@ int (*libget_status_callback)(int, int, int);
 // reference to the curl handle so that we can re-use the connection
 CURL* curl = NULL;
 
+#define SOCU_ALIGN 0x1000
+#define SOCU_BUFFERSIZE 0x100000
+
 #if defined(__WIIU__)
 NSSLContextHandle nsslctx;
+#endif
+
+#if defined(_3DS)
+u32* SOCUBuffer;
 #endif
 
 bool CreateSubfolder(char* cpath)
@@ -211,6 +223,10 @@ int init_networking()
 {
 #if defined(SWITCH)
 	socketInitializeDefault();
+#endif
+#if defined(_3DS)
+	SOCUBuffer = (u32*)memalign(SOCU_ALIGN, SOCU_BUFFERSIZE);
+	socInit(SOCUBuffer, SOCU_BUFFERSIZE);
 #endif
 #if defined(__WIIU__)
 	nn::ac::ConfigIdNum configId;
