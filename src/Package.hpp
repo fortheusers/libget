@@ -8,6 +8,8 @@
 #define ROOT_PATH "/"
 #elif defined(__WIIU__)
 #define ROOT_PATH "fs:/vol/external01/"
+#elif defined(_3DS)
+#define ROOT_PATH "sdmc:/"
 #else
 #define ROOT_PATH "sdroot/"
 #endif
