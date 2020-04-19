@@ -1,5 +1,7 @@
+#ifndef NETWORK_MOCK
 #include <curl/curl.h>
 #include <curl/easy.h>
+#endif
 
 #include <stdio.h>
 #include <string>
@@ -28,7 +30,9 @@ int init_networking();
 bool downloadFileToMemory(std::string path, std::string* buffer); // writes to disk in BUF_SIZE chunks.
 bool downloadFileToDisk(std::string remote_path, std::string local_path); // saves file to local_path.
 
+#ifndef NETWORK_MOCK
 void setPlatformCurlFlags(CURL* c);
+#endif
 
 // callback for networking progress
 // if set, will be invoked during the download

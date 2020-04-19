@@ -59,6 +59,10 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 	std::string response;
 	bool success = downloadFileToMemory(directoryUrl, &response);
 
+#ifdef NETWORK_MOCK
+  mockPopulatePackages(&response);
+#endif
+
 	// attempt fallback to http in case of https repos failure
 	if (!success && (this->url.rfind("https", 0) == 0))
 	{

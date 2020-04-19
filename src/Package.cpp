@@ -70,6 +70,11 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	if (libget_status_callback != NULL)
   	libget_status_callback(STATUS_INSTALLING, 1, 1);
 
+#ifdef NETWORK_MOCK
+  // for network mocking, copy over a /mock.zip to the expected download path
+  cp(ROOT_PATH "mock.zip", (tmp_path + this->pkg_name + ".zip").c_str());
+#endif
+
   // our internal path of where the manifest will be
   std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
@@ -104,6 +109,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	if (!manifest->valid && manifest->fakeManifestPossible)
 	{
+#ifndef NETWORK_MOCK
 		printf("Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
 		this->manifest = new Manifest(HomebrewZip->PathDump(), ROOT_PATH);
 		std::ofstream pseudomanifest (ManifestPath);
@@ -112,6 +118,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			pseudomanifest << manifest->entries[i].raw << std::endl;
 		}
 		pseudomanifest.close();
+#endif
 	}
 
   std::unordered_set<std::string> incoming_package_paths;

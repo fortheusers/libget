@@ -42,7 +42,9 @@ int (*networking_callback)(void*, double, double, double, double);
 int (*libget_status_callback)(int, int, int);
 
 // reference to the curl handle so that we can re-use the connection
+#ifndef NETWORK_MOCK
 CURL* curl = NULL;
+#endif
 
 #define SOCU_ALIGN 0x1000
 #define SOCU_BUFFERSIZE 0x100000
@@ -92,6 +94,7 @@ bool mkpath(std::string path)
 	return bSuccess;
 }
 
+#ifndef NETWORK_MOCK
 void setPlatformCurlFlags(CURL* c)
 {
 #if defined(__WIIU__)
@@ -110,6 +113,7 @@ void setPlatformCurlFlags(CURL* c)
   curl_easy_setopt(c, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
 }
+#endif
 
 static size_t MemoryWriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
@@ -138,6 +142,7 @@ static size_t DiskWriteCallback(void* contents, size_t size, size_t num_files, v
 // if data_struct is specified, file will go straight to disk as it downloads
 bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_struct_t* data_struct = NULL)
 {
+#ifndef NETWORK_MOCK
 	CURLcode res;
 
 	if (!curl)
@@ -159,6 +164,9 @@ bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_stru
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_struct);
 
 	return curl_easy_perform(curl) == CURLE_OK;
+#else
+  return true;
+#endif
 }
 
 bool downloadFileToMemory(std::string path, std::string* buffer)
@@ -244,17 +252,21 @@ int init_networking()
 	nsslctx = NSSLCreateContext(0);
 #endif
 
+#ifndef NETWORK_MOCK
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	// init our curl handle
 	curl = curl_easy_init();
 
+#endif
 	return 1;
 }
 
 int deinit_networking()
 {
+#ifndef NETWORK_MOCK
 	curl_easy_cleanup(curl);
+#endif
 
 #if defined(__WIIU__)
 	NSSLDestroyContext(nsslctx);

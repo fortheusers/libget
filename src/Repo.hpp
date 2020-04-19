@@ -4,6 +4,10 @@
 #include <iostream>
 #include <vector>
 
+#ifdef NETWORK_MOCK
+#include "../tests/network_mock.hpp"
+#endif
+
 class Repo
 {
 public:
