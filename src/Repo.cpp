@@ -142,7 +142,7 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 			struct tm tm;
 			time_t ts;
 
-#ifndef _3DS
+#if !defined(_3DS) && !defined(WII)
 			auto res = strptime(package->updated.c_str(), "%d/%m/%Y", &tm);
 			if (res)
 			{
