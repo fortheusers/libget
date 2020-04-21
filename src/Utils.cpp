@@ -255,6 +255,7 @@ int init_networking()
 int deinit_networking()
 {
 	curl_easy_cleanup(curl);
+	curl_global_cleanup();
 
 #if defined(__WIIU__)
 	NSSLDestroyContext(nsslctx);
