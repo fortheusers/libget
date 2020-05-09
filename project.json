@@ -1,0 +1,17 @@
+{
+    "id": "get",
+    "type": "package",
+    "value": {
+        "author": "4TU Team",
+        "version": "1.0",
+        "description": "Simple low-dep package manager",
+        "language": "c",
+        "includes": [ "src/libs/rapidjson/include", "src/libs/minizip" ],
+        "sources": [ "src" ]
+    },
+    "lang.c": {
+        "lib": [ "z", "curl", "stdc++" ]
+    }
+}
+
+
