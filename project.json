@@ -10,8 +10,7 @@
         "sources": [ "src" ]
     },
     "lang.c": {
+        "static": true,
         "lib": [ "z", "curl", "stdc++" ]
     }
 }
-
-
