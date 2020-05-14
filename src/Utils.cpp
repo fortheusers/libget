@@ -266,6 +266,7 @@ int deinit_networking()
 {
 #ifndef NETWORK_MOCK
 	curl_easy_cleanup(curl);
+	curl_global_cleanup();
 #endif
 
 #if defined(__WIIU__)
