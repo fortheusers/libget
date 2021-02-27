@@ -4,7 +4,7 @@
 #include "rapidjson/rapidjson.h"
 #include <string>
 #include "Manifest.hpp"
-#if defined(SWITCH)
+#if defined(SWITCH) || defined(WII)
 #define ROOT_PATH "/"
 #elif defined(__WIIU__)
 #define ROOT_PATH "fs:/vol/external01/"
