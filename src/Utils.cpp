@@ -7,6 +7,10 @@
 #include <nn/ac.h>
 #endif
 
+#if defined(WII)
+#include <wiisocket.h>
+#endif
+
 #if defined(SWITCH)
 #include <switch.h>
 #endif
@@ -107,7 +111,7 @@ void setPlatformCurlFlags(CURL* c)
 	curl_easy_setopt(c, (CURLoption)212, 0x8000);
 #endif
 
-#if defined(SWITCH)
+#if defined(SWITCH) || defined(WII)
   // ignore cert verification (TODO: not have to do this in the future)
   curl_easy_setopt(c, CURLOPT_SSL_VERIFYPEER, 0L);
   curl_easy_setopt(c, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -157,7 +161,7 @@ bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_stru
 	bool skipDisk = data_struct == NULL;
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, skipDisk ? MemoryWriteCallback : DiskWriteCallback);
-	
+
 	if (skipDisk)
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
 	else
@@ -251,6 +255,12 @@ int init_networking()
 	NSSLInit();
 	nsslctx = NSSLCreateContext(0);
 #endif
+#if defined(WII)
+	// TODO: network initialization on the wii is *extremly* slow (~10s)
+	// It's probably a good idea to use wiisocket_init_async and
+	// show something on the screen during that interval
+	wiisocket_init();
+#endif
 
 #ifndef NETWORK_MOCK
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -274,6 +284,9 @@ int deinit_networking()
 	NSSLFinish();
 	socket_lib_finish();
 	nn::ac::Finalize();
+#endif
+#if defined(WII)
+	wiisocket_deinit();
 #endif
 
 	return 1;
