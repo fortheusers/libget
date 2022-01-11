@@ -18,13 +18,6 @@ VPATH       += $(LIBGET) $(MINIZIP) $(TINYXML)
 CFLAGS      += -DNETWORK
 LDFLAGS     += -lcurl
 
-# use C linker for all C files
-ifeq ($(strip $(CPPFILES)),)
-	LD	:=	$(CC)
-else
-	LD	:=	$(CXX)
-endif
-
 MINIZIP_O   :=  zip.o ioapi.o unzip.o
 
 ifeq ($(LIBGET),./src)
