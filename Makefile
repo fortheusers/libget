@@ -1,6 +1,6 @@
-ifneq ($(TOPDIR),)
+ifneq ($(SOURCES),)
 	# we're in a chesto-style lib
-	LIBGET  := $(TOPDIR)/libs/get/src
+	LIBGET  := $(CURDIR)/libs/get/src
 else
 	# we are in the libget folder already
 	LIBGET := ./src
@@ -10,24 +10,24 @@ RAPIDJSON   := $(LIBGET)/libs/rapidjson/include
 MINIZIP     := $(LIBGET)/libs/minizip
 TINYXML     := $(LIBGET)/libs/tinyxml
 
-export SOURCES     += $(LIBGET) $(MINIZIP) $(TINYXML)
-export INCLUDES    += $(RAPIDJSON) $(MINIZIP) $(TINYXML)
+SOURCES     += $(LIBGET) $(MINIZIP) $(TINYXML)
+INCLUDES    += $(RAPIDJSON) $(MINIZIP) $(TINYXML)
 
-export VPATH       += $(LIBGET) $(MINIZIP) $(TINYXML)
+VPATH       += $(LIBGET) $(MINIZIP) $(TINYXML)
 
-export CFLAGS      += -DNETWORK
-export LDFLAGS     += -lcurl
+CFLAGS      += -DNETWORK
+LDFLAGS     += -lcurl
 
 # use C linker for all C files
 ifeq ($(strip $(CPPFILES)),)
-	export LD	:=	$(CC)
+	LD	:=	$(CC)
 else
-	export LD	:=	$(CXX)
+	LD	:=	$(CXX)
 endif
 
 MINIZIP_O   :=  zip.o ioapi.o unzip.o
 
-ifeq ($(TOPDIR),)
+ifeq ($(LIBGET),./src)
 build:
 	gcc -c $(MINIZIP)/*.c
 	g++ -g cli/*.cpp src/*.cpp -std=gnu++11 -lm -I $(RAPIDJSON) $(MINIZIP_O) -I $(MINIZIP) -lz -lcurl -o get
