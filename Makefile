@@ -1,7 +1,26 @@
-RAPIDJSON 	:=	src/libs/rapidjson/include
-MINIZIP		:=	src/libs/minizip
-MINIZIP_O :=  zip.o ioapi.o unzip.o
+ifneq ($(SOURCES),)
+	# we're in a chesto-style lib
+	LIBGET  := $(CURDIR)/libs/get/src
+else
+	# we are in the libget folder already
+	LIBGET := ./src
+endif
 
+RAPIDJSON   := $(LIBGET)/libs/rapidjson/include
+MINIZIP     := $(LIBGET)/libs/minizip
+TINYXML     := $(LIBGET)/libs/tinyxml
+
+SOURCES     += $(LIBGET) $(MINIZIP) $(TINYXML)
+INCLUDES    += $(RAPIDJSON) $(MINIZIP) $(TINYXML)
+
+VPATH       += $(LIBGET) $(MINIZIP) $(TINYXML)
+
+CFLAGS      += -DNETWORK
+LDFLAGS     += -lcurl
+
+MINIZIP_O   :=  zip.o ioapi.o unzip.o
+
+ifeq ($(LIBGET),./src)
 build:
 	gcc -c $(MINIZIP)/*.c
 	g++ -g cli/*.cpp src/*.cpp -std=gnu++11 -lm -I $(RAPIDJSON) $(MINIZIP_O) -I $(MINIZIP) -lz -lcurl -o get
@@ -17,3 +36,4 @@ run_tests:
 
 clean:
 	rm *.o get get_tests
+endif
