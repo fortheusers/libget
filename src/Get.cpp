@@ -184,7 +184,7 @@ int Get::validateRepos()
 {
 	if (repos.size() == 0)
 	{
-		printf("There are no repos configured!\n");
+		printf("--> There are no repos configured!\n");
 		return ERR_NO_REPOS;
 	}
 

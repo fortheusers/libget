@@ -16,10 +16,12 @@
 
 using namespace std;
 
+void info(const char* format, ...);
+
 Zip::Zip(const char* zipPath)
 {
 	fileToZip = zipOpen(zipPath, APPEND_STATUS_CREATE);
-	if (fileToZip == NULL) printf("Error Opening: %s for zipping files!\n", zipPath);
+	if (fileToZip == NULL) printf("--> Error Opening: %s for zipping files!\n", zipPath);
 }
 
 Zip::~Zip()
@@ -30,7 +32,7 @@ Zip::~Zip()
 int Zip::AddFile(const char* internalPath, const char* path)
 {
 	zipOpenNewFileInZip(fileToZip, internalPath, NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
-	printf("Adding %s to zip, under path %s\n", path, internalPath);
+	info("Adding %s to zip, under path %s\n", path, internalPath);
 	int code = Add(path);
 	zipCloseFileInZip(fileToZip);
 	return code;
@@ -141,7 +143,7 @@ int UnZip::ExtractFile(const char* internalPath, const char* path)
 	unz_file_info_s* fileInfo = GetFileInfo();
 
 	std::string fullPath(path);
-	printf("Extracting file %s to: %s\n", internalPath, fullPath.c_str());
+	info("Extracting file %s to: %s\n", internalPath, fullPath.c_str());
 	code = Extract(fullPath.c_str(), fileInfo);
 	free(fileInfo);
 	return code;
@@ -187,7 +189,7 @@ int UnZip::ExtractDir(const char* internalDir, const char* externalDir)
 		{
 			//file
 			i++;
-			printf("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), outputPath.c_str());
+			info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), outputPath.c_str());
 			Extract(outputPath.c_str(), fileInfo);
 		}
 		free(fileInfo);
@@ -218,7 +220,7 @@ int UnZip::ExtractAll(const char* dirToExtract)
 		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
 		{
 			//file
-			printf("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), fileName.c_str());
+			info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), fileName.c_str());
 			Extract(fileName.c_str(), fileInfo);
 		}
 		free(fileInfo);
@@ -247,7 +249,7 @@ vector<std::string> UnZip::PathDump()
 		std::string fileName = GetFullFileName(fileInfo);
 		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
 		{
-			printf("PathDump: %s\n", fileName.c_str());
+			info("PathDump: %s\n", fileName.c_str());
 			paths.push_back(fileName);
 		}
 		free(fileInfo);

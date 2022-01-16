@@ -110,7 +110,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	if (!manifest->valid && manifest->fakeManifestPossible)
 	{
 #ifndef NETWORK_MOCK
-		printf("Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
+		printf("--> Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
 		this->manifest = new Manifest(HomebrewZip->PathDump(), ROOT_PATH);
 		std::ofstream pseudomanifest (ManifestPath);
 		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)
@@ -141,23 +141,23 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			{
 			case MEXTRACT:
 				//! Simply Extract, with no checks or anything, won't be deleted upon removal
-				printf("%s : EXTRACT\n", Path.c_str());
+				info("%s : EXTRACT\n", Path.c_str());
 				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 				break;
 			case MUPDATE:
-				printf("%s : UPDATE\n", Path.c_str());
+				info("%s : UPDATE\n", Path.c_str());
 				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 				break;
 			case MGET:
-				printf("%s : GET\n", Path.c_str());
+				info("%s : GET\n", Path.c_str());
 				struct stat sbuff;
 				if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
 					resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
 				else
-					printf("File already exists, skipping...");
+					info("File already exists, skipping...");
 				break;
 			default:
-				printf("%s : NOP\n", Path.c_str());
+				info("%s : NOP\n", Path.c_str());
 				break;
 			}
 
@@ -185,7 +185,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		//		HomebrewZip->ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
 		if (!manifest->fakeManifestPossible){
-			printf("Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
+			printf("--> Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 			return false;
 		}
 	}
@@ -208,11 +208,11 @@ bool Package::remove(const char* pkg_path)
 	std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 
-	printf("-> HomebrewManager::Delete\n");
+	info("HomebrewManager::Delete\n");
 	std::unordered_set<std::string> uniq_folders;
 
 	//! Parse the manifest
-	printf("Parsing the Manifest\n");
+	info("Parsing the Manifest\n");
 	if(!manifest) this->manifest = new Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
 	if(this->manifest->valid)
 	{
@@ -230,12 +230,12 @@ bool Package::remove(const char* pkg_path)
       ManifestOp op = this->manifest->entries[i].operation;
       if (op != NOP && op != MEXTRACT) // get, upgrade, and local
       {
-        printf("Removing %s\n", DeletePath.c_str());
+        info("Removing %s\n", DeletePath.c_str());
 				std::remove(DeletePath.c_str());
       }
 		}
 	} else {
-		printf("ERROR: Manifest missing or invalid at %s\n", ManifestPath.c_str());
+		printf("--> ERROR: Manifest missing or invalid at %s\n", ManifestPath.c_str());
 		return false;
 	}
 
@@ -278,7 +278,7 @@ bool Package::remove(const char* pkg_path)
 	for (auto& folder : folders)
 		rmdir(folder.c_str());
 
-	printf("Removing manifest...\n");
+	printf("--> Removing manifest...\n");
 
 	std::remove(ManifestPath.c_str());
 	std::remove((std::string(pkg_path) + this->pkg_name + "/info.json").c_str());
@@ -291,7 +291,7 @@ bool Package::remove(const char* pkg_path)
 	// see: https://github.com/vgmoose/get/issues/1
 	// remove_empty_dirs(ROOT_PATH, 0);
 
-	printf("Homebrew removed\n");
+	printf("--> Homebrew removed\n");
 
 	return true;
 }

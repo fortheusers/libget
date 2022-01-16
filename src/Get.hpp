@@ -4,6 +4,8 @@
 #include "constants.h"
 #include "Repo.hpp"
 
+void info(const char* format, ...);
+
 class Get
 {
 public:

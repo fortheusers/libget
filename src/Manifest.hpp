@@ -6,6 +6,8 @@
 #include <fstream>
 #include <sys/stat.h>
 
+void info(const char* format, ...);
+
 enum ManifestOp{
     MEXTRACT,
     MGET,
@@ -76,7 +78,7 @@ class Manifest
                             mode = MLOCAL;
                             break;
                         default:
-                            printf("%s : Ignored in manifest\n", CurrentLine.c_str());
+                            info("%s : Ignored in manifest\n", CurrentLine.c_str());
                             mode = NOP;
                             break;
                         }
