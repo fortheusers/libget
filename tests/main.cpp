@@ -1,3 +1,4 @@
+#include <cstdarg>
 #include "tests.hpp"
 
 // this is a "good enough" way to do this
@@ -85,4 +86,12 @@ int main()
 
 	// return the count of failures (0 - we're good!)
 	return failCount;
+}
+
+void info(const char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	vfprintf(stdout, format, args);
+	va_end(args);
 }

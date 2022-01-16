@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <cstdarg>
 
 #include "../src/Get.hpp"
 #include "../src/Utils.hpp"
