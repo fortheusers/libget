@@ -10,8 +10,6 @@
 
 using namespace std;
 
-bool debug = false;
-
 int main(int argc, char** args)
 {
 	init_networking();
@@ -110,13 +108,4 @@ int main(int argc, char** args)
 	}
 
 	return 0;
-}
-
-void info(const char* format, ...)
-{
-	if (!debug) return;
-	va_list args;
-	va_start(args, format);
-	vfprintf(stdout, format, args);
-	va_end(args);
 }

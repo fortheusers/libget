@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <cstdarg>
 
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
@@ -15,6 +16,8 @@
 
 using namespace std;
 using namespace rapidjson;
+
+bool debug = false;
 
 Get::Get(const char* config_dir, const char* defaultRepo)
 {
@@ -247,4 +250,13 @@ void Get::removeDuplicates()
   packages.erase(std::remove_if(packages.begin(), packages.end(), [removalSet](Package* p) {
     return removalSet.find(p) != removalSet.end();
   }), packages.end());
+}
+
+void info(const char* format, ...)
+{
+	if (!debug) return;
+	va_list args;
+	va_start(args, format);
+	vfprintf(stdout, format, args);
+	va_end(args);
 }
