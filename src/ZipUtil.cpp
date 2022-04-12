@@ -280,6 +280,7 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 		return -3;
 	u32 done = 0;
 	int writeBytes = 0;
+	int readBytes = 0;
 
 	FILE* fp = fopen(path, "w");
 	u32 blocksize = IO_MAX_FILE_BUFFER;
@@ -296,13 +297,19 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 		{
 			blocksize = fileInfo->uncompressed_size - done;
 		}
-		unzReadCurrentFile(fileToUnzip, buffer, blocksize);
-		writeBytes = fwrite(buffer, 1, blocksize, fp);
-		if (writeBytes <= 0)
-		{
-			break;
+		
+		while((readBytes = unzReadCurrentFile(fileToUnzip, buffer, blocksize)) > 0) {
+			if (done + IO_MAX_FILE_BUFFER > fileInfo->uncompressed_size)
+			{
+				blocksize = fileInfo->uncompressed_size - done;
+			}
+			writeBytes = fwrite(buffer, 1, blocksize, fp);
+			if (writeBytes <= 0)
+			{
+				break;
+			}
+			done += writeBytes;
 		}
-		done += writeBytes;
 	}
 
 	fflush(fp);
