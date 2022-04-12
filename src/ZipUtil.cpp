@@ -14,6 +14,8 @@
 #define u32 uint32_t
 #define u8 uint8_t
 
+#define IO_MAX_FILE_BUFFER (1024 * 1024) // 1 MB
+
 using namespace std;
 
 Zip::Zip(const char* zipPath)
@@ -273,14 +275,14 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 		CreateSubfolder(folderPath);
 	}
 
-	u32 blocksize = 0x8000;
-	u8* buffer = (u8*)malloc(blocksize);
+	u8* buffer = (u8*)malloc(IO_MAX_FILE_BUFFER);
 	if (buffer == NULL)
 		return -3;
 	u32 done = 0;
 	int writeBytes = 0;
 
 	FILE* fp = fopen(path, "w");
+	u32 blocksize = IO_MAX_FILE_BUFFER;
 
 	if (fp == NULL)
 	{
@@ -290,12 +292,12 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 
 	while (done < fileInfo->uncompressed_size)
 	{
-		if (done + blocksize > fileInfo->uncompressed_size)
+		if (done + IO_MAX_FILE_BUFFER > fileInfo->uncompressed_size)
 		{
 			blocksize = fileInfo->uncompressed_size - done;
 		}
 		unzReadCurrentFile(fileToUnzip, buffer, blocksize);
-		writeBytes = write(fileno(fp), buffer, blocksize);
+		writeBytes = fwrite(buffer, 1, blocksize, fp);
 		if (writeBytes <= 0)
 		{
 			break;
