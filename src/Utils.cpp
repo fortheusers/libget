@@ -103,7 +103,7 @@ void setPlatformCurlFlags(CURL* c)
 {
 #if defined(__WIIU__)
   // enable ssl support (TLSv1 only)
-	curl_easy_setopt(c, CURLOPT_NSSL_CONTEXT, nsslctx);
+	curl_easy_setopt(c, CURLOPT_SSLCERT, nsslctx);
 	curl_easy_setopt(c, (CURLoption)211, 0);
 
 	// network optimizations
@@ -248,9 +248,6 @@ int init_networking()
 	nn::ac::GetStartupId(&configId);
 	nn::ac::Connect(configId);
 
-	// init socket lib
-	socket_lib_init();
-
 	// init nintendo ssl lib
 	NSSLInit();
 	nsslctx = NSSLCreateContext(0);
@@ -282,7 +279,6 @@ int deinit_networking()
 #if defined(__WIIU__)
 	NSSLDestroyContext(nsslctx);
 	NSSLFinish();
-	socket_lib_finish();
 	nn::ac::Finalize();
 #endif
 #if defined(WII)
