@@ -14,6 +14,11 @@
 #define ROOT_PATH "sdroot/"
 #endif
 
+#ifndef APP_VERSION
+#define APP_VERSION "0.0.0"
+#endif
+
+
 class Package
 {
 public:
