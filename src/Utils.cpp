@@ -7,7 +7,7 @@
 #include <nn/ac.h>
 #endif
 
-#if defined(WII)
+#if defined(WII) && !defined(NETWORK_MOCK)
 #include <wiisocket.h>
 #endif
 
@@ -252,7 +252,7 @@ int init_networking()
 	NSSLInit();
 	nsslctx = NSSLCreateContext(0);
 #endif
-#if defined(WII)
+#if defined(WII) && !defined(NETWORK_MOCK)
 	// TODO: network initialization on the wii is *extremly* slow (~10s)
 	// It's probably a good idea to use wiisocket_init_async and
 	// show something on the screen during that interval
@@ -281,7 +281,7 @@ int deinit_networking()
 	NSSLFinish();
 	nn::ac::Finalize();
 #endif
-#if defined(WII)
+#if defined(WII) && !defined(NETWORK_MOCK)
 	wiisocket_deinit();
 #endif
 
