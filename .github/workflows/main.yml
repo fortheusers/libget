@@ -1,0 +1,25 @@
+name: Build and run get tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  all:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+      with:
+        submodules: recursive
+    - name: Build and test
+      run: |
+        apt-get update && apt-get -y install python3 wget zlib1g-dev gcc g++ libcurl4-openssl-dev libxml2 xz-utils lzma build-essential libssl-dev
+        make && make run_tests
+    - uses: actions/upload-artifact@v3
+      with:
+        name: get.bin
+        path: /__w/get/get/get
