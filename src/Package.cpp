@@ -368,9 +368,11 @@ void Package::updateStatus(const char* pkg_path)
 
 int Package::isPreviouslyInstalled()
 {
+	// TODO: check for and scan Switch NRO files
 #if defined(__WIIU__)
 	// we're on a Wii U, so let's check for any HBL meta.xml files that match this package's name,
 	// and if it exists check the version based on that
+	// TODO: check for and scan WUHB files
 	TiXmlDocument xmlDoc((std::string(ROOT_PATH) + "wiiu/apps/" + this->pkg_name + "/meta.xml").c_str());
 	bool xmlExists = xmlDoc.LoadFile();
 
@@ -431,4 +433,9 @@ std::string Package::getIconUrl()
 std::string Package::getBannerUrl()
 {
 	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen.png";
+}
+
+std::string Package::getManifestUrl()
+{
+	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/manifest.install";
 }

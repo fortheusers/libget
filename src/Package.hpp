@@ -29,6 +29,7 @@ public:
 
 	std::string getIconUrl();
 	std::string getBannerUrl();
+	std::string getManifestUrl();
 
 	int isPreviouslyInstalled();
 
