@@ -42,6 +42,7 @@ Package::Package(int state)
 	this->binary = "none";
 
 	this->status = state;
+	this->manifest = NULL;
 }
 
 Package::~Package()

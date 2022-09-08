@@ -51,7 +51,7 @@ public:
 	std::string url;
 	std::string updated;
 	std::string binary;
-	Manifest* manifest;
+	Manifest* manifest = NULL;
 	int updated_timestamp = 0;
 
 	int downloads = 0;
