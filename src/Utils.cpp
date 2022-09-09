@@ -1,12 +1,6 @@
 // operating system level utilities
 // contains directory utils, http utils, and helper methods
 
-#if defined(__WIIU__)
-#include <nsysnet/socket.h>
-#include <nsysnet/nssl.h>
-#include <nn/ac.h>
-#endif
-
 #if defined(WII) && !defined(NETWORK_MOCK)
 #include <wiisocket.h>
 #endif
@@ -38,6 +32,14 @@
 
 #include "Utils.hpp"
 
+// resinfs support, if present
+#if defined(USE_RAMFS)
+#define RAMFS "resin:/"
+#else
+#define RAMFS "resin/"
+#endif
+
+
 
 #define BUF_SIZE 0x800000 //8MB.
 
@@ -52,10 +54,6 @@ CURL* curl = NULL;
 
 #define SOCU_ALIGN 0x1000
 #define SOCU_BUFFERSIZE 0x100000
-
-#if defined(__WIIU__)
-NSSLContextHandle nsslctx;
-#endif
 
 #if defined(_3DS)
 u32* SOCUBuffer;
@@ -101,21 +99,8 @@ bool mkpath(std::string path)
 #ifndef NETWORK_MOCK
 void setPlatformCurlFlags(CURL* c)
 {
-#if defined(__WIIU__)
-  // enable ssl support (TLSv1 only)
-	curl_easy_setopt(c, CURLOPT_SSLCERT, nsslctx);
-	curl_easy_setopt(c, (CURLoption)211, 0);
-
-	// network optimizations
-	curl_easy_setopt(c, (CURLoption)213, 1);
-	curl_easy_setopt(c, (CURLoption)212, 0x8000);
-#endif
-
-#if defined(SWITCH) || defined(WII)
-  // ignore cert verification (TODO: not have to do this in the future)
-  curl_easy_setopt(c, CURLOPT_SSL_VERIFYPEER, 0L);
-  curl_easy_setopt(c, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
+	// from https://github.com/GaryOderNichts/wiiu-examples/blob/main/curl-https/romfs/cacert.pem
+	curl_easy_setopt(c, CURLOPT_CAINFO, RAMFS "res/cacert.pem");
 }
 #endif
 
@@ -240,18 +225,7 @@ int init_networking()
 	SOCUBuffer = (u32*)memalign(SOCU_ALIGN, SOCU_BUFFERSIZE);
 	socInit(SOCUBuffer, SOCU_BUFFERSIZE);
 #endif
-#if defined(__WIIU__)
-	nn::ac::ConfigIdNum configId;
 
-	// setup network connection
-	nn::ac::Initialize();
-	nn::ac::GetStartupId(&configId);
-	nn::ac::Connect(configId);
-
-	// init nintendo ssl lib
-	NSSLInit();
-	nsslctx = NSSLCreateContext(0);
-#endif
 #if defined(WII) && !defined(NETWORK_MOCK)
 	// TODO: network initialization on the wii is *extremly* slow (~10s)
 	// It's probably a good idea to use wiisocket_init_async and
@@ -276,11 +250,6 @@ int deinit_networking()
 	curl_global_cleanup();
 #endif
 
-#if defined(__WIIU__)
-	NSSLDestroyContext(nsslctx);
-	NSSLFinish();
-	nn::ac::Finalize();
-#endif
 #if defined(WII) && !defined(NETWORK_MOCK)
 	wiisocket_deinit();
 #endif
