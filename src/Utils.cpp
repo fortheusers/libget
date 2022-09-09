@@ -101,6 +101,12 @@ void setPlatformCurlFlags(CURL* c)
 {
 	// from https://github.com/GaryOderNichts/wiiu-examples/blob/main/curl-https/romfs/cacert.pem
 	curl_easy_setopt(c, CURLOPT_CAINFO, RAMFS "res/cacert.pem");
+
+#if defined(__WIIU__)
+		// network optimizations
+ 		curl_easy_setopt(curl, (CURLoption)213, 1);
+ 		curl_easy_setopt(curl, (CURLoption)212, 0x20000);
+ #endif
 }
 #endif
 
@@ -137,7 +143,7 @@ bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_stru
 	if (!curl)
 		return false;
 
-  setPlatformCurlFlags(curl);
+	setPlatformCurlFlags(curl);
 
 	curl_easy_setopt(curl, CURLOPT_URL, path.c_str());
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
