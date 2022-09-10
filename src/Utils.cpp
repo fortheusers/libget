@@ -55,6 +55,29 @@ CURL* curl = NULL;
 #define SOCU_ALIGN 0x1000
 #define SOCU_BUFFERSIZE 0x100000
 
+#ifndef SO_TCPSACK
+#define SO_TCPSACK 0x00200 /* Allow TCP SACK (Selective acknowledgment) */
+#endif
+
+#ifndef SO_WINSCALE
+#define SO_WINSCALE 0x00400 /* Set scaling window option */ 
+#endif
+
+#ifndef SO_RCVBUF
+#define SO_RCVBUF 0x01002 /* Receive buffer size */
+#endif
+
+// networking optimizations adapted from:
+//  - https://github.com/samdejong86/Arria-V-ADC-Ethernet-software/blob/master/ADC_Socket_bsp/iniche/src/h/socket.h
+int sockopt_callback(void *clientp, curl_socket_t curlfd, curlsocktype purpose)
+{
+    int winscale = 1, rcvbuf = 0x20000, tcpsack = 1;
+    setsockopt(curlfd, SOL_SOCKET, SO_WINSCALE, &winscale, sizeof(int));
+    setsockopt(curlfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(int));
+    setsockopt(curlfd, SOL_SOCKET, SO_TCPSACK, &tcpsack, sizeof(int));
+	return 0;
+}
+
 #if defined(_3DS)
 u32* SOCUBuffer;
 #endif
@@ -102,11 +125,7 @@ void setPlatformCurlFlags(CURL* c)
 	// from https://github.com/GaryOderNichts/wiiu-examples/blob/main/curl-https/romfs/cacert.pem
 	curl_easy_setopt(c, CURLOPT_CAINFO, RAMFS "res/cacert.pem");
 
-#if defined(__WIIU__)
-		// network optimizations
- 		curl_easy_setopt(curl, (CURLoption)213, 1);
- 		curl_easy_setopt(curl, (CURLoption)212, 0x20000);
- #endif
+	curl_easy_setopt(curl, CURLOPT_SOCKOPTFUNCTION, sockopt_callback);
 }
 #endif
 
