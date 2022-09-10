@@ -67,6 +67,7 @@ CURL* curl = NULL;
 #define SO_RCVBUF 0x01002 /* Receive buffer size */
 #endif
 
+#ifndef NETWORK_MOCK
 // networking optimizations adapted from:
 //  - https://github.com/samdejong86/Arria-V-ADC-Ethernet-software/blob/master/ADC_Socket_bsp/iniche/src/h/socket.h
 int sockopt_callback(void *clientp, curl_socket_t curlfd, curlsocktype purpose)
@@ -77,6 +78,7 @@ int sockopt_callback(void *clientp, curl_socket_t curlfd, curlsocktype purpose)
     setsockopt(curlfd, SOL_SOCKET, SO_TCPSACK, &tcpsack, sizeof(int));
 	return 0;
 }
+#endif
 
 #if defined(_3DS)
 u32* SOCUBuffer;
@@ -122,7 +124,7 @@ bool mkpath(std::string path)
 #ifndef NETWORK_MOCK
 void setPlatformCurlFlags(CURL* c)
 {
-	// from https://github.com/GaryOderNichts/wiiu-examples/blob/main/curl-https/romfs/cacert.pem
+	// // from https://github.com/GaryOderNichts/wiiu-examples/blob/main/curl-https/romfs/cacert.pem
 	curl_easy_setopt(c, CURLOPT_CAINFO, RAMFS "res/cacert.pem");
 
 	curl_easy_setopt(curl, CURLOPT_SOCKOPTFUNCTION, sockopt_callback);
