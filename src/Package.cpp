@@ -127,7 +127,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	if (manifest->valid)
 	{
 		// get all file info from within the zip, for every path
-		auto infoMap = HomebrewZip->GetPathToFileInfoMapping();
+		auto infoMap = HomebrewZip->GetPathToFilePosMapping();
 
 		for (int i = 0; i < manifest->entries.size(); i++)
 		{
@@ -150,7 +150,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 				continue;
 			}
 
-			auto fileInfo = mapResult->second;
+			auto filePos = mapResult->second;
 
 			int resp = 0;
 			switch (manifest->entries[i].operation)
@@ -158,17 +158,17 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			case MEXTRACT:
 				//! Simply Extract, with no checks or anything, won't be deleted upon removal
 				info("%s : EXTRACT\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, &fileInfo);
+				resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
 				break;
 			case MUPDATE:
 				info("%s : UPDATE\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, &fileInfo);
+				resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
 				break;
 			case MGET:
 				info("%s : GET\n", pathCStr);
 				struct stat sbuff;
 				if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
-					resp = HomebrewZip->Extract(ePathCStr, &fileInfo);
+					resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
 				else
 					info("File already exists, skipping...");
 				break;

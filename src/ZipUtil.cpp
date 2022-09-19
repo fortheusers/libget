@@ -259,10 +259,10 @@ vector<std::string> UnZip::PathDump()
 }
 
 
-std::unordered_map<string, unz_file_info_s> UnZip::GetPathToFileInfoMapping()
+std::unordered_map<string, unz_file_pos> UnZip::GetPathToFilePosMapping()
 {
 	int i = 0;
-	std::unordered_map<string, unz_file_info_s> paths;
+	std::unordered_map<string, unz_file_pos> paths;
 	for (;;)
 	{
 		int code;
@@ -282,18 +282,30 @@ std::unordered_map<string, unz_file_info_s> UnZip::GetPathToFileInfoMapping()
 		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
 		{
 			// info("PathDump: %s\n", fileName.c_str());
-			paths[fileName] = *fileInfo;
+			unzGetFilePos(fileToUnzip, &paths[fileName]);
 		}
 		free(fileInfo);
 	}
 	return paths;
 }
 
-int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
+int UnZip::Extract(const char* path, unz_file_info_s* fileInfo, unz_file_pos* file_pos)
 {
 	//check to make sure filepath or fileInfo isnt null
-	if (path == NULL || fileInfo == NULL)
+	if (path == NULL)
 		return -1;
+	
+	if (fileInfo == NULL) {
+		if (file_pos == NULL)
+			return -1;
+
+		// we have a file pos, seek to that file
+		unzGoToFilePos(fileToUnzip, file_pos);
+		fileInfo = GetFileInfo();
+
+		if (fileInfo == NULL)
+			return -1;
+	}
 
 	if (unzOpenCurrentFile(fileToUnzip) != UNZ_OK)
 		return -2;
@@ -338,6 +350,7 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 		done += writeBytes;
 	}
 
+	fsync(fd);
 	close(fd);
 	free(buffer);
 
