@@ -126,39 +126,54 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	if (manifest->valid)
 	{
+		// get all file info from within the zip, for every path
+		auto infoMap = HomebrewZip->GetPathToFileInfoMapping();
+
 		for (int i = 0; i < manifest->entries.size(); i++)
 		{
-      if (networking_callback != NULL)
-			  networking_callback(0, manifest->entries.size(), i+1, 0, 0);
+			if (networking_callback != NULL)
+					networking_callback(0, manifest->entries.size(), i+1, 0, 0);
 
 			std::string Path = manifest->entries[i].zip_path;
 			std::string ExtractPath = manifest->entries[i].path;
+			auto pathCStr = Path.c_str();
+			auto ePathCStr = ExtractPath.c_str();
 
-      // track this specific file for later, when we remove files that we don't have entries for
-      incoming_package_paths.insert(ExtractPath);
+			// track this specific file for later, when we remove files that we don't have entries for
+			incoming_package_paths.insert(ExtractPath);
+
+			// lookup this path from our map, to get its file info
+			auto mapResult = infoMap.find(Path);
+			if (mapResult == infoMap.end())
+			{
+				printf("--> ERROR: Could not find [%s] path in zip file\n", pathCStr);
+				continue;
+			}
+
+			auto fileInfo = mapResult->second;
 
 			int resp = 0;
 			switch (manifest->entries[i].operation)
 			{
 			case MEXTRACT:
 				//! Simply Extract, with no checks or anything, won't be deleted upon removal
-				info("%s : EXTRACT\n", Path.c_str());
-				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+				info("%s : EXTRACT\n", pathCStr);
+				resp = HomebrewZip->Extract(ePathCStr, &fileInfo);
 				break;
 			case MUPDATE:
-				info("%s : UPDATE\n", Path.c_str());
-				resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+				info("%s : UPDATE\n", pathCStr);
+				resp = HomebrewZip->Extract(ePathCStr, &fileInfo);
 				break;
 			case MGET:
-				info("%s : GET\n", Path.c_str());
+				info("%s : GET\n", pathCStr);
 				struct stat sbuff;
 				if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
-					resp = HomebrewZip->ExtractFile(Path.c_str(), ExtractPath.c_str());
+					resp = HomebrewZip->Extract(ePathCStr, &fileInfo);
 				else
 					info("File already exists, skipping...");
 				break;
 			default:
-				info("%s : NOP\n", Path.c_str());
+				info("%s : NOP\n", ePathCStr);
 				break;
 			}
 

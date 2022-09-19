@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <unistd.h>
+#include <unordered_map>
 
 #include "Utils.hpp"
 #include "ZipUtil.hpp"
@@ -16,7 +17,7 @@
 
 using namespace std;
 
-void info(const char* format, ...);
+// void info(const char* format, ...);
 
 Zip::Zip(const char* zipPath)
 {
@@ -32,7 +33,7 @@ Zip::~Zip()
 int Zip::AddFile(const char* internalPath, const char* path)
 {
 	zipOpenNewFileInZip(fileToZip, internalPath, NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
-	info("Adding %s to zip, under path %s\n", path, internalPath);
+	// info("Adding %s to zip, under path %s\n", path, internalPath);
 	int code = Add(path);
 	zipCloseFileInZip(fileToZip);
 	return code;
@@ -84,7 +85,7 @@ int Zip::Add(const char* path)
 	u32 filesize = lseek(fileNumber, 0, SEEK_END);
 	lseek(fileNumber, 0, SEEK_SET);
 
-	u32 blocksize = 0x8000;
+	u32 blocksize = 0x80000;
 	u8* buffer = (u8*)malloc(blocksize);
 	if (buffer == NULL)
 		return -2;
@@ -136,14 +137,14 @@ void UnZip::Close()
 
 int UnZip::ExtractFile(const char* internalPath, const char* path)
 {
-	int code = unzLocateFile(fileToUnzip, internalPath, 0);
+	int code = unzLocateFile(fileToUnzip, internalPath, 1);
 	if (code == UNZ_END_OF_LIST_OF_FILE)
 		return -1;
 
 	unz_file_info_s* fileInfo = GetFileInfo();
 
 	std::string fullPath(path);
-	info("Extracting file %s to: %s\n", internalPath, fullPath.c_str());
+	// info("Extracting file %s to: %s\n", internalPath, fullPath.c_str());
 	code = Extract(fullPath.c_str(), fileInfo);
 	free(fileInfo);
 	return code;
@@ -189,7 +190,7 @@ int UnZip::ExtractDir(const char* internalDir, const char* externalDir)
 		{
 			//file
 			i++;
-			info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), outputPath.c_str());
+			// info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), outputPath.c_str());
 			Extract(outputPath.c_str(), fileInfo);
 		}
 		free(fileInfo);
@@ -220,7 +221,7 @@ int UnZip::ExtractAll(const char* dirToExtract)
 		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
 		{
 			//file
-			info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), fileName.c_str());
+			// info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), fileName.c_str());
 			Extract(fileName.c_str(), fileInfo);
 		}
 		free(fileInfo);
@@ -249,11 +250,43 @@ vector<std::string> UnZip::PathDump()
 		std::string fileName = GetFullFileName(fileInfo);
 		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
 		{
-			info("PathDump: %s\n", fileName.c_str());
+			// info("PathDump: %s\n", fileName.c_str());
 			paths.push_back(fileName);
 		}
 		free(fileInfo);
 	}
+	return paths;
+}
+
+
+std::unordered_map<string, unz_file_info_s> UnZip::GetPathToFileInfoMapping()
+{
+	int i = 0;
+	std::unordered_map<string, unz_file_info_s> paths;
+	for (;;)
+	{
+		int code;
+		if (i == 0)
+		{
+			code = unzGoToFirstFile(fileToUnzip);
+			i++;
+		}
+		else
+		{
+			code = unzGoToNextFile(fileToUnzip);
+		}
+		if (code == UNZ_END_OF_LIST_OF_FILE) return paths;
+
+		unz_file_info_s* fileInfo = GetFileInfo();
+		std::string fileName = GetFullFileName(fileInfo);
+		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
+		{
+			// info("PathDump: %s\n", fileName.c_str());
+			paths[fileName] = *fileInfo;
+		}
+		free(fileInfo);
+	}
+	return paths;
 }
 
 int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
@@ -275,16 +308,16 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 		CreateSubfolder(folderPath);
 	}
 
-	u32 blocksize = 0x8000;
-	u8* buffer = (u8*)malloc(blocksize);
+	u32 blocksize = 0x80000;
+	u8* buffer = (u8*)aligned_alloc(0x20000, blocksize);
 	if (buffer == NULL)
 		return -3;
 	u32 done = 0;
 	int writeBytes = 0;
 
-	FILE* fp = fopen(path, "w");
+	int fd = open(path, O_CREAT | O_WRONLY | O_TRUNC);
 
-	if (fp == NULL)
+	if (fd == -1)
 	{
 		free(buffer);
 		return -4;
@@ -297,7 +330,7 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 			blocksize = fileInfo->uncompressed_size - done;
 		}
 		unzReadCurrentFile(fileToUnzip, buffer, blocksize);
-		writeBytes = write(fileno(fp), buffer, blocksize);
+		writeBytes = write(fd, buffer, blocksize);
 		if (writeBytes <= 0)
 		{
 			break;
@@ -305,9 +338,7 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo)
 		done += writeBytes;
 	}
 
-	fflush(fp);
-	fclose(fp);
-
+	close(fd);
 	free(buffer);
 
 	if (done != fileInfo->uncompressed_size)
