@@ -279,11 +279,7 @@ std::unordered_map<string, unz_file_pos> UnZip::GetPathToFilePosMapping()
 
 		unz_file_info_s* fileInfo = GetFileInfo();
 		std::string fileName = GetFullFileName(fileInfo);
-		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
-		{
-			// info("PathDump: %s\n", fileName.c_str());
-			unzGetFilePos(fileToUnzip, &paths[fileName]);
-		}
+		unzGetFilePos(fileToUnzip, &paths[fileName]);
 		free(fileInfo);
 	}
 	return paths;
@@ -327,7 +323,7 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo, unz_file_pos* fi
 	u32 done = 0;
 	int writeBytes = 0;
 
-	int fd = open(path, O_CREAT | O_WRONLY | O_TRUNC);
+	int fd = open(path, O_CREAT | O_WRONLY | O_TRUNC, 0777);
 
 	if (fd == -1)
 	{

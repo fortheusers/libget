@@ -146,6 +146,11 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			auto mapResult = infoMap.find(Path);
 			if (mapResult == infoMap.end())
 			{
+				// auto onlyZipPaths = HomebrewZip->PathDump();
+				// for (auto zipPath : onlyZipPaths)
+				// {
+				// 	printf("zip path: %s\n", zipPath.c_str());
+				// }
 				printf("--> ERROR: Could not find [%s] path in zip file\n", pathCStr);
 				continue;
 			}
@@ -167,7 +172,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			case MGET:
 				info("%s : GET\n", pathCStr);
 				struct stat sbuff;
-				if (stat(ExtractPath.c_str(), &sbuff) != 0) //! File doesn't exist, extract
+				if (stat(ePathCStr, &sbuff) != 0) //! File doesn't exist, extract
 					resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
 				else
 					info("File already exists, skipping...");
