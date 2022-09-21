@@ -166,6 +166,9 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 			package->category = cur["category"].GetString();
 		if (cur.HasMember("binary"))
 			package->binary = cur["binary"].GetString();
+		if (cur.HasMember("screens"))
+			package->screens = cur["screens"].GetInt();
+
 		package->repoUrl = &this->url;
 
 		// save the response string to cleanup later

@@ -42,6 +42,7 @@ Package::Package(int state)
 	this->binary = "none";
 
 	this->status = state;
+	this->screens = 0;
 	this->manifest = NULL;
 }
 
@@ -69,31 +70,34 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 {
 	// assumes that download was called first
 	if (libget_status_callback != NULL)
-  	libget_status_callback(STATUS_INSTALLING, 1, 1);
+  		libget_status_callback(STATUS_ANALYZING, 1, 1);
+	
+	if (networking_callback != NULL)
+		networking_callback(0, 10, 10, 0, 0);
 
 #ifdef NETWORK_MOCK
-  // for network mocking, copy over a /mock.zip to the expected download path
-  cp(ROOT_PATH "mock.zip", (tmp_path + this->pkg_name + ".zip").c_str());
+	// for network mocking, copy over a /mock.zip to the expected download path
+	cp(ROOT_PATH "mock.zip", (tmp_path + this->pkg_name + ".zip").c_str());
 #endif
 
-  // our internal path of where the manifest will be
-  std::string ManifestPathInternal = "manifest.install";
-	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
+	// our internal path of where the manifest will be
+	std::string ManifestPathInternal = "manifest.install";
+		std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 
-  // before we uninstall, open up the current manifest, and get all the files in it
-  // (later we will remove any that aren't in the new manifest)
-  Manifest existingManifest(ManifestPath, ROOT_PATH);
+	// before we uninstall, open up the current manifest, and get all the files in it
+	// (later we will remove any that aren't in the new manifest)
+	Manifest existingManifest(ManifestPath, ROOT_PATH);
 
-  std::unordered_set<std::string> existing_package_paths;
-  if (existingManifest.valid) {
-    // go through its paths, add them our existing set
-    for (int i = 0; i < manifest->entries.size(); i++)
-    {
-      ManifestOp op = this->manifest->entries[i].operation;
-      if (op == MUPDATE || op == MEXTRACT)
-        existing_package_paths.insert(manifest->entries[i].path);
-    }
-  }
+	std::unordered_set<std::string> existing_package_paths;
+	if (existingManifest.valid) {
+		// go through its paths, add them our existing set
+		for (int i = 0; i < manifest->entries.size(); i++)
+		{
+		ManifestOp op = this->manifest->entries[i].operation;
+		if (op == MUPDATE || op == MEXTRACT)
+			existing_package_paths.insert(manifest->entries[i].path);
+		}
+	}
 
 	//! Open the Zip file
 	UnZip* HomebrewZip = new UnZip((tmp_path + this->pkg_name + ".zip").c_str());
@@ -128,6 +132,9 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	{
 		// get all file info from within the zip, for every path
 		auto infoMap = HomebrewZip->GetPathToFilePosMapping();
+
+		if (libget_status_callback != NULL)
+			libget_status_callback(STATUS_INSTALLING, 1, 1);
 
 		for (int i = 0; i < manifest->entries.size(); i++)
 		{
@@ -455,6 +462,12 @@ std::string Package::getBannerUrl()
 {
 	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen.png";
 }
+
+std::string Package::getScreenShotUrl(int count)
+{
+	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen" + std::to_string(count) + ".png";
+}
+
 
 std::string Package::getManifestUrl()
 {

@@ -15,11 +15,12 @@ typedef struct
     FILE *out;
 } ntwrk_struct_t;
 
-#define STATUS_DOWNLOADING	0
+#define STATUS_DOWNLOADING	    0
 #define STATUS_INSTALLING		1
 #define STATUS_REMOVING			2
 #define STATUS_RELOADING		3
 #define STATUS_UPDATING_STATUS	4
+#define STATUS_ANALYZING    	5
 
 // folder stuff
 bool mkpath(std::string path);

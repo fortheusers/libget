@@ -35,6 +35,7 @@ public:
 	std::string getIconUrl();
 	std::string getBannerUrl();
 	std::string getManifestUrl();
+	std::string getScreenShotUrl(int count);
 
 	int isPreviouslyInstalled();
 
@@ -51,12 +52,14 @@ public:
 	std::string url;
 	std::string updated;
 	std::string binary;
+
 	Manifest* manifest = NULL;
 	int updated_timestamp = 0;
 
 	int downloads = 0;
 	int extracted_size = 0;
 	int download_size = 0;
+	int screens = 0;
 
 	std::string category;
 
