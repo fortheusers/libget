@@ -59,7 +59,7 @@ std::string Package::toString()
 bool Package::downloadZip(const char* tmp_path, float* progress)
 {
 	if (libget_status_callback != NULL)
-  	libget_status_callback(STATUS_DOWNLOADING, 1, 1);
+		libget_status_callback(STATUS_DOWNLOADING, 1, 1);
 
 	// fetch zip file to tmp directory using curl
 	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path);
@@ -70,8 +70,8 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 {
 	// assumes that download was called first
 	if (libget_status_callback != NULL)
-  		libget_status_callback(STATUS_ANALYZING, 1, 1);
-	
+		libget_status_callback(STATUS_ANALYZING, 1, 1);
+
 	if (networking_callback != NULL)
 		networking_callback(0, 10, 10, 0, 0);
 
@@ -82,20 +82,21 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	// our internal path of where the manifest will be
 	std::string ManifestPathInternal = "manifest.install";
-		std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
+	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 
 	// before we uninstall, open up the current manifest, and get all the files in it
 	// (later we will remove any that aren't in the new manifest)
 	Manifest existingManifest(ManifestPath, ROOT_PATH);
 
 	std::unordered_set<std::string> existing_package_paths;
-	if (existingManifest.valid) {
+	if (existingManifest.valid)
+	{
 		// go through its paths, add them our existing set
 		for (int i = 0; i < manifest->entries.size(); i++)
 		{
-		ManifestOp op = this->manifest->entries[i].operation;
-		if (op == MUPDATE || op == MEXTRACT)
-			existing_package_paths.insert(manifest->entries[i].path);
+			ManifestOp op = this->manifest->entries[i].operation;
+			if (op == MUPDATE || op == MEXTRACT)
+				existing_package_paths.insert(manifest->entries[i].path);
 		}
 	}
 
@@ -117,7 +118,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 #ifndef NETWORK_MOCK
 		printf("--> Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
 		this->manifest = new Manifest(HomebrewZip->PathDump(), ROOT_PATH);
-		std::ofstream pseudomanifest (ManifestPath);
+		std::ofstream pseudomanifest(ManifestPath);
 		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)
 		{
 			pseudomanifest << manifest->entries[i].raw << std::endl;
@@ -126,7 +127,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 #endif
 	}
 
-  std::unordered_set<std::string> incoming_package_paths;
+	std::unordered_set<std::string> incoming_package_paths;
 
 	if (manifest->valid)
 	{
@@ -139,7 +140,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		for (int i = 0; i < manifest->entries.size(); i++)
 		{
 			if (networking_callback != NULL)
-					networking_callback(0, manifest->entries.size(), i+1, 0, 0);
+				networking_callback(0, manifest->entries.size(), i + 1, 0, 0);
 
 			std::string Path = manifest->entries[i].zip_path;
 			std::string ExtractPath = manifest->entries[i].path;
@@ -196,15 +197,17 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			}
 		}
 
-    // done installing new files, go through the remaining files that we didn't just visit
-    // and remove them (files that WERE in our old manifest, and AREN'T in the new one we got)
-    for (auto& path : existing_package_paths) {
-      // only continue if it's not in our incoming package path set
-      if (incoming_package_paths.find(path) == incoming_package_paths.end()) {
-        std::remove(path.c_str());
-        // printf("REMOVING: %s\n", path.c_str());
-      }
-    }
+		// done installing new files, go through the remaining files that we didn't just visit
+		// and remove them (files that WERE in our old manifest, and AREN'T in the new one we got)
+		for (auto& path : existing_package_paths)
+		{
+			// only continue if it's not in our incoming package path set
+			if (incoming_package_paths.find(path) == incoming_package_paths.end())
+			{
+				std::remove(path.c_str());
+				// printf("REMOVING: %s\n", path.c_str());
+			}
+		}
 	}
 	else
 	{
@@ -212,7 +215,8 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 		//		printf("No manifest found: extracting the Zip\n");
 		//		HomebrewZip->ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		if (!manifest->fakeManifestPossible){
+		if (!manifest->fakeManifestPossible)
+		{
 			printf("--> Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 			return false;
 		}
@@ -241,13 +245,13 @@ bool Package::remove(const char* pkg_path)
 
 	//! Parse the manifest
 	info("Parsing the Manifest\n");
-	if(!manifest) this->manifest = new Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
-	if(this->manifest->valid)
+	if (!manifest) this->manifest = new Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
+	if (this->manifest->valid)
 	{
 		for (int i = 0; i < this->manifest->entries.size(); i++)
 		{
-      if (networking_callback != NULL)
-			  networking_callback(0, manifest->entries.size(), i+1, 0, 0);
+			if (networking_callback != NULL)
+				networking_callback(0, manifest->entries.size(), i + 1, 0, 0);
 
 			std::string DeletePath = manifest->entries[i].path;
 
@@ -255,14 +259,16 @@ bool Package::remove(const char* pkg_path)
 			std::string cur_dir = dir_name(DeletePath);
 			uniq_folders.insert(cur_dir);
 
-      ManifestOp op = this->manifest->entries[i].operation;
-      if (op != NOP && op != MEXTRACT) // get, upgrade, and local
-      {
-        info("Removing %s\n", DeletePath.c_str());
+			ManifestOp op = this->manifest->entries[i].operation;
+			if (op != NOP && op != MEXTRACT) // get, upgrade, and local
+			{
+				info("Removing %s\n", DeletePath.c_str());
 				std::remove(DeletePath.c_str());
-      }
+			}
 		}
-	} else {
+	}
+	else
+	{
 		printf("--> ERROR: Manifest missing or invalid at %s\n", ManifestPath.c_str());
 		return false;
 	}
@@ -300,7 +306,7 @@ bool Package::remove(const char* pkg_path)
 	for (auto& folder : intermediate_folders)
 		folders.push_back(folder);
 
-	//re-sort it
+	// re-sort it
 	std::sort(folders.begin(), folders.end(), compareLen);
 
 	for (auto& folder : folders)
@@ -425,7 +431,7 @@ int Package::isPreviouslyInstalled()
 	// since we are appstore and know that what version we're supposed to be, mark us local or updated if needed
 	// TODO: make version check here dynamic, and also support other NROs or hint files
 	// notice: this means that even if appstore isn't installed but is running, it will show as an update
-	if (this->pkg_name == "appstore")
+	if (this->pkg_name == APP_SHORTNAME)
 	{
 		// it's app store, but wasn't detected as installed
 		if (this->version == APP_VERSION)
@@ -467,7 +473,6 @@ std::string Package::getScreenShotUrl(int count)
 {
 	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen" + std::to_string(count) + ".png";
 }
-
 
 std::string Package::getManifestUrl()
 {

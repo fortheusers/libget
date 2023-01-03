@@ -16,19 +16,19 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <ctime>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <fstream>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <ctime>
 
 #include "Utils.hpp"
 
@@ -39,10 +39,7 @@
 #define RAMFS "resin/"
 #endif
 
-
-
-#define BUF_SIZE 0x800000 //8MB.
-
+#define BUF_SIZE 0x800000 // 8MB.
 
 int (*networking_callback)(void*, double, double, double, double);
 int (*libget_status_callback)(int, int, int);
@@ -60,7 +57,7 @@ CURL* curl = NULL;
 #endif
 
 #ifndef SO_WINSCALE
-#define SO_WINSCALE 0x00400 /* Set scaling window option */ 
+#define SO_WINSCALE 0x00400 /* Set scaling window option */
 #endif
 
 #ifndef SO_RCVBUF
@@ -70,12 +67,12 @@ CURL* curl = NULL;
 #ifndef NETWORK_MOCK
 // networking optimizations adapted from:
 //  - https://github.com/samdejong86/Arria-V-ADC-Ethernet-software/blob/master/ADC_Socket_bsp/iniche/src/h/socket.h
-int sockopt_callback(void *clientp, curl_socket_t curlfd, curlsocktype purpose)
+int sockopt_callback(void* clientp, curl_socket_t curlfd, curlsocktype purpose)
 {
-    int winscale = 1, rcvbuf = 0x20000, tcpsack = 1;
-    setsockopt(curlfd, SOL_SOCKET, SO_WINSCALE, &winscale, sizeof(int));
-    setsockopt(curlfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(int));
-    setsockopt(curlfd, SOL_SOCKET, SO_TCPSACK, &tcpsack, sizeof(int));
+	int winscale = 1, rcvbuf = 0x20000, tcpsack = 1;
+	setsockopt(curlfd, SOL_SOCKET, SO_WINSCALE, &winscale, sizeof(int));
+	setsockopt(curlfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(int));
+	setsockopt(curlfd, SOL_SOCKET, SO_TCPSACK, &tcpsack, sizeof(int));
 	return 0;
 }
 #endif
@@ -100,15 +97,15 @@ bool mkpath(std::string path)
 		switch (errno)
 		{
 		case ENOENT:
-			//parent didn't exist, try to create it
+			// parent didn't exist, try to create it
 			if (mkpath(path.substr(0, path.find_last_of('/'))))
-				//Now, try to create again.
+				// Now, try to create again.
 				bSuccess = 0 == ::mkdir(path.c_str(), 0775);
 			else
 				bSuccess = false;
 			break;
 		case EEXIST:
-			//Done!
+			// Done!
 			bSuccess = true;
 			break;
 		default:
@@ -133,25 +130,25 @@ void setPlatformCurlFlags(CURL* c)
 
 static size_t MemoryWriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
- 	((std::string*)userp)->append((char*)contents, size * nmemb);
- 	return size * nmemb;
+	((std::string*)userp)->append((char*)contents, size * nmemb);
+	return size * nmemb;
 }
 
 static size_t DiskWriteCallback(void* contents, size_t size, size_t num_files, void* userp)
 {
-	ntwrk_struct_t *data_struct = (ntwrk_struct_t *)userp;
-    size_t realsize = size * num_files;
+	ntwrk_struct_t* data_struct = (ntwrk_struct_t*)userp;
+	size_t realsize = size * num_files;
 
 	if (realsize + data_struct->offset >= data_struct->data_size)
-    {
-        fwrite(data_struct->data, data_struct->offset, 1, data_struct->out);
-        data_struct->offset = 0;
-    }
+	{
+		fwrite(data_struct->data, data_struct->offset, 1, data_struct->out);
+		data_struct->offset = 0;
+	}
 
-    memcpy(&data_struct->data[data_struct->offset], contents, realsize);
-    data_struct->offset += realsize;
-    data_struct->data[data_struct->offset] = 0;
-    return realsize;
+	memcpy(&data_struct->data[data_struct->offset], contents, realsize);
+	data_struct->offset += realsize;
+	data_struct->data[data_struct->offset] = 0;
+	return realsize;
 }
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
@@ -181,7 +178,7 @@ bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_stru
 
 	return curl_easy_perform(curl) == CURLE_OK;
 #else
-  return true;
+	return true;
 #endif
 }
 
@@ -192,11 +189,11 @@ bool downloadFileToMemory(std::string path, std::string* buffer)
 
 bool downloadFileToDisk(std::string remote_path, std::string local_path)
 {
-	FILE *out_file = fopen(local_path.c_str(), "wb");
+	FILE* out_file = fopen(local_path.c_str(), "wb");
 	if (!out_file)
 		return false;
 
-	uint8_t *buf = (uint8_t *)malloc(BUF_SIZE); // 8MB.
+	uint8_t* buf = (uint8_t*)malloc(BUF_SIZE); // 8MB.
 	if (buf == NULL)
 	{
 		fclose(out_file);
@@ -213,8 +210,8 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path)
 	}
 
 	// write remaning data to file before free.
-    fwrite(data_struct.data, data_struct.offset, 1, data_struct.out);
-    free(data_struct.data);
+	fwrite(data_struct.data, data_struct.offset, 1, data_struct.out);
+	free(data_struct.data);
 	fclose(data_struct.out);
 
 	return true;
@@ -279,6 +276,10 @@ int deinit_networking()
 
 #if defined(WII) && !defined(NETWORK_MOCK)
 	wiisocket_deinit();
+#endif
+
+#if defined(SWITCH)
+	socketExit();
 #endif
 
 	return 1;
@@ -358,7 +359,7 @@ bool libget_reset_data(const char* path)
 
 	long int current_time = static_cast<long int>(seconds);
 
-  // move the contents of the .get folder to .trash/get_backup_date
+	// move the contents of the .get folder to .trash/get_backup_date
 	std::stringstream ss;
 	ss << ".trash/get_backup_" << current_time;
 	printf("--> Info: %ld\n", current_time);

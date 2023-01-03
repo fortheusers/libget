@@ -9,18 +9,18 @@
 // the struct to be passed in the write function.
 typedef struct
 {
-    uint8_t *data;
-    size_t data_size;
-    u_int64_t offset;
-    FILE *out;
+	uint8_t* data;
+	size_t data_size;
+	u_int64_t offset;
+	FILE* out;
 } ntwrk_struct_t;
 
-#define STATUS_DOWNLOADING	    0
-#define STATUS_INSTALLING		1
-#define STATUS_REMOVING			2
-#define STATUS_RELOADING		3
-#define STATUS_UPDATING_STATUS	4
-#define STATUS_ANALYZING    	5
+#define STATUS_DOWNLOADING 0
+#define STATUS_INSTALLING 1
+#define STATUS_REMOVING 2
+#define STATUS_RELOADING 3
+#define STATUS_UPDATING_STATUS 4
+#define STATUS_ANALYZING 5
 
 // folder stuff
 bool mkpath(std::string path);
@@ -28,7 +28,8 @@ bool CreateSubfolder(char* cstringpath);
 
 // networking stuff
 int init_networking();
-bool downloadFileToMemory(std::string path, std::string* buffer); // writes to disk in BUF_SIZE chunks.
+int deinit_networking();
+bool downloadFileToMemory(std::string path, std::string* buffer);		  // writes to disk in BUF_SIZE chunks.
 bool downloadFileToDisk(std::string remote_path, std::string local_path); // saves file to local_path.
 
 #ifndef NETWORK_MOCK

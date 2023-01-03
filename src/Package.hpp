@@ -1,9 +1,9 @@
 #ifndef PACKAGE_H
 #define PACKAGE_H
+#include "Manifest.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
 #include <string>
-#include "Manifest.hpp"
 #if defined(SWITCH) || defined(WII)
 #define ROOT_PATH "/"
 #elif defined(__WIIU__)
@@ -18,6 +18,7 @@
 #define APP_VERSION "0.0.0"
 #endif
 
+#define APP_SHORTNAME "appstore"
 
 class Package
 {
