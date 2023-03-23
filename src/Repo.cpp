@@ -140,14 +140,14 @@ void Repo::loadPackages(std::vector<Package*>* packages)
 		{
 			package->updated = cur["updated"].GetString();
 			struct tm tm;
-			time_t ts;
 
 #if !defined(_3DS) && !defined(WII)
 			auto res = strptime(package->updated.c_str(), "%d/%m/%Y", &tm);
 			if (res)
 			{
-				ts = mktime(&tm);
-				package->updated_timestamp = (int)ts;
+				// make sure that all the time-related fields are set
+				tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
+				package->updated_timestamp = (int)mktime(&tm);
 			}
 #endif
 		}
