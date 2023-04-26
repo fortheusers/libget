@@ -14,6 +14,10 @@
 #include <malloc.h>
 #endif
 
+#if defined(WIN32)
+#include <sys/types.h>
+#endif
+
 #include <algorithm>
 #include <cstdint>
 #include <ctime>
@@ -70,9 +74,11 @@ CURL* curl = NULL;
 int sockopt_callback(void* clientp, curl_socket_t curlfd, curlsocktype purpose)
 {
 	int winscale = 1, rcvbuf = 0x20000, tcpsack = 1;
+#ifndef WIN32
 	setsockopt(curlfd, SOL_SOCKET, SO_WINSCALE, &winscale, sizeof(int));
 	setsockopt(curlfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(int));
 	setsockopt(curlfd, SOL_SOCKET, SO_TCPSACK, &tcpsack, sizeof(int));
+#endif
 	return 0;
 }
 #endif
@@ -87,11 +93,20 @@ bool CreateSubfolder(char* cpath)
 	return mkpath(path);
 }
 
+// wrapper for unix mkdir
+int my_mkdir(const char* path, int perms) {
+#if defined(WIN32)
+	return mkdir(path);
+#else
+	return mkdir(path, perms);
+#endif
+}
+
 // http://stackoverflow.com/a/11366985
 bool mkpath(std::string path)
 {
 	bool bSuccess = false;
-	int nRC = ::mkdir(path.c_str(), 0775);
+	int nRC = my_mkdir(path.c_str(), 0775);
 	if (nRC == -1)
 	{
 		switch (errno)
@@ -100,7 +115,7 @@ bool mkpath(std::string path)
 			// parent didn't exist, try to create it
 			if (mkpath(path.substr(0, path.find_last_of('/'))))
 				// Now, try to create again.
-				bSuccess = 0 == ::mkdir(path.c_str(), 0775);
+				bSuccess = 0 == my_mkdir(path.c_str(), 0775);
 			else
 				bSuccess = false;
 			break;
@@ -319,7 +334,7 @@ int remove_empty_dirs(const char* name, int count)
 	// go through files in directory
 	while ((entry = readdir(dir)) != NULL)
 	{
-		if (entry->d_type == DT_DIR)
+		if (is_dir(entry))
 		{
 			char path[1024];
 			// skip current dir or parent dir
@@ -377,4 +392,16 @@ bool libget_reset_data(const char* path)
 		printf("Issue renaming folder... %d: %s\n", errno, strerror(errno));
 
 	return !res;
+}
+
+bool is_dir(struct dirent* entry)
+{
+#ifndef WIN32
+	return entry->d_type & DT_DIR;
+#else
+	// windows check, using stat
+	struct stat s;
+	stat(entry->d_name, &s);
+	return s.st_mode & S_IFDIR;
+#endif
 }

@@ -17,6 +17,14 @@
 
 using namespace std;
 
+#ifdef WIN32
+#define aligned_alloc _aligned_malloc
+#define cross_free _aligned_free
+#define fsync _commit
+#else
+#define cross_free free
+#endif
+
 // void info(const char* format, ...);
 
 Zip::Zip(const char* zipPath)
@@ -62,7 +70,7 @@ int Zip::AddDir(const char* internalDir, const char* externalDir)
 		realPath += '/';
 		realPath += dirent->d_name;
 
-		if (dirent->d_type & DT_DIR)
+		if (is_dir(dirent))
 		{
 			AddDir(zipPath.c_str(), realPath.c_str());
 		}
@@ -327,7 +335,7 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo, unz_file_pos* fi
 
 	if (fd == -1)
 	{
-		free(buffer);
+		cross_free(buffer);
 		return -4;
 	}
 
@@ -348,7 +356,7 @@ int UnZip::Extract(const char* path, unz_file_info_s* fileInfo, unz_file_pos* fi
 
 	fsync(fd);
 	close(fd);
-	free(buffer);
+	cross_free(buffer);
 
 	if (done != fileInfo->uncompressed_size)
 		return -4;

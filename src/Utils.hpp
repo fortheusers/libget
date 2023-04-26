@@ -11,7 +11,7 @@ typedef struct
 {
 	uint8_t* data;
 	size_t data_size;
-	u_int64_t offset;
+	uint64_t offset;
 	FILE* out;
 } ntwrk_struct_t;
 
@@ -36,6 +36,9 @@ bool downloadFileToDisk(std::string remote_path, std::string local_path); // sav
 void setPlatformCurlFlags(CURL* c);
 #endif
 
+// for cross platform dir creation
+int my_mkdir(const char* path, int perms = 0700);
+
 // callback for networking progress
 // if set, will be invoked during the download
 extern int (*networking_callback)(void*, double, double, double, double);
@@ -50,3 +53,4 @@ bool libget_reset_data(const char* path);
 
 const std::string dir_name(std::string file_path);
 bool compareLen(const std::string& a, const std::string& b);
+bool is_dir(struct dirent* ent);

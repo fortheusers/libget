@@ -3,6 +3,8 @@
 #include "constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
+#include <time.h>
+#include <iomanip>
 #include <regex>
 #include <sstream>
 #include <stdarg.h> /* va_list, va_start, va_arg, va_end */
@@ -50,6 +52,21 @@ std::string Repo::toString()
 {
 	return "[" + this->name + "] <" + this->url + "> - " + ((this->enabled) ? "enabled" : "disabled");
 }
+
+#ifdef WIN32
+// https://stackoverflow.com/a/33542189
+extern "C" char* strptime(const char* s,
+                          const char* f,
+                          struct tm* tm) {
+  std::istringstream input(s);
+  input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+  input >> std::get_time(tm, f);
+  if (input.fail()) {
+    return nullptr;
+  }
+  return (char*)(s + input.tellg());
+}
+#endif
 
 void Repo::loadPackages(std::vector<Package*>* packages)
 {

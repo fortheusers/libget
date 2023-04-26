@@ -34,11 +34,11 @@ Get::Get(const char* config_dir, const char* defaultRepo)
 	this->tmp_path = tmp_dir->c_str();
 
 	//	  printf("--> Using \"./sdroot\" as local download root directory\n");
-	//	  mkdir("./sdroot", 0700);
+	//	  my_mkdir("./sdroot");
 
-	mkdir(config_path.c_str(), 0700);
-	mkdir(package_dir->c_str(), 0700);
-	mkdir(tmp_dir->c_str(), 0700);
+	my_mkdir(config_path.c_str());
+	my_mkdir(package_dir->c_str());
+	my_mkdir(tmp_dir->c_str());
 
 	printf("--> Using \"%s\" as repo list\n", repo_file->c_str());
 
