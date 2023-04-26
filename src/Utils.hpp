@@ -53,4 +53,4 @@ bool libget_reset_data(const char* path);
 
 const std::string dir_name(std::string file_path);
 bool compareLen(const std::string& a, const std::string& b);
-bool is_dir(struct dirent* ent);
+bool is_dir(const char* path, struct dirent* ent);

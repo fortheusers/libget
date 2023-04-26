@@ -394,14 +394,16 @@ bool libget_reset_data(const char* path)
 	return !res;
 }
 
-bool is_dir(struct dirent* entry)
+bool is_dir(const char* path, struct dirent* entry)
 {
 #ifndef WIN32
 	return entry->d_type & DT_DIR;
 #else
 	// windows check, using stat
 	struct stat s;
-	stat(entry->d_name, &s);
+	// get full path using dir and entry
+ 	std::string full_path = std::string(pwd) + "/" + std::string(entry->d_name);
+ 	stat(full_path.c_str(), &s);
 	return s.st_mode & S_IFDIR;
 #endif
 }

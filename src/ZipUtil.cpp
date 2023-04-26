@@ -70,7 +70,7 @@ int Zip::AddDir(const char* internalDir, const char* externalDir)
 		realPath += '/';
 		realPath += dirent->d_name;
 
-		if (is_dir(dirent))
+		if (is_dir(externalDir, dirent))
 		{
 			AddDir(zipPath.c_str(), realPath.c_str());
 		}
