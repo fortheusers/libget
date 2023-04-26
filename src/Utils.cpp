@@ -334,7 +334,7 @@ int remove_empty_dirs(const char* name, int count)
 	// go through files in directory
 	while ((entry = readdir(dir)) != NULL)
 	{
-		if (is_dir(entry))
+		if (is_dir(name, entry))
 		{
 			char path[1024];
 			// skip current dir or parent dir
@@ -402,7 +402,7 @@ bool is_dir(const char* path, struct dirent* entry)
 	// windows check, using stat
 	struct stat s;
 	// get full path using dir and entry
- 	std::string full_path = std::string(pwd) + "/" + std::string(entry->d_name);
+ 	std::string full_path = std::string(path) + "/" + std::string(entry->d_name);
  	stat(full_path.c_str(), &s);
 	return s.st_mode & S_IFDIR;
 #endif
