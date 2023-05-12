@@ -315,7 +315,9 @@ bool Package::remove(const char* pkg_path)
 	printf("--> Removing manifest...\n");
 
 	std::remove(ManifestPath.c_str());
-	std::remove((std::string(pkg_path) + this->pkg_name + "/info.json").c_str());
+	auto full_pkg_path = std::string(pkg_path) + this->pkg_name;
+	std::remove((full_pkg_path + "/info.json").c_str());
+	std::remove((full_pkg_path + "/icon.png").c_str());	// clean up icon if present
 	delete this->manifest;
 
 	rmdir((std::string(pkg_path) + this->pkg_name).c_str());
@@ -345,7 +347,7 @@ void Package::updateStatus(const char* pkg_path)
 		this->manifest = new Manifest(ManifestPath, ROOT_PATH);
 	}
 
-	// TODO: check for info.json, parse version out of it
+	// check for info.json, parse version out of it
 	// and compare against the package's to know whether
 	// it's an update or not
 	std::string jsonPathInternal = "info.json";

@@ -13,6 +13,8 @@
 
 #include "Get.hpp"
 #include "Utils.hpp"
+#include "GetRepo.hpp"
+#include "LocalRepo.hpp"
 
 using namespace std;
 using namespace rapidjson;
@@ -81,9 +83,15 @@ int Get::remove(Package* package)
 
 int Get::toggleRepo(Repo* repo)
 {
-	repo->enabled = !repo->enabled;
+	// repo->enabled = !repo->enabled;
 	update();
 	return true;
+}
+
+void Get::addLocalRepo() {
+	Repo* localRepo = new LocalRepo();
+	repos.push_back(localRepo);
+	update();
 }
 
 /**
@@ -98,9 +106,9 @@ void Get::loadRepos()
 
 	if (!ifs->good() || ifs->peek() == std::ifstream::traits_type::eof())
 	{
-		printf("--> Could not load repos from %s, generating default repos.json\n", config_path);
+		printf("--> Could not load repos from %s, generating default GET repos.json\n", config_path);
 
-		Repo* defaultRepo = new Repo("Default Repo", this->defaultRepo);
+		Repo* defaultRepo = new GetRepo("Default Repo", this->defaultRepo, true);
 
 		Document d;
 		d.Parse(generateRepoJson(1, defaultRepo).c_str());
@@ -117,12 +125,8 @@ void Get::loadRepos()
 		{
 			printf("--> Could not generate a new repos.json\n");
 
-			// manually create a repo, no file access
-			Repo* repo = new Repo();
-			repo->name = "4TU Switch Repo";
-			repo->url = this->defaultRepo;
-			repo->enabled = true;
-			repos.push_back(repo);
+			// manually create a repo, no file access (so we append now, since we won't be able to load later)
+			repos.push_back(defaultRepo);
 			return;
 		}
 	}
@@ -143,11 +147,26 @@ void Get::loadRepos()
 	// for every repo
 	for (Value::ConstValueIterator it = repos_doc.Begin(); it != repos_doc.End(); it++)
 	{
-		Repo* repo = new Repo();
-		repo->name = (*it)["name"].GetString();
-		repo->url = (*it)["url"].GetString();
-		repo->enabled = (*it)["enabled"].GetBool();
-		repos.push_back(repo);
+
+		auto repoName = "Default Repo";
+		auto repoUrl = "";
+		auto repoEnabled = false;
+		auto repoType = "get";			// carryover from before this was defined
+
+		if ((*it).HasMember("name"))
+			repoName = (*it)["name"].GetString();
+		if ((*it).HasMember("url"))
+			repoUrl = (*it)["url"].GetString();
+		if ((*it).HasMember("enabled"))
+			repoEnabled = (*it)["enabled"].GetBool();
+		if ((*it).HasMember("type"))
+			repoType = (*it)["type"].GetString();
+
+		printf("--> Found repo: %s, %s\n", repoName, repoType);
+
+		Repo* repo = createRepo(repoName, repoUrl, repoEnabled, repoType);
+		if (repo != NULL)
+			repos.push_back(repo);
 	}
 
 	return;
@@ -155,18 +174,21 @@ void Get::loadRepos()
 
 void Get::update()
 {
+	printf("--> Updating package list\n");
 	// clear current packages
 	packages.clear();
 
 	// fetch recent package list from enabled repos
 	for (size_t x = 0; x < repos.size(); x++)
 	{
-		if (repos[x]->enabled)
+		printf("--> Checking repo %s\n", repos[x]->getName().c_str());
+		if (repos[x]->isLoaded() && repos[x]->isEnabled())
 		{
+			printf("--> Repo %s is loaded and enabled\n", repos[x]->getName().c_str());
 			if (libget_status_callback != NULL)
 				libget_status_callback(STATUS_RELOADING, x+1, repos.size());
 
-			repos[x]->loadPackages(&packages);
+			repos[x]->loadPackages(this, &packages);
 		}
 	}
 

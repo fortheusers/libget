@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+class Get;
+
 #ifdef NETWORK_MOCK
 #include "../tests/network_mock.hpp"
 #endif
@@ -11,17 +13,16 @@
 class Repo
 {
 public:
-	Repo();
-	Repo(const char* name, const char* url);
-	std::string toJson();
-	std::string toString();
-	void loadPackages(std::vector<Package*>* package);
+	virtual std::string toJson() = 0;
+	virtual std::string toString() = 0;
+	virtual void loadPackages(Get* get, std::vector<Package*>* package) = 0;
 
-	std::string name;
-	std::string url;
-	bool enabled;
-	bool loaded = true; // whether this server could be reached or not
+	virtual std::string getName() = 0;
+	virtual std::string getUrl() = 0;
+	virtual bool isEnabled() = 0;
+	virtual bool isLoaded() = 0; // whether this server could be reached or not
 };
 
 std::string generateRepoJson(int count, ...);
+Repo* createRepo(std::string name, std::string url, bool enabled, std::string type);
 #endif

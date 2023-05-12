@@ -18,7 +18,8 @@ public:
 
 	std::vector<Package*> search(std::string query); // return a list of packages matching query
 	Package* lookup(std::string pkg_name);
-  void removeDuplicates();
+	void addLocalRepo();
+  	void removeDuplicates();
 
 	// the remote repos and packages
 	std::vector<Repo*> repos;
