@@ -59,8 +59,18 @@ int main(int argc, char** args)
 			printf("--> Listing available remotes and packages\n");
 
 			printf("%d repo%s loaded!\n", repos.size(), plural(repos.size()));
-			for (int x = 0; x < repos.size(); x++)
+			int enabledCount = 0;
+			for (int x = 0; x < repos.size(); x++) {
 				printf("\t%s\n", repos[x]->toString().c_str());
+				if (repos[x]->isLoaded() && repos[x]->isEnabled()) {
+					enabledCount++;
+				}
+			}
+
+			if (enabledCount == 0) {
+				printf("--> No valid repos were enabled or available! Try -o to run in offline mode.\n");
+				break;
+			}
 
 			printf("%d package%s available!\n", packages.size(), plural(packages.size()));
 			for (int x = 0; x < packages.size(); x++)
@@ -77,6 +87,12 @@ int main(int argc, char** args)
 			}
 			printf("%d package%s installed\n", count, plural(count));
 			printf("%d update%s available\n", updatecount, plural(updatecount));
+		}
+		else if (cur == "-o" || cur == "--offline") {
+			// add the local repo to list locally installed packages
+			get->addLocalRepo();
+			repos = get->repos;
+			packages = get->packages;
 		}
 		else // assume argument is a package
 		{
