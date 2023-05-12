@@ -126,6 +126,10 @@ bool LocalRepo::isEnabled()
     return true;
 }
 
+void LocalRepo::setEnabled(bool enabled) {
+    // cannot disable local repo
+}
+
 bool LocalRepo::isLoaded()
 {
     return true;

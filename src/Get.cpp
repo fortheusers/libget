@@ -83,7 +83,7 @@ int Get::remove(Package* package)
 
 int Get::toggleRepo(Repo* repo)
 {
-	// repo->enabled = !repo->enabled;
+	repo->setEnabled(!repo->isEnabled());
 	update();
 	return true;
 }

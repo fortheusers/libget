@@ -188,6 +188,11 @@ bool GetRepo::isEnabled()
 	return this->enabled;
 }
 
+void GetRepo::setEnabled(bool enabled)
+{
+	this->enabled = enabled;
+}
+
 bool GetRepo::isLoaded()
 {
 	return this->loaded;

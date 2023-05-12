@@ -21,6 +21,7 @@ public:
 	virtual std::string getUrl() = 0;
 	virtual bool isEnabled() = 0;
 	virtual bool isLoaded() = 0; // whether this server could be reached or not
+	virtual void setEnabled(bool enabled) = 0;
 };
 
 std::string generateRepoJson(int count, ...);

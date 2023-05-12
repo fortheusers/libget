@@ -21,6 +21,7 @@ public:
 	std::string getUrl();
 	bool isEnabled();
 	bool isLoaded(); // whether this server could be reached or not
+	void setEnabled(bool enabled);
 
     std::string name;
     std::string url;
