@@ -4,6 +4,7 @@ ifneq ($(SOURCES),)
 else
 	# we are in the libget folder already
 	LIBGET := ./src
+	APP_VERSION := $(shell git describe --tags --always --dirty)
 endif
 
 RAPIDJSON   := $(LIBGET)/libs/rapidjson/include
@@ -23,7 +24,7 @@ MINIZIP_O   :=  zip.o ioapi.o unzip.o
 ifeq ($(LIBGET),./src)
 build:
 	gcc -c $(MINIZIP)/*.c
-	g++ -g cli/*.cpp src/*.cpp -std=gnu++20 -lm -I $(RAPIDJSON) $(MINIZIP_O) -I $(MINIZIP) -lz -lcurl -o get
+	g++ -g cli/*.cpp src/*.cpp -std=gnu++20 -lm -I $(RAPIDJSON) $(MINIZIP_O) -I $(MINIZIP) -lz -lcurl -o get -DAPP_VERSION=\"$(APP_VERSION)\"
 
 run_tests:
 	rm -rf tests/.get/packages tests/.get/tmp

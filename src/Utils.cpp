@@ -48,6 +48,8 @@
 int (*networking_callback)(void*, double, double, double, double);
 int (*libget_status_callback)(int, int, int);
 
+static const char* USER_AGENT = "libget-unknown/0.0.0";
+
 // reference to the curl handle so that we can re-use the connection
 #ifndef NETWORK_MOCK
 CURL* curl = NULL;
@@ -86,6 +88,12 @@ int sockopt_callback(void* clientp, curl_socket_t curlfd, curlsocktype purpose)
 #if defined(_3DS)
 u32* SOCUBuffer;
 #endif
+
+// sets the user agent for our requests
+void setUserAgent(const char* agent)
+{
+	USER_AGENT = agent;
+}
 
 bool CreateSubfolder(char* cpath)
 {
@@ -140,6 +148,9 @@ void setPlatformCurlFlags(CURL* c)
 	curl_easy_setopt(c, CURLOPT_CAINFO, RAMFS "res/cacert.pem");
 
 	curl_easy_setopt(curl, CURLOPT_SOCKOPTFUNCTION, sockopt_callback);
+
+	// set the user agent
+	curl_easy_setopt(c, CURLOPT_USERAGENT, USER_AGENT);
 }
 #endif
 

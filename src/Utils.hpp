@@ -46,6 +46,7 @@ int my_mkdir(const char* path, int perms = 0700);
 // if set, will be invoked during the download
 extern int (*networking_callback)(void*, double, double, double, double);
 extern int (*libget_status_callback)(int, int, int);
+void setUserAgent(const char* data);
 
 // helper methods
 const char* plural(int amount);

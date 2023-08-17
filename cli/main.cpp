@@ -14,6 +14,8 @@ int main(int argc, char** args)
 {
 	init_networking();
 
+	setUserAgent("get-cli/" APP_VERSION);
+
 	// create main Get object
 	Get* get = new Get("./.get/", "https://switch.apps.fortheusers.org");
 
