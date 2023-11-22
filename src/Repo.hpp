@@ -14,28 +14,37 @@ class Repo
 {
 public:
 	Repo();
-    Repo(const char* name, const char* url, bool enabled);
+	Repo(std::string_view name, std::string_view url, bool enabled);
+	virtual ~Repo() = default;
 
-	virtual void loadPackages(Get* get, std::vector<Package*>* package) = 0;
-	virtual std::string getType() = 0;
-	virtual std::string getZipUrl(Package* package) = 0;
-	virtual std::string getIconUrl(Package* package) = 0;
+	[[nodiscard]] virtual std::string getType() const = 0;
+	[[nodiscard]] virtual std::string getZipUrl(const Package& package) const = 0;
+	[[nodiscard]] virtual std::string getIconUrl(const Package& package) const = 0;
 
-	std::string toJson();
-	std::string toString();
-	
-	std::string getName();
-	std::string getUrl();
-	bool isEnabled();
-	bool isLoaded(); // whether this server could be reached or not
+	[[nodiscard]] std::string toJson() const;
+	[[nodiscard]] std::string toString() const;
+
+	[[nodiscard]] std::string getName() const;
+	[[nodiscard]] std::string getUrl() const;
+	[[nodiscard]] bool isEnabled() const;
+	[[nodiscard]] bool isLoaded() const; // whether this server could be reached or not
+
+protected:
 	void setEnabled(bool enabled);
 
 	std::string name;
-    std::string url;
-    bool enabled;
-    bool loaded = true;
+	std::string url;
+	bool enabled {};
+	bool loaded = true;
+
+	static std::string generateRepoJson(const Repo& repo);
+
+	static std::unique_ptr<Repo> createRepo(std::string_view name, std::string_view url, bool enabled, std::string_view type, std::string_view package_path);
+
+private:
+	virtual std::vector<std::unique_ptr<Package>> loadPackages() = 0;
+
+	friend Get;
 };
 
-std::string generateRepoJson(int count, ...);
-Repo* createRepo(std::string name, std::string url, bool enabled, std::string type);
 #endif

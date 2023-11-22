@@ -7,7 +7,7 @@ class UpgradePackages : public Test {
 	}
 	bool execute()
 	{
-		get->toggleRepo(get->repos[1]);
+		get->toggleRepo(*get->getRepos()[1]);
 
 		if (count(get, INSTALLED) != 2 || count(get, GET) != 1)
 		{
@@ -24,7 +24,7 @@ class UpgradePackages : public Test {
 			return false;
 		}
 
-		get->toggleRepo(get->repos[3]);
+		get->toggleRepo(*get->getRepos()[3]);
 
 		// this new repo has a collision for the "one" package, with a newer update available
 

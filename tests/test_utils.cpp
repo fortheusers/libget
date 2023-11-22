@@ -13,26 +13,26 @@
 int count(Get* get, int state)
 {
 	int count = 0;
-	for (int x = 0; x < get->packages.size(); x++)
-		if (get->packages[x]->status == state)
+	for (auto const& package : get->getPackages())
+		if (package->getStatus() == state)
 			count++;
 	return count;
 }
 
 bool install(Get* get, const char* name)
 {
-	for (int x = 0; x < get->packages.size(); x++)
-		if (get->packages[x]->pkg_name == name)
-			return get->install(get->packages[x]);
+	for (auto const& package : get->getPackages())
+		if (package->getPackageName() == name)
+			return get->install(*package);
 
 	return false;
 }
 
 bool remove(Get* get, const char* name)
 {
-	for (int x = 0; x < get->packages.size(); x++)
-		if (get->packages[x]->pkg_name == name)
-			return get->remove(get->packages[x]);
+	for (auto const& package : get->getPackages())
+		if (package->getPackageName() == name)
+			return get->remove(*package);
 
 	return false;
 }

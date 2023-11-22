@@ -8,9 +8,9 @@ class CheckPackages : public Test {
 	bool execute()
     {
         // make sure there are 3 installed packages
-        if (get->packages.size() != 3)
+        if (get->getPackages().size() != 3)
         {
-            error << "There should be 3 packages enabled, found " << get->packages.size() << endl;
+            error << "There should be 3 packages enabled, found " << get->getPackages().size() << endl;
             return false;
         }
 

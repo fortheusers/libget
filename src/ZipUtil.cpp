@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include <vector>
 #include <unistd.h>
 #include <unordered_map>
+#include <vector>
 
 #include "Utils.hpp"
 #include "ZipUtil.hpp"
@@ -196,7 +196,7 @@ int UnZip::ExtractDir(const char* internalDir, const char* externalDir)
 		outputPath.replace(0, strlen(internalDir), externalDir);
 		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
 		{
-			//file
+			// file
 			i++;
 			// info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), outputPath.c_str());
 			Extract(outputPath.c_str(), fileInfo);
@@ -228,8 +228,8 @@ int UnZip::ExtractAll(const char* dirToExtract)
 		fileName += GetFullFileName(fileInfo);
 		if (fileInfo->uncompressed_size != 0 && fileInfo->compression_method != 0)
 		{
-			//file
-			// info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), fileName.c_str());
+			// file
+			//  info("Extracting %s to: %s\n", GetFullFileName(fileInfo).c_str(), fileName.c_str());
 			Extract(fileName.c_str(), fileInfo);
 		}
 		free(fileInfo);
@@ -266,7 +266,6 @@ vector<std::string> UnZip::PathDump()
 	return paths;
 }
 
-
 std::unordered_map<string, unz_file_pos> UnZip::GetPathToFilePosMapping()
 {
 	int i = 0;
@@ -295,11 +294,12 @@ std::unordered_map<string, unz_file_pos> UnZip::GetPathToFilePosMapping()
 
 int UnZip::Extract(const char* path, unz_file_info_s* fileInfo, unz_file_pos* file_pos)
 {
-	//check to make sure filepath or fileInfo isnt null
+	// check to make sure filepath or fileInfo isnt null
 	if (path == NULL)
 		return -1;
-	
-	if (fileInfo == NULL) {
+
+	if (fileInfo == NULL)
+	{
 		if (file_pos == NULL)
 			return -1;
 
