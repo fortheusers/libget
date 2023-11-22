@@ -153,6 +153,7 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 			package->screens = cur["screens"].GetInt();
 
 		package->repoUrl = &this->url;
+		package->parentRepo = this;
 
 		// save the response string to cleanup later
 		package->contents = response_copy;
