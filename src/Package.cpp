@@ -1,4 +1,4 @@
-#include "Package.hpp"
+#include "Repo.hpp"
 #include "Utils.hpp"
 #include "ZipUtil.hpp"
 #include "constants.h"
@@ -63,7 +63,8 @@ bool Package::downloadZip(const char* tmp_path, float* progress)
 
 	// fetch zip file to tmp directory using curl
 	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path);
-	return downloadFileToDisk(*(this->repoUrl) + "/zips/" + this->pkg_name + ".zip", tmp_path + this->pkg_name + ".zip");
+	auto zipUrl = this->parentRepo->getZipUrl(this);
+	return downloadFileToDisk(zipUrl, tmp_path + this->pkg_name + ".zip");
 }
 
 bool Package::install(const char* pkg_path, const char* tmp_path)
@@ -463,7 +464,12 @@ const char* Package::statusString()
 
 std::string Package::getIconUrl()
 {
-	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/icon.png";
+	// ask the parent repo for the icon url TODO: some fallback?
+	if (this->parentRepo == NULL) {
+		printf("--> ERROR: Parent repo not set for package %s\n", this->pkg_name.c_str());
+		return "";
+	}
+	return this->parentRepo->getIconUrl(this);
 }
 
 std::string Package::getBannerUrl()

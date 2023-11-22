@@ -11,26 +11,6 @@
 
 using namespace rapidjson;
 
-GetRepo::GetRepo(const char* name, const char* url, bool enabled)
-{
-	// create a repo from the passed parameters
-	this->name = name;
-	this->url = url;
-	this->enabled = enabled;
-}
-
-std::string GetRepo::toJson()
-{
-	std::stringstream resp;
-	resp << "\t\t{\n\t\t\t\"name\": \"" << this->name << "\",\n\t\t\t\"url\": \"" << this->url << "\",\n\t\t\t\"enabled\": " << (this->enabled ? "true" : "false") << "\n\t\t}\n";
-	return resp.str();
-}
-
-std::string GetRepo::toString()
-{
-	return "[" + this->name + "] <" + this->url + "> - " + ((this->enabled) ? "enabled" : "disabled");
-}
-
 #ifdef WIN32
 // https://stackoverflow.com/a/33542189
 extern "C" char* strptime(const char* s,
@@ -97,7 +77,7 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 	const Value& packages_doc = doc["packages"];
 
 	// for every repo
-  auto total = packages_doc.Size();
+  	auto total = packages_doc.Size();
 	for (int i = 0; i < total; i++)
 	{
 		if (networking_callback != NULL)
@@ -107,14 +87,20 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 
 		// TODO: use arrays and loops for parsing this info, and also check the type first
 
-    auto& cur = packages_doc[i];
+    	auto& cur = packages_doc[i];
 
 		// mostly essential attributes
-		package->pkg_name = cur["name"].GetString();
+		if (cur.HasMember("name")) {
+            package->pkg_name = cur["name"].GetString();
+        } else {
+            printf("Missing name for package on repo, skipping\n");
+            continue;
+        }
 		if (cur.HasMember("title"))
 			package->title = cur["title"].GetString();
 		else
 			package->title = package->pkg_name;
+
 		if (cur.HasMember("author"))
 			package->author = cur["author"].GetString();
 		if (cur.HasMember("description"))
@@ -129,8 +115,10 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 			package->license = cur["license"].GetString();
 		if (cur.HasMember("changelog"))
 			package->changelog = std::regex_replace(cur["changelog"].GetString(), std::regex("\\\\n"), "\n");
-		if (cur.HasMember("url"))
+		if (cur.HasMember("url")) {
 			package->url = cur["url"].GetString();
+			package->sourceUrl = package->url;
+		}
 		if (cur.HasMember("updated"))
 		{
 			package->updated = cur["updated"].GetString();
@@ -173,27 +161,16 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 	}
 }
 
-std::string GetRepo::getName()
-{
-	return this->name;
+std::string GetRepo::getType() {
+    return "get";
 }
 
-std::string GetRepo::getUrl()
-{
-	return this->url;
+std::string GetRepo::getZipUrl(Package* package) {
+    // Get packages are in the /zips folder under the package name
+	return *(package->repoUrl) + "/zips/" + package->pkg_name + ".zip";
 }
 
-bool GetRepo::isEnabled()
-{
-	return this->enabled;
-}
-
-void GetRepo::setEnabled(bool enabled)
-{
-	this->enabled = enabled;
-}
-
-bool GetRepo::isLoaded()
-{
-	return this->loaded;
+std::string GetRepo::getIconUrl(Package* package) {
+    // Get icons are also just in the /packages folder
+	return *(package->repoUrl) + "/packages/" + package->pkg_name + "/icon.png";
 }

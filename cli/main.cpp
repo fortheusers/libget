@@ -17,7 +17,7 @@ int main(int argc, char** args)
 	setUserAgent("get-cli/" APP_VERSION);
 
 	// create main Get object
-	Get* get = new Get("./.get/", "https://switch.apps.fortheusers.org");
+	Get* get = new Get("./.get/", "https://switch.cdn.fortheusers.org");
 
 	vector<Repo*> repos = get->repos;
 	vector<Package*> packages = get->packages;

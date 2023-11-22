@@ -12,20 +12,10 @@
 class GetRepo : public Repo
 {
 public:
-	GetRepo(const char* name, const char* url, bool enabled);
-	std::string toJson();
-	std::string toString();
+	using Repo::Repo;
 	void loadPackages(Get* get, std::vector<Package*>* package);
-
-	std::string getName();
-	std::string getUrl();
-	bool isEnabled();
-	bool isLoaded(); // whether this server could be reached or not
-	void setEnabled(bool enabled);
-
-    std::string name;
-    std::string url;
-    bool enabled;
-    bool loaded = true;
+	std::string getType();
+	std::string getZipUrl(Package* package);
+	std::string getIconUrl(Package* package);
 };
 #endif

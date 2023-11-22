@@ -12,14 +12,6 @@ using namespace std;
 std::string dummyUrl = "";
 std::string dummyContents = "";
 
-std::string LocalRepo::toJson() {
-    return "";
-}
-
-std::string LocalRepo::toString() {
-    return "";
-}
-
 void LocalRepo::loadPackages(Get* get, std::vector<Package*>* packages) {
     // go through each folder in the .get/packages directory, and load their info
     DIR* dir;
@@ -111,26 +103,16 @@ void LocalRepo::loadPackages(Get* get, std::vector<Package*>* packages) {
     }
 }
 
-std::string LocalRepo::getName()
-{
+std::string LocalRepo::getType() {
     return "local";
 }
 
-std::string LocalRepo::getUrl()
-{
-    return "N/A";
+std::string LocalRepo::getZipUrl(Package* package) {
+    // Local packages don't have a zip url
+    return "";
 }
 
-bool LocalRepo::isEnabled()
-{
-    return true;
-}
-
-void LocalRepo::setEnabled(bool enabled) {
-    // cannot disable local repo
-}
-
-bool LocalRepo::isLoaded()
-{
-    return true;
+std::string LocalRepo::getIconUrl(Package* package) {
+    // ditto and/or ibid
+    return "";
 }

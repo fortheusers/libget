@@ -20,6 +20,13 @@
 
 #define APP_SHORTNAME "appstore"
 
+class Repo;
+
+/** 
+ * A package is a single application that can be installed. It contains the URL to the zip file and any instructions to install it (like a GET manifest).
+ * 
+ * The download and install process is handled here, but they will use logic in the parentRepo's class to get the zip URL and installation logic.
+*/
 class Package
 {
 public:
@@ -50,7 +57,11 @@ public:
 
 	std::string license;
 	std::string changelog;
+	
 	std::string url;
+	std::string sourceUrl;
+	std::string iconUrl;
+
 	std::string updated;
 	std::string binary;
 
@@ -65,7 +76,7 @@ public:
 	std::string category;
 
 	// Sorting attributes
-	//	  Repo* parentRepo;
+	Repo* parentRepo;
 	std::string* repoUrl;
 
 	int status; // local, update, installed, get

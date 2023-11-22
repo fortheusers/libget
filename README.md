@@ -1,5 +1,5 @@
 # libget
-[![Build Status](https://travis-ci.org/vgmoose/libget.svg?branch=master)](https://travis-ci.org/vgmoose/libget) [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://opensource.org/licenses/GPL-3.0)
+[![gh actions](https://img.shields.io/github/actions/workflow/status/fortheusers/libget/main.yml?style=flat-square)](https://github.com/fortheusers/libget/actions/workflows/main.yml) [![gitlab ci](https://gitlab.com/4TU/libget/badges/master/pipeline.svg?style=flat-square)](https://gitlab.com/4TU/libget/pipelines) [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 
 get is a mini package manager that is used as the backend to [Homebrew App Store](http://github.com/vgmoose/hb-appstore) to allow more formal package management.
 
@@ -8,10 +8,62 @@ get is a mini package manager that is used as the backend to [Homebrew App Store
 
 For documentation, metadata syntax, and repo setup, see [the wiki](https://github.com/vgmoose/get/wiki).
 
+Versions of the get client 2.0.0 and after can support non-libget repo formats. See the "Example Local Repo JSONs" file below for how to specify other repo types.
+
 ## Usage
-### Setting up repos
+### Loading local repos
 A "repos.json" file should be present on the local machine, in the same directory as the `get` binary. See [repos.json](https://github.com/vgmoose/get/blob/master/.get/repos.json) for what this file should look like. If this file does not exist, depending on the use case (such as on the Wii U) a default repos.json should automatically be generated.
 
+#### Example Local Repo JSONs
+Below are three example repos. The first two are libget repos used by the Switch and WiiU homebrew appstores, and the third is a OSC repo used by the Wii.
+
+<details>
+  <summary>WiiU Homebrew CDN (libget Repo)</summary>
+    
+  ```javascript
+  {
+    "repos": [{
+       "name":"WiiU ForTheUsers Repo",
+       "url":"https://wiiu.cdn.fortheusers.org",
+       "type":"get",
+       "enabled":true
+    }]
+  }
+  ```
+</details>
+
+<details>
+  <summary>Switch Homebrew CDN (libget Repo)</summary>
+    
+  ```javascript
+  {
+    "repos": [{
+       "name":"Switch ForTheUsers Repo",
+       "url":"https://switch.cdn.fortheusers.org",
+       "type":"get",
+       "enabled":true
+    }]
+  }
+  ```
+</details>
+
+<details>
+  <summary>Wii Open Shop Channel (OSC Repo) (WIP)</summary>
+    
+  ```javascript
+  {
+    "repos": [{
+       "name":"Wii OSC Repo",
+       "url":"https://hbb1.oscwii.org",
+       "type":"osc",
+       "enabled":true
+    }]
+  }
+  ```
+</details>
+
+
+### Setting up remote repos (libget repos)
 When `get` runs, it will go through the enabled repos in that config file, and try to make a GET request to `/repo.json`, which should contain (on the remote server) a listing of all of the packages and descriptions. Here is an example of what the remote's repo.json with one package looks like:
 ```
 {

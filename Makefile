@@ -4,7 +4,7 @@ ifneq ($(SOURCES),)
 else
 	# we are in the libget folder already
 	LIBGET := ./src
-	APP_VERSION := $(shell git describe --tags --always --dirty)
+	APP_VERSION := 2.0-$(shell git describe --tags --always --dirty)
 endif
 
 RAPIDJSON   := $(LIBGET)/libs/rapidjson/include

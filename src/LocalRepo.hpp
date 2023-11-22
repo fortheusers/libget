@@ -15,15 +15,11 @@
 class LocalRepo : public Repo
 {
 public:
-	// LocalRepo();
-	std::string toJson();
-	std::string toString();
+	using Repo::Repo;
 	void loadPackages(Get* get, std::vector<Package*>* package);
+	std::string getZipUrl(Package* package);
+	std::string getIconUrl(Package* package);
 
-	std::string getName();
-	std::string getUrl();
-	bool isEnabled();
-	bool isLoaded(); // whether this server could be reached or not
-	void setEnabled(bool enabled);
+	std::string getType();
 };
 #endif
