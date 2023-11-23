@@ -23,19 +23,21 @@ private:
 class UnZip
 {
 public:
-	UnZip(const char* zipPath);
+	explicit UnZip(const char* zipPath);
 	~UnZip();
 	void Close();
-	int Extract(const char* path, unz_file_info_s* fileInfo, unz_file_pos* file_pos = NULL);
-	int ExtractFile(const char* internalPath, const char* path);
-	int ExtractAll(const char* dirToExtract);
-	int ExtractDir(const char* internalDir, const char* externalDir);
+
+	int Extract(const std::string& path, unz_file_pos& file_pos);
+	int Extract(const std::string& path, const unz_file_info_s& fileInfo);
+	int ExtractFile(const std::string& internalPath, const std::string& path);
+	int ExtractAll(const std::string& dirToExtract);
+	int ExtractDir(const std::string& internalDir, const std::string& externalDir);
 	std::vector<std::string> PathDump();
 	std::unordered_map<std::string, unz_file_pos> GetPathToFilePosMapping();
 
 private:
-	std::string GetFileName(unz_file_info_s* fileInfo);
-	std::string GetFullFileName(unz_file_info_s* fileInfo);
-	unz_file_info_s* GetFileInfo();
+	std::string GetFileName(const unz_file_info_s& fileInfo);
+	std::string GetFullFileName(const unz_file_info_s& fileInfo);
+	unz_file_info_s GetFileInfo();
 	unzFile fileToUnzip;
 };

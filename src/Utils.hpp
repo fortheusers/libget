@@ -28,7 +28,7 @@ typedef struct
 
 // folder stuff
 bool mkpath(const std::string& path);
-bool CreateSubfolder(char* cstringpath);
+bool CreateSubfolder(std::string_view path);
 
 // networking stuff
 int init_networking();

@@ -174,18 +174,18 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 			case MEXTRACT:
 				//! Simply Extract, with no checks or anything, won't be deleted upon removal
 				info("%s : EXTRACT\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
+				resp = HomebrewZip->Extract(ePathCStr, filePos);
 				break;
 			case MUPDATE:
 				info("%s : UPDATE\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
+				resp = HomebrewZip->Extract(ePathCStr, filePos);
 				break;
 			case MGET:
 			{
 				info("%s : GET\n", pathCStr);
 				struct stat sbuff = {};
 				if (stat(ePathCStr, &sbuff) != 0) //! File doesn't exist, extract
-					resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
+					resp = HomebrewZip->Extract(ePathCStr, filePos);
 				else
 					info("File already exists, skipping...");
 				break;

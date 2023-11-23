@@ -96,10 +96,9 @@ void setUserAgent(const char* agent)
 	USER_AGENT = agent;
 }
 
-bool CreateSubfolder(char* cpath)
+bool CreateSubfolder(std::string_view path)
 {
-	std::string path(cpath);
-	return mkpath(path);
+	return mkpath(path.data());
 }
 
 // wrapper for unix mkdir
