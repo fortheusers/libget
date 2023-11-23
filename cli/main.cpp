@@ -18,10 +18,10 @@ int main(int argc, char** args)
 	setUserAgent("get-cli/" APP_VERSION);
 
 	// create main Get object
-	auto get = std::make_unique<Get>("./.get/", "https://switch.cdn.fortheusers.org");
+	Get get("./.get/", "https://switch.cdn.fortheusers.org");
 
-	auto repos = get->getRepos();
-	auto packages = get->getPackages();
+	auto repos = get.getRepos();
+	auto packages = get.getPackages();
 
 	bool removeMode = false;
 
@@ -49,7 +49,7 @@ int main(int argc, char** args)
 
 			printf("--> Searching for \"%s\" in all repos...\n", query.c_str());
 
-			auto results = get->search(query);
+			auto results = get.search(query);
 
 			for (int y = 0; y < results.size(); y++)
 				printf("\t%s %s\n", results[y].statusString(), results[y].toString().c_str());
@@ -93,9 +93,9 @@ int main(int argc, char** args)
 		}
 		else if (cur == "-o" || cur == "--offline") {
 			// add the local repo to list locally installed packages
-			get->addLocalRepo();
-			repos = get->getRepos();
-			packages = get->getPackages();
+			get.addLocalRepo();
+			repos = get.getRepos();
+			packages = get.getPackages();
 		}
 		else // assume argument is a package
 		{
@@ -112,11 +112,11 @@ int main(int argc, char** args)
 					if (removeMode)
 					{
 						// remove flag was specified, delete this package
-						get->remove(*cur_package);
+						get.remove(*cur_package);
 						break;
 					}
 
-					get->install(*cur_package);
+					get.install(*cur_package);
 					break;
 				}
 			}

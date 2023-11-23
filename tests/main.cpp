@@ -33,7 +33,7 @@ int main()
 	init_networking();
 
 	// create a Get object
-	auto get = std::make_unique<Get>("./tests/.get/", URL "a");
+	Get get("./tests/.get/", URL "a");
 
 	// all the tests are "system" tests, even though this
 	// main test suite is linked against the libget library (and so
@@ -58,7 +58,7 @@ int main()
 
 	for (auto& test : tests)
 	{
-		test->get = get.get();
+		test->get = &get;
 		count += 1;
 
 		cout << "---------------------------" << endl;
