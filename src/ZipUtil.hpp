@@ -10,20 +10,20 @@
 class Zip
 {
 public:
-	Zip(const char* zipPath);
+	explicit Zip(const std::string& zipPath);
 	void Close();
 	~Zip();
-	int AddFile(const char* internalPath, const char* path);
-	int AddDir(const char* internalDir, const char* externalDir);
+	int AddFile(const std::string& internalPath, const std::string& path);
+	int AddDir(const std::string& internalDir, const std::string& externalDir);
 
 private:
-	int Add(const char* path);
+	int Add(const std::string& path);
 	zipFile fileToZip;
 };
 class UnZip
 {
 public:
-	explicit UnZip(const char* zipPath);
+	explicit UnZip(const std::string& zipPath);
 	~UnZip();
 	void Close();
 

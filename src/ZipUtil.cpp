@@ -28,10 +28,10 @@
 
 // void info(const char* format, ...);
 
-Zip::Zip(const char* zipPath)
+Zip::Zip(const std::string& zipPath)
 {
-	fileToZip = zipOpen(zipPath, APPEND_STATUS_CREATE);
-	if (fileToZip == NULL) printf("--> Error Opening: %s for zipping files!\n", zipPath);
+	fileToZip = zipOpen(zipPath.c_str(), APPEND_STATUS_CREATE);
+	if (fileToZip == nullptr) printf("--> Error Opening: %s for zipping files!\n", zipPath.c_str());
 }
 
 Zip::~Zip()
@@ -39,27 +39,25 @@ Zip::~Zip()
 	Close();
 }
 
-int Zip::AddFile(const char* internalPath, const char* path)
+int Zip::AddFile(const std::string& internalPath, const std::string& path)
 {
-	zipOpenNewFileInZip(fileToZip, internalPath, NULL, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
+	zipOpenNewFileInZip(fileToZip, internalPath.c_str(), nullptr, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
 	// info("Adding %s to zip, under path %s\n", path, internalPath);
 	int code = Add(path);
 	zipCloseFileInZip(fileToZip);
 	return code;
 }
 
-int Zip::AddDir(const char* internalDir, const char* externalDir)
+int Zip::AddDir(const std::string& internalDir, const std::string& externalDir)
 {
-	struct dirent* dirent = NULL;
-	DIR* dir = NULL;
-
-	dir = opendir(externalDir);
-	if (dir == NULL)
+	DIR* dir = opendir(externalDir.c_str());
+	if (dir == nullptr)
 	{
 		return -1;
 	}
 
-	while ((dirent = readdir(dir)) != 0)
+	struct dirent* dirent;
+	while ((dirent = readdir(dir)) != nullptr)
 	{
 		if (strcmp(dirent->d_name, "..") == 0 || strcmp(dirent->d_name, ".") == 0)
 			continue;
@@ -73,21 +71,20 @@ int Zip::AddDir(const char* internalDir, const char* externalDir)
 
 		if (is_dir(externalDir, dirent))
 		{
-			AddDir(zipPath.c_str(), realPath.c_str());
+			AddDir(zipPath, realPath);
 		}
 		else
 		{
-			AddFile(zipPath.c_str(), realPath.c_str());
+			AddFile(zipPath, realPath);
 		}
 	}
 	closedir(dir);
 	return 0;
 }
 
-int Zip::Add(const char* path)
+int Zip::Add(const std::string& path)
 {
-
-	int fileNumber = open(path, O_RDONLY);
+	int fileNumber = open(path.c_str(), O_RDONLY);
 	if (fileNumber == -1)
 		return -1;
 
@@ -95,15 +92,15 @@ int Zip::Add(const char* path)
 	lseek(fileNumber, 0, SEEK_SET);
 
 	u32 blocksize = 0x80000;
-	u8* buffer = (u8*)malloc(blocksize);
-	if (buffer == NULL)
+	u8* buffer = (u8*)memalign(0x40, blocksize);
+	if (buffer == nullptr)
 	{
 		close(fileNumber);
 		return -2;
 	}
 
 	u32 done = 0;
-	int readBytes = 0;
+	int readBytes;
 
 	while (done < filesize)
 	{
@@ -132,9 +129,9 @@ void Zip::Close()
 	zipClose(fileToZip, nullptr);
 }
 
-UnZip::UnZip(const char* zipPath)
+UnZip::UnZip(const std::string& zipPath)
 {
-	fileToUnzip = unzOpen(zipPath);
+	fileToUnzip = unzOpen(zipPath.c_str());
 }
 
 UnZip::~UnZip()
@@ -310,7 +307,6 @@ int UnZip::Extract(const std::string& path, unz_file_pos& file_pos)
 
 int UnZip::Extract(const std::string& path, const unz_file_info_s& fileInfo)
 {
-
 	if (unzOpenCurrentFile(fileToUnzip) != UNZ_OK)
 	{
 		return -2;
@@ -324,13 +320,12 @@ int UnZip::Extract(const std::string& path, const unz_file_info_s& fileInfo)
 
 	u32 blocksize = 0x80000;
 	u8* buffer = (u8*)aligned_alloc(0x20000, blocksize);
-	if (buffer == NULL)
+	if (buffer == nullptr)
+	{
+		unzCloseCurrentFile(fileToUnzip);
 		return -3;
-	u32 done = 0;
-	int writeBytes = 0;
-
+	}
 	int fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
-
 	if (fd == -1)
 	{
 		unzCloseCurrentFile(fileToUnzip);
@@ -338,6 +333,8 @@ int UnZip::Extract(const std::string& path, const unz_file_info_s& fileInfo)
 		return -4;
 	}
 
+	u32 done = 0;
+	int writeBytes;
 	while (done < fileInfo.uncompressed_size)
 	{
 		if (done + blocksize > fileInfo.uncompressed_size)
@@ -356,10 +353,10 @@ int UnZip::Extract(const std::string& path, const unz_file_info_s& fileInfo)
 	fsync(fd);
 	close(fd);
 	cross_free(buffer);
+	unzCloseCurrentFile(fileToUnzip);
 
 	if (done != fileInfo.uncompressed_size)
 	{
-		unzCloseCurrentFile(fileToUnzip);
 		return -4;
 	}
 
@@ -381,13 +378,13 @@ std::string UnZip::GetFullFileName(const unz_file_info_s& fileInfo)
 {
 	std::string path;
 	path.resize(fileInfo.size_filename);
-	unzGetCurrentFileInfo(fileToUnzip, (unz_file_info_s*)&fileInfo, path.data(), path.size(), NULL, 0, NULL, 0);
+	unzGetCurrentFileInfo(fileToUnzip, (unz_file_info_s*)&fileInfo, path.data(), path.size(), nullptr, 0, nullptr, 0);
 	return path;
 }
 
 unz_file_info_s UnZip::GetFileInfo()
 {
 	unz_file_info_s fileInfo = {};
-	unzGetCurrentFileInfo(fileToUnzip, &fileInfo, NULL, 0, NULL, 0, NULL, 0);
+	unzGetCurrentFileInfo(fileToUnzip, &fileInfo, nullptr, 0, nullptr, 0, nullptr, 0);
 	return fileInfo;
 }
