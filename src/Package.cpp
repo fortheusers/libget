@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <unordered_set>
@@ -43,7 +42,6 @@ Package::Package(int state)
 
 	this->status = state;
 	this->screens = 0;
-	this->manifest = NULL;
 }
 
 Package::~Package() = default;
@@ -53,14 +51,14 @@ std::string Package::toString() const
 	return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
 }
 
-bool Package::downloadZip(std::string_view tmp_path, float* progress) const
+bool Package::downloadZip(std::string_view tmp_path, float*) const
 {
 	if (libget_status_callback != nullptr)
 		libget_status_callback(STATUS_DOWNLOADING, 1, 1);
 
 	// fetch zip file to tmp directory using curl
 	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path.data());
-	auto zipUrl = this->parentRepo->getZipUrl(*this);
+	auto zipUrl = this->mRepo->getZipUrl(*this);
 	return downloadFileToDisk(zipUrl, std::string(tmp_path) + this->pkg_name + ".zip");
 }
 
@@ -87,10 +85,10 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 	Manifest existingManifest(ManifestPath, ROOT_PATH);
 
 	std::unordered_set<std::string> existing_package_paths;
-	if (existingManifest.valid)
+	if (existingManifest.isValid() && manifest.isValid())
 	{
 		// go through its paths, add them our existing set
-		for (const auto& entry : manifest->entries)
+		for (const auto& entry : manifest.getEntries())
 		{
 			ManifestOp op = entry.operation;
 			if (op == MUPDATE || op == MEXTRACT)
@@ -101,27 +99,27 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 	}
 
 	//! Open the Zip file
-	auto HomebrewZip = std::make_unique<UnZip>((tmp_path + this->pkg_name + ".zip").c_str());
+	UnZip HomebrewZip(tmp_path + this->pkg_name + ".zip");
 
 	//! First extract the Manifest
-	HomebrewZip->ExtractFile(ManifestPathInternal.c_str(), ManifestPath.c_str());
+	HomebrewZip.ExtractFile(ManifestPathInternal, ManifestPath);
 
 	//! Then extract the info.json file (to know what version we have installed and stuff)
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
-	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
+	HomebrewZip.ExtractFile(jsonPathInternal, jsonPath);
 
-	this->manifest = std::make_unique<Manifest>(ManifestPath, ROOT_PATH);
+	this->manifest = Manifest(ManifestPath, ROOT_PATH);
 
-	if (!manifest->valid && manifest->fakeManifestPossible)
+	if (!manifest.isValid() && manifest.isFakeManifestPossible())
 	{
 #ifndef NETWORK_MOCK
 		printf("--> Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
-		this->manifest = std::make_unique<Manifest>(HomebrewZip->PathDump(), ROOT_PATH);
+		this->manifest = Manifest(HomebrewZip.PathDump(), ROOT_PATH);
 		std::ofstream pseudomanifest(ManifestPath);
-		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)
+		for (const auto& entry : manifest.getEntries())
 		{
-			pseudomanifest << manifest->entries[i].raw << std::endl;
+			pseudomanifest << entry.raw << std::endl;
 		}
 		pseudomanifest.close();
 #endif
@@ -129,19 +127,20 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 
 	std::unordered_set<std::string> incoming_package_paths;
 
-	if (manifest->valid)
+	if (manifest.isValid())
 	{
 		// get all file info from within the zip, for every path
-		auto infoMap = HomebrewZip->GetPathToFilePosMapping();
+		auto infoMap = HomebrewZip.GetPathToFilePosMapping();
 
 		if (libget_status_callback != nullptr)
 			libget_status_callback(STATUS_INSTALLING, 1, 1);
 
 		int i = 0;
-		for (const auto& entry : manifest->entries)
+		const auto& entries = manifest.getEntries();
+		for (const auto& entry : entries)
 		{
 			if (networking_callback != nullptr)
-				networking_callback(nullptr, manifest->entries.size(), i + 1, 0, 0);
+				networking_callback(nullptr, entries.size(), i + 1, 0, 0);
 
 			i++;
 
@@ -157,7 +156,7 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 			auto mapResult = infoMap.find(Path);
 			if (mapResult == infoMap.end())
 			{
-				// auto onlyZipPaths = HomebrewZip->PathDump();
+				// auto onlyZipPaths = HomebrewZip.PathDump();
 				// for (auto zipPath : onlyZipPaths)
 				// {
 				// 	printf("zip path: %s\n", zipPath.c_str());
@@ -174,18 +173,18 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 			case MEXTRACT:
 				//! Simply Extract, with no checks or anything, won't be deleted upon removal
 				info("%s : EXTRACT\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, filePos);
+				resp = HomebrewZip.Extract(ePathCStr, filePos);
 				break;
 			case MUPDATE:
 				info("%s : UPDATE\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, filePos);
+				resp = HomebrewZip.Extract(ePathCStr, filePos);
 				break;
 			case MGET:
 			{
 				info("%s : GET\n", pathCStr);
 				struct stat sbuff = {};
 				if (stat(ePathCStr, &sbuff) != 0) //! File doesn't exist, extract
-					resp = HomebrewZip->Extract(ePathCStr, filePos);
+					resp = HomebrewZip.Extract(ePathCStr, filePos);
 				else
 					info("File already exists, skipping...");
 				break;
@@ -218,9 +217,9 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 	{
 		//! Extract the whole zip
 		//		printf("No manifest found: extracting the Zip\n");
-		//		HomebrewZip->ExtractAll("sdroot/");
+		//		HomebrewZip.ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		if (!manifest->fakeManifestPossible)
+		if (!manifest.isFakeManifestPossible())
 		{
 			printf("--> Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 			return false;
@@ -247,14 +246,18 @@ bool Package::remove(std::string_view pkg_path)
 
 	//! Parse the manifest
 	info("Parsing the Manifest\n");
-	if (!manifest) this->manifest = std::make_unique<Manifest>(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
-	if (this->manifest->valid)
+	if (!manifest.isValid())
+	{
+		this->manifest = Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
+	}
+	if (this->manifest.isValid())
 	{
 		int i = 0;
-		for (const auto& entry : manifest->entries)
+		const auto& entries = manifest.getEntries();
+		for (const auto& entry : entries)
 		{
-			if (networking_callback != NULL)
-				networking_callback(0, manifest->entries.size(), i + 1, 0, 0);
+			if (networking_callback != nullptr)
+				networking_callback(nullptr, entries.size(), i + 1, 0, 0);
 			i++;
 			const std::string& DeletePath = entry.path;
 
@@ -344,15 +347,13 @@ void Package::updateStatus(const std::string& pkg_path)
 	std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 
-	struct stat sbuff
-	{
-	};
+	struct stat sbuff = {};
 	if (stat(ManifestPath.c_str(), &sbuff) == 0)
 	{
 		// manifest exists, we are at least installed
 		this->status = INSTALLED;
 
-		this->manifest = std::make_unique<Manifest>(ManifestPath, ROOT_PATH);
+		this->manifest = Manifest(ManifestPath, ROOT_PATH);
 	}
 
 	// check for info.json, parse version out of it
@@ -472,25 +473,25 @@ const char* Package::statusString() const
 std::string Package::getIconUrl() const
 {
 	// ask the parent repo for the icon url TODO: some fallback?
-	if (this->parentRepo == nullptr)
+	if (this->mRepo == nullptr)
 	{
 		printf("--> ERROR: Parent repo not set for package %s\n", this->pkg_name.c_str());
 		return "";
 	}
-	return this->parentRepo->getIconUrl(*this);
+	return this->mRepo->getIconUrl(*this);
 }
 
 std::string Package::getBannerUrl() const
 {
-	return mRepoUrl + "/packages/" + this->pkg_name + "/screen.png";
+	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/screen.png";
 }
 
 std::string Package::getScreenShotUrl(int count) const
 {
-	return mRepoUrl + "/packages/" + this->pkg_name + "/screen" + std::to_string(count) + ".png";
+	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/screen" + std::to_string(count) + ".png";
 }
 
 std::string Package::getManifestUrl() const
 {
-	return mRepoUrl + "/packages/" + this->pkg_name + "/manifest.install";
+	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/manifest.install";
 }

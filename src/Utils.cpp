@@ -102,12 +102,12 @@ bool CreateSubfolder(std::string_view path)
 }
 
 // wrapper for unix mkdir
-int my_mkdir(const char* path, int perms)
+int my_mkdir(const std::string& path, int perms)
 {
 #if defined(WIN32)
-	return mkdir(path);
+	return mkdir(path.c_str());
 #else
-	return mkdir(path, perms);
+	return mkdir(path.c_str(), perms);
 #endif
 }
 
@@ -115,7 +115,7 @@ int my_mkdir(const char* path, int perms)
 bool mkpath(const std::string& path)
 {
 	bool bSuccess = false;
-	int nRC = my_mkdir(path.c_str(), 0775);
+	int nRC = my_mkdir(path, 0775);
 	if (nRC == -1)
 	{
 		switch (errno)
@@ -124,7 +124,7 @@ bool mkpath(const std::string& path)
 			// parent didn't exist, try to create it
 			if (mkpath(path.substr(0, path.find_last_of('/'))))
 				// Now, try to create again.
-				bSuccess = 0 == my_mkdir(path.c_str(), 0775);
+				bSuccess = 0 == my_mkdir(path, 0775);
 			else
 				bSuccess = false;
 			break;
@@ -184,6 +184,11 @@ bool downloadFileCommon(const std::string& path, std::string* buffer = nullptr, 
 {
 #ifndef NETWORK_MOCK
 	CURLcode res;
+
+	if (!buffer && !data_struct)
+	{
+		return false;
+	}
 
 	if (!curl)
 		return false;

@@ -171,9 +171,6 @@ std::vector<std::unique_ptr<Package>> OSCRepo::loadPackages()
 
 		// printf("The category is %s\n", package->category.c_str());
 
-		package->mRepoUrl = this->url;
-		package->parentRepo = this;
-
 		result.push_back(std::move(package));
 	}
 	return result;

@@ -29,107 +29,32 @@ struct ManifestState
 class Manifest
 {
 public:
+	Manifest() = default;
+	Manifest(const std::vector<std::string>& paths, std::string_view root_path);
+
+	Manifest(std::string_view ManifestPath, std::string_view root_path);
+
+	[[maybe_unused]] std::vector<ManifestState> regexMatchPath(std::string_view expression);
+
+	[[nodiscard]] bool isValid() const
+	{
+		return valid;
+	}
+
+	[[nodiscard]] bool isFakeManifestPossible() const
+	{
+		return fakeManifestPossible;
+	}
+
+	[[nodiscard]] const std::vector<ManifestState>& getEntries() const
+	{
+		return entries;
+	}
+
+private:
 	std::vector<ManifestState> entries;
-	bool valid = true;
-	bool fakeManifestPossible = true;
-	Manifest(const std::vector<std::string>& paths, std::string_view root_path)
-	{
-		for (const auto& path : paths)
-		{
-			std::string ExtractPath = std::string(root_path) + path;
-			ManifestState CurrentPath;
-			CurrentPath.path = ExtractPath;
-			CurrentPath.raw = "U: " + path;
-			CurrentPath.zip_path = path;
-			CurrentPath.operation = MUPDATE;
-			std::string::size_type idx = path.rfind('.');
-			if (idx != std::string::npos)
-			{
-				CurrentPath.extension = path.substr(idx + 1);
-			}
-			entries.push_back(CurrentPath);
-		}
-	}
-
-	Manifest(std::string_view ManifestPath, std::string_view root_path)
-	{
-		struct stat buf
-		{
-		};
-		if (stat(ManifestPath.data(), &buf) == 0)
-		{
-			std::ifstream ManifestFile;
-			ManifestFile.open(ManifestPath.data());
-			if (ManifestFile.good())
-			{
-				std::string CurrentLine;
-
-				while (std::getline(ManifestFile, CurrentLine))
-				{
-					char ModeChar = CurrentLine.at(0);
-					enum ManifestOp mode;
-
-					switch (ModeChar)
-					{
-					case 'E': // EXT
-						mode = MEXTRACT;
-						break;
-					case 'U': // UPD
-						mode = MUPDATE;
-						break;
-					case 'G': // GET
-						mode = MGET;
-						break;
-					case 'L': // LOC
-						mode = MLOCAL;
-						break;
-					default:
-						info("%s : Ignored in manifest\n", CurrentLine.c_str());
-						mode = NOP;
-						break;
-					}
-					ManifestState CurrentLState;
-					if (mode != NOP)
-					{
-						std::string Path = CurrentLine.substr(3);
-						std::string ExtractPath = std::string(root_path) + Path;
-
-						CurrentLState.operation = mode;
-						CurrentLState.path = ExtractPath;
-						CurrentLState.raw = CurrentLine;
-						CurrentLState.zip_path = Path;
-						std::string::size_type idx = Path.rfind('.');
-						if (idx != std::string::npos)
-							CurrentLState.extension = Path.substr(idx + 1);
-						entries.push_back(CurrentLState);
-					}
-				}
-			}
-			else
-			{
-				this->valid = false;
-				this->fakeManifestPossible = false;
-			}
-			ManifestFile.close();
-		}
-		else
-		{
-			this->valid = false;
-		}
-	}
-
-	std::vector<ManifestState> regexMatchPath(std::string_view expression)
-	{
-		std::vector<ManifestState> vec;
-		for (auto& entry : entries)
-		{
-			if (std::regex_match(entry.path, std::regex(expression.data())))
-			{
-				vec.push_back(entry);
-			}
-		}
-		return vec;
-	}
+	bool valid = false;
+	bool fakeManifestPossible = false;
 
 	// ManifestState regexMatchPathFirst(std::string expression)
 	// {

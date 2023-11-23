@@ -190,6 +190,7 @@ void Get::update()
 
 			for (auto& element : repo->loadPackages())
 			{
+				element->mRepo = repo;
 				packages.push_back(std::move(element));
 			}
 		}

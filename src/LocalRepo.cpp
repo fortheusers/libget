@@ -95,7 +95,6 @@ std::vector<std::unique_ptr<Package>> LocalRepo::loadPackages()
 					}
 				}
 
-				pkg->mRepoUrl = "";
 				pkg->status = LOCAL;
 
 				// // TODO: load some other info from the json

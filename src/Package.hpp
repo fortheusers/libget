@@ -3,6 +3,7 @@
 #include "Manifest.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
+#include <optional>
 #include <string>
 #if defined(SWITCH) || defined(WII)
 #define ROOT_PATH "/"
@@ -20,6 +21,7 @@
 
 #define APP_SHORTNAME "appstore"
 
+class Get;
 class Repo;
 class GetRepo;
 class LocalRepo;
@@ -36,35 +38,7 @@ public:
 	explicit Package(int state);
 	~Package();
 
-	// Copy constructor
-	Package(const Package& other)
-		: pkg_name(other.pkg_name)
-		, title(other.title)
-		, author(other.author)
-		, short_desc(other.short_desc)
-		, long_desc(other.long_desc)
-		, version(other.version)
-		, license(other.license)
-		, changelog(other.changelog)
-		, url(other.url)
-		, sourceUrl(other.sourceUrl)
-		, iconUrl(other.iconUrl)
-		, updated(other.updated)
-		, binary(other.binary)
-		, manifest(other.manifest ? std::make_unique<Manifest>(*other.manifest) : nullptr)
-		, updated_timestamp(other.updated_timestamp)
-		, downloads(other.downloads)
-		, extracted_size(other.extracted_size)
-		, download_size(other.download_size)
-		, screens(other.screens)
-		, category(other.category)
-		, parentRepo(other.parentRepo)
-		, mRepoUrl(other.mRepoUrl)
-		, status(other.status)
-		, permissions(other.permissions)
-	{
-		// If you have other member variables, make sure to copy them as well
-	}
+	Package(const Package& other) = default;
 
 	[[nodiscard]] std::string toString() const;
 	bool downloadZip(std::string_view tmp_path, float* progress = nullptr) const;
@@ -120,11 +94,6 @@ public:
 		return changelog;
 	}
 
-	[[nodiscard]] const std::string& getRepoURL() const
-	{
-		return mRepoUrl;
-	}
-
 	[[nodiscard]] int getStatus() const
 	{
 		return status;
@@ -149,7 +118,7 @@ private:
 	std::string updated;
 	std::string binary;
 
-	std::unique_ptr<Manifest> manifest = nullptr;
+	Manifest manifest;
 	int updated_timestamp = 0;
 
 	int downloads = 0;
@@ -160,15 +129,15 @@ private:
 	std::string category;
 
 	// Sorting attributes
-	Repo* parentRepo;
-	std::string mRepoUrl;
+	std::shared_ptr<Repo> mRepo;
 
 	int status; // local, update, installed, get
 
 	// bitmask for permissions, from left to right:
 	// unused, iosu, kernel, nand, usb, sd, wifi, sound
-	char permissions;
+	char permissions{};
 
+	friend Get;
 	friend Repo;
 	friend GetRepo;
 	friend LocalRepo;

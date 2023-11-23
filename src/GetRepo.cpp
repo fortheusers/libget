@@ -155,9 +155,6 @@ std::vector<std::unique_ptr<Package>> GetRepo::loadPackages()
 		if (cur.HasMember("screens"))
 			package->screens = cur["screens"].GetInt();
 
-		package->parentRepo = this;
-		package->mRepoUrl = this->url;
-
 		result.push_back(std::move(package));
 	}
 	return result;
@@ -171,11 +168,11 @@ std::string GetRepo::getType() const
 std::string GetRepo::getZipUrl(const Package& package) const
 {
 	// Get packages are in the /zips folder under the package name
-	return package.getRepoURL() + "/zips/" + package.getPackageName() + ".zip";
+	return this->url + "/zips/" + package.getPackageName() + ".zip";
 }
 
 std::string GetRepo::getIconUrl(const Package& package) const
 {
 	// Get icons are also just in the /packages folder
-	return package.getRepoURL() + "/packages/" + package.getPackageName() + "/icon.png";
+	return this->url + "/packages/" + package.getPackageName() + "/icon.png";
 }

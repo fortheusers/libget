@@ -41,7 +41,7 @@ void setPlatformCurlFlags(CURL* c);
 #endif
 
 // for cross platform dir creation
-int my_mkdir(const char* path, int perms = 0700);
+int my_mkdir(const std::string& path, int perms = 0700);
 
 // callback for networking progress
 // if set, will be invoked during the download
