@@ -7,8 +7,9 @@ class InstallPackages2 : public Test {
     }
 	bool execute()
     {
+		auto repo = get->getRepos()[1];
         // enable the second repo
-        get->toggleRepo(get->repos[1]);
+        get->toggleRepo(*repo);
 
         // make sure that there are 5 total packages
         //    if (packages.size() != 5)

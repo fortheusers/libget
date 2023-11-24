@@ -5,37 +5,39 @@
 #include "zip.h"
 
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 class Zip
 {
 public:
-	Zip(const char* zipPath);
+	explicit Zip(const std::string& zipPath);
 	void Close();
 	~Zip();
-	int AddFile(const char* internalPath, const char* path);
-	int AddDir(const char* internalDir, const char* externalDir);
+	int AddFile(const std::string& internalPath, const std::string& path);
+	int AddDir(const std::string& internalDir, const std::string& externalDir);
 
 private:
-	int Add(const char* path);
+	int Add(const std::string& path);
 	zipFile fileToZip;
 };
 class UnZip
 {
 public:
-	UnZip(const char* zipPath);
+	explicit UnZip(const std::string& zipPath);
 	~UnZip();
 	void Close();
-	int Extract(const char* path, unz_file_info_s* fileInfo, unz_file_pos* file_pos = NULL);
-	int ExtractFile(const char* internalPath, const char* path);
-	int ExtractAll(const char* dirToExtract);
-	int ExtractDir(const char* internalDir, const char* externalDir);
+
+	int Extract(const std::string& path, unz_file_pos& file_pos);
+	int Extract(const std::string& path, const unz_file_info_s& fileInfo);
+	int ExtractFile(const std::string& internalPath, const std::string& path);
+	int ExtractAll(const std::string& dirToExtract);
+	int ExtractDir(const std::string& internalDir, const std::string& externalDir);
 	std::vector<std::string> PathDump();
 	std::unordered_map<std::string, unz_file_pos> GetPathToFilePosMapping();
 
 private:
-	std::string GetFileName(unz_file_info_s* fileInfo);
-	std::string GetFullFileName(unz_file_info_s* fileInfo);
-	unz_file_info_s* GetFileInfo();
+	std::string GetFileName(const unz_file_info_s& fileInfo);
+	std::string GetFullFileName(const unz_file_info_s& fileInfo);
+	unz_file_info_s GetFileInfo();
 	unzFile fileToUnzip;
 };

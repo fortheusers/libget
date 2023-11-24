@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +53,7 @@ static const char* USER_AGENT = "libget-unknown/0.0.0";
 
 // reference to the curl handle so that we can re-use the connection
 #ifndef NETWORK_MOCK
-CURL* curl = NULL;
+CURL* curl = nullptr;
 #endif
 
 #define SOCU_ALIGN 0x1000
@@ -95,26 +96,26 @@ void setUserAgent(const char* agent)
 	USER_AGENT = agent;
 }
 
-bool CreateSubfolder(char* cpath)
+bool CreateSubfolder(std::string_view path)
 {
-	std::string path(cpath);
-	return mkpath(path);
+	return mkpath(path.data());
 }
 
 // wrapper for unix mkdir
-int my_mkdir(const char* path, int perms) {
+int my_mkdir(const std::string& path, int perms)
+{
 #if defined(WIN32)
-	return mkdir(path);
+	return mkdir(path.c_str());
 #else
-	return mkdir(path, perms);
+	return mkdir(path.c_str(), perms);
 #endif
 }
 
 // http://stackoverflow.com/a/11366985
-bool mkpath(std::string path)
+bool mkpath(const std::string& path)
 {
 	bool bSuccess = false;
-	int nRC = my_mkdir(path.c_str(), 0775);
+	int nRC = my_mkdir(path, 0775);
 	if (nRC == -1)
 	{
 		switch (errno)
@@ -123,7 +124,7 @@ bool mkpath(std::string path)
 			// parent didn't exist, try to create it
 			if (mkpath(path.substr(0, path.find_last_of('/'))))
 				// Now, try to create again.
-				bSuccess = 0 == my_mkdir(path.c_str(), 0775);
+				bSuccess = 0 == my_mkdir(path, 0775);
 			else
 				bSuccess = false;
 			break;
@@ -162,7 +163,7 @@ static size_t MemoryWriteCallback(void* contents, size_t size, size_t nmemb, voi
 
 static size_t DiskWriteCallback(void* contents, size_t size, size_t num_files, void* userp)
 {
-	ntwrk_struct_t* data_struct = (ntwrk_struct_t*)userp;
+	auto* data_struct = (ntwrk_struct_t*)userp;
 	size_t realsize = size * num_files;
 
 	if (realsize + data_struct->offset >= data_struct->data_size)
@@ -179,10 +180,15 @@ static size_t DiskWriteCallback(void* contents, size_t size, size_t num_files, v
 
 // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
 // if data_struct is specified, file will go straight to disk as it downloads
-bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_struct_t* data_struct = NULL)
+bool downloadFileCommon(const std::string& path, std::string* buffer = nullptr, ntwrk_struct_t* data_struct = nullptr)
 {
 #ifndef NETWORK_MOCK
 	CURLcode res;
+
+	if (!buffer && !data_struct)
+	{
+		return false;
+	}
 
 	if (!curl)
 		return false;
@@ -193,7 +199,7 @@ bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_stru
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 
-	bool skipDisk = data_struct == NULL;
+	bool skipDisk = data_struct == nullptr;
 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, skipDisk ? MemoryWriteCallback : DiskWriteCallback);
 
@@ -208,38 +214,35 @@ bool downloadFileCommon(std::string path, std::string* buffer = NULL, ntwrk_stru
 #endif
 }
 
-bool downloadFileToMemory(std::string path, std::string* buffer)
+bool downloadFileToMemory(const std::string& path, std::string* buffer)
 {
-	return downloadFileCommon(path, buffer, NULL);
+	return downloadFileCommon(path, buffer, nullptr);
 }
 
-bool downloadFileToDisk(std::string remote_path, std::string local_path)
+bool downloadFileToDisk(const std::string& remote_path, const std::string& local_path)
 {
 	FILE* out_file = fopen(local_path.c_str(), "wb");
 	if (!out_file)
 		return false;
 
-	uint8_t* buf = (uint8_t*)malloc(BUF_SIZE); // 8MB.
-	if (buf == NULL)
+	// automatically close the file if it leaves the scope.
+	auto file = std::unique_ptr<FILE, int (*)(FILE*)>(out_file, &::fclose);
+
+	auto buf = std::make_unique<uint8_t[]>(BUF_SIZE); // 8MB.
+	if (buf == nullptr)
 	{
-		fclose(out_file);
 		return false;
 	}
 
-	ntwrk_struct_t data_struct = { buf, BUF_SIZE, 0, out_file };
+	ntwrk_struct_t data_struct = { buf.get(), BUF_SIZE, 0, out_file };
 
-	if (!downloadFileCommon(remote_path, NULL, &data_struct))
+	if (!downloadFileCommon(remote_path, nullptr, &data_struct))
 	{
-		free(data_struct.data);
-		fclose(data_struct.out);
 		return false;
 	}
 
 	// write remaning data to file before free.
 	fwrite(data_struct.data, data_struct.offset, 1, data_struct.out);
-	free(data_struct.data);
-	fclose(data_struct.out);
-
 	return true;
 }
 
@@ -248,10 +251,10 @@ const char* plural(int amount)
 	return (amount == 1) ? "" : "s";
 }
 
-const std::string dir_name(std::string file_path)
+std::string dir_name(const std::string& file_path)
 {
 	// turns "/hi/man/thing.txt to /hi/man"
-	size_t pos = file_path.find_last_of("/");
+	size_t pos = file_path.find_last_of('/');
 
 	// no "/" in string, return empty string
 	if (pos == std::string::npos)
@@ -319,13 +322,6 @@ void cp(const char* from, const char* to)
 	dst << src.rdbuf();
 }
 
-std::string toLower(const std::string& str)
-{
-	std::string lower;
-	transform(str.begin(), str.end(), std::back_inserter(lower), tolower);
-	return lower;
-}
-
 int remove_empty_dirs(const char* name, int count)
 {
 	// from incoming path, recursively ensure all directories are deleted
@@ -342,8 +338,10 @@ int remove_empty_dirs(const char* name, int count)
 	if (!(dir = opendir(name)))
 		return true;
 
+	auto dirclose_handler = std::unique_ptr<DIR, int (*)(DIR*)>(dir, &::closedir);
+
 	// go through files in directory
-	while ((entry = readdir(dir)) != NULL)
+	while ((entry = readdir(dir)) != nullptr)
 	{
 		if (is_dir(name, entry))
 		{
@@ -372,8 +370,6 @@ int remove_empty_dirs(const char* name, int count)
 		rmdir(name);
 	}
 
-	closedir(dir);
-
 	// return number of files at this level (total count minus starting)
 	return count - starting_count;
 }
@@ -383,7 +379,7 @@ bool libget_reset_data(const char* path)
 	time_t seconds;
 	time(&seconds);
 
-	long int current_time = static_cast<long int>(seconds);
+	auto current_time = static_cast<long int>(seconds);
 
 	// move the contents of the .get folder to .trash/get_backup_date
 	std::stringstream ss;
@@ -394,7 +390,7 @@ bool libget_reset_data(const char* path)
 
 	std::stringstream ss2;
 	ss2 << path << "../.trash";
-	mkpath(ss2.str().c_str());
+	mkpath(ss2.str());
 
 	int res = std::rename(path, ss.str().c_str());
 	if (res == 0)
@@ -405,7 +401,7 @@ bool libget_reset_data(const char* path)
 	return !res;
 }
 
-bool is_dir(const char* path, struct dirent* entry)
+bool is_dir(std::string_view path, struct dirent* entry)
 {
 #ifndef WIN32
 	return entry->d_type & DT_DIR;
@@ -413,8 +409,8 @@ bool is_dir(const char* path, struct dirent* entry)
 	// windows check, using stat
 	struct stat s;
 	// get full path using dir and entry
- 	std::string full_path = std::string(path) + "/" + std::string(entry->d_name);
- 	stat(full_path.c_str(), &s);
+	std::string full_path = std::string(path) + "/" + std::string(entry->d_name);
+	stat(full_path.c_str(), &s);
 	return s.st_mode & S_IFDIR;
 #endif
 }

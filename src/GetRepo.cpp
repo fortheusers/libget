@@ -2,32 +2,31 @@
 #include "Utils.hpp"
 #include "constants.h"
 #include "rapidjson/document.h"
-#include "rapidjson/rapidjson.h"
-#include <time.h>
-#include <iomanip>
 #include <regex>
 #include <sstream>
-#include <stdarg.h> /* va_list, va_start, va_arg, va_end */
 
 using namespace rapidjson;
 
 #ifdef WIN32
 // https://stackoverflow.com/a/33542189
 extern "C" char* strptime(const char* s,
-                          const char* f,
-                          struct tm* tm) {
-  std::istringstream input(s);
-  input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
-  input >> std::get_time(tm, f);
-  if (input.fail()) {
-    return nullptr;
-  }
-  return (char*)(s + input.tellg());
+	const char* f,
+	struct tm* tm)
+{
+	std::istringstream input(s);
+	input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+	input >> std::get_time(tm, f);
+	if (input.fail())
+	{
+		return nullptr;
+	}
+	return (char*)(s + input.tellg());
 }
 #endif
 
-void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
+std::vector<std::unique_ptr<Package>> GetRepo::loadPackages()
 {
+	std::vector<std::unique_ptr<Package>> result;
 	std::string directoryUrl = this->url + "/repo.json";
 
 	// fetch current repository json
@@ -35,7 +34,7 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 	bool success = downloadFileToMemory(directoryUrl, &response);
 
 #ifdef NETWORK_MOCK
-  mockPopulatePackages(&response);
+	mockPopulatePackages(&response);
 #endif
 
 	// attempt fallback to http in case of https repos failure
@@ -55,47 +54,48 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 	{
 		printf("--> Could not update repository metadata for \"%s\" repo!\n", this->name.c_str());
 		this->loaded = false;
-		return;
+		return {};
 	}
 
-	if (libget_status_callback != NULL)
+	if (libget_status_callback != nullptr)
 		libget_status_callback(STATUS_UPDATING_STATUS, 1, 1);
-
-	std::string* response_copy = new std::string(response);
 
 	// extract out packages, append to package list
 	Document doc;
-	ParseResult ok = doc.Parse(response_copy->c_str());
+	ParseResult ok = doc.Parse(response.c_str());
 
 	if (!ok || !doc.IsObject() || !doc.HasMember("packages"))
 	{
 		printf("--> Invalid format in downloaded repo.json for %s\n", this->url.c_str());
 		this->loaded = false;
-		return;
+		return {};
 	}
 
 	const Value& packages_doc = doc["packages"];
 
 	// for every repo
-  	auto total = packages_doc.Size();
-	for (int i = 0; i < total; i++)
+	auto total = packages_doc.Size();
+	for (int i = 0; i < (int)total; i++)
 	{
-		if (networking_callback != NULL)
-			networking_callback(0, total, i+1, 0, 0);
+		if (networking_callback != nullptr)
+			networking_callback(nullptr, total, i + 1, 0, 0);
 
-		Package* package = new Package(GET);
+		auto package = std::make_unique<Package>(GET);
 
 		// TODO: use arrays and loops for parsing this info, and also check the type first
 
-    	auto& cur = packages_doc[i];
+		auto& cur = packages_doc[i];
 
 		// mostly essential attributes
-		if (cur.HasMember("name")) {
-            package->pkg_name = cur["name"].GetString();
-        } else {
-            printf("Missing name for package on repo, skipping\n");
-            continue;
-        }
+		if (cur.HasMember("name"))
+		{
+			package->pkg_name = cur["name"].GetString();
+		}
+		else
+		{
+			printf("Missing name for package on repo, skipping\n");
+			continue;
+		}
 		if (cur.HasMember("title"))
 			package->title = cur["title"].GetString();
 		else
@@ -115,14 +115,17 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 			package->license = cur["license"].GetString();
 		if (cur.HasMember("changelog"))
 			package->changelog = std::regex_replace(cur["changelog"].GetString(), std::regex("\\\\n"), "\n");
-		if (cur.HasMember("url")) {
+		if (cur.HasMember("url"))
+		{
 			package->url = cur["url"].GetString();
 			package->sourceUrl = package->url;
 		}
 		if (cur.HasMember("updated"))
 		{
 			package->updated = cur["updated"].GetString();
-			struct tm tm;
+			struct tm tm
+			{
+			};
 
 #if !defined(_3DS) && !defined(WII)
 			auto res = strptime(package->updated.c_str(), "%d/%m/%Y", &tm);
@@ -152,26 +155,24 @@ void GetRepo::loadPackages(Get* get, std::vector<Package*>* packages)
 		if (cur.HasMember("screens"))
 			package->screens = cur["screens"].GetInt();
 
-		package->repoUrl = &this->url;
-		package->parentRepo = this;
-
-		// save the response string to cleanup later
-		package->contents = response_copy;
-
-		packages->push_back(package);
+		result.push_back(std::move(package));
 	}
+	return result;
 }
 
-std::string GetRepo::getType() {
-    return "get";
+std::string GetRepo::getType() const
+{
+	return "get";
 }
 
-std::string GetRepo::getZipUrl(Package* package) {
-    // Get packages are in the /zips folder under the package name
-	return *(package->repoUrl) + "/zips/" + package->pkg_name + ".zip";
+std::string GetRepo::getZipUrl(const Package& package) const
+{
+	// Get packages are in the /zips folder under the package name
+	return this->url + "/zips/" + package.getPackageName() + ".zip";
 }
 
-std::string GetRepo::getIconUrl(Package* package) {
-    // Get icons are also just in the /packages folder
-	return *(package->repoUrl) + "/packages/" + package->pkg_name + "/icon.png";
+std::string GetRepo::getIconUrl(const Package& package) const
+{
+	// Get icons are also just in the /packages folder
+	return this->url + "/packages/" + package.getPackageName() + "/icon.png";
 }

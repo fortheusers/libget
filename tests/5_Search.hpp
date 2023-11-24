@@ -8,7 +8,7 @@ class Search : public Test {
 	bool execute()
     {
         // try to do a search for a known string
-        vector<Package*> results = get->search("t");
+        auto results = get->search("t");
 
         // must be size two ("two", and "three")
         if (results.size() != 2)

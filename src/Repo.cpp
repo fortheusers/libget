@@ -4,16 +4,14 @@
 #include "OSCRepo.hpp"
 #include "Package.hpp"
 #include <iostream>
-#include <vector>
 #include <sstream>
-#include <stdarg.h> /* va_list, va_start, va_arg, va_end */
 
 Repo::Repo()
 {
 	// default constructor
 }
 
-Repo::Repo(const char* name, const char* url, bool enabled)
+Repo::Repo(std::string_view name, std::string_view url, bool enabled)
 {
 	// create a repo from the passed parameters
 	this->name = name;
@@ -21,38 +19,32 @@ Repo::Repo(const char* name, const char* url, bool enabled)
 	this->enabled = enabled;
 }
 
-std::string generateRepoJson(int count, ...)
+std::string Repo::generateRepoJson(const Repo& repo)
 {
-	va_list ap;
-
 	std::stringstream response;
 	response << "{\n\t\"repos\": [\n";
 
-	va_start(ap, count);
+	response << repo.toJson();
 
-	for (int x = 0; x < count; x++)
-		response << (va_arg(ap, Repo*))->toJson();
-
-	va_end(ap);
 	response << "\t]\n}\n";
 
 	return response.str();
 }
 
-Repo* createRepo(std::string name, std::string url, bool enabled, std::string type)
+std::unique_ptr<Repo> Repo::createRepo(std::string_view name, std::string_view url, bool enabled, std::string_view type, std::string_view package_path)
 {
 	if (type == "get")
-		return new GetRepo(name.c_str(), url.c_str(), enabled);
+		return std::make_unique<GetRepo>(name, url, enabled);
 	else if (type == "local")
-		return new LocalRepo();
+		return std::make_unique<LocalRepo>(std::string(package_path));
 	else if (type == "osc")
-		return new OSCRepo(name.c_str(), url.c_str(), enabled);
+		return std::make_unique<OSCRepo>(name, url, enabled);
 	// TODO: add more supported repo formats here
 
-	return NULL;
+	return nullptr;
 }
 
-std::string Repo::toJson()
+std::string Repo::toJson() const
 {
 	std::stringstream resp;
 	resp << "\t\t{\n";
@@ -64,33 +56,32 @@ std::string Repo::toJson()
 	return resp.str();
 }
 
-std::string Repo::toString()
+std::string Repo::toString() const
 {
 	return "[" + this->getType() + " - " + getName() + "] " + getUrl() + " (" + (isEnabled() ? "enabled" : "disabled") + ")";
 }
 
-
-std::string Repo::getName()
+std::string Repo::getName() const
 {
 	return this->name;
 }
 
-std::string Repo::getUrl()
+std::string Repo::getUrl() const
 {
 	return this->url;
 }
 
-bool Repo::isEnabled()
+bool Repo::isEnabled() const
 {
 	return this->enabled;
 }
 
-void Repo::setEnabled(bool enabled)
+void Repo::setEnabled(bool enabled_)
 {
-	this->enabled = enabled;
+	this->enabled = enabled_;
 }
 
-bool Repo::isLoaded()
+bool Repo::isLoaded() const
 {
 	return this->loaded;
 }

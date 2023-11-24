@@ -3,6 +3,7 @@
 #include "Manifest.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
+#include <optional>
 #include <string>
 #if defined(SWITCH) || defined(WII)
 #define ROOT_PATH "/"
@@ -20,33 +21,85 @@
 
 #define APP_SHORTNAME "appstore"
 
+class Get;
 class Repo;
+class GetRepo;
+class LocalRepo;
+class OSCRepo;
 
-/** 
+/**
  * A package is a single application that can be installed. It contains the URL to the zip file and any instructions to install it (like a GET manifest).
- * 
+ *
  * The download and install process is handled here, but they will use logic in the parentRepo's class to get the zip URL and installation logic.
-*/
+ */
 class Package
 {
 public:
-	Package(int state);
+	explicit Package(int state);
 	~Package();
 
-	std::string toString();
-	bool downloadZip(const char* tmp_path, float* progress = NULL);
-	bool install(const char* pkg_path, const char* tmp_path);
-	bool remove(const char* pkg_path);
-	const char* statusString();
-	void updateStatus(const char* pkg_path);
+	Package(const Package& other) = default;
 
-	std::string getIconUrl();
-	std::string getBannerUrl();
-	std::string getManifestUrl();
-	std::string getScreenShotUrl(int count);
+	[[nodiscard]] std::string toString() const;
+	bool downloadZip(std::string_view tmp_path, float* progress = nullptr) const;
+	bool install(const std::string& pkg_path, const std::string& tmp_path);
+	bool remove(std::string_view pkg_path);
+	[[nodiscard]] const char* statusString() const;
+	void updateStatus(const std::string& pkg_path);
+
+	[[nodiscard]] std::string getIconUrl() const;
+	[[nodiscard]] std::string getBannerUrl() const;
+	[[nodiscard]] std::string getManifestUrl() const;
+	[[nodiscard]] std::string getScreenShotUrl(int count) const;
 
 	int isPreviouslyInstalled();
 
+	[[nodiscard]] const std::string& getPackageName() const
+	{
+		return pkg_name;
+	}
+
+	[[nodiscard]] const std::string& getTitle() const
+	{
+		return title;
+	}
+
+	[[nodiscard]] const std::string& getAuthor() const
+	{
+		return author;
+	}
+
+	[[nodiscard]] const std::string& getShortDescription() const
+	{
+		return short_desc;
+	}
+
+	[[nodiscard]] const std::string& getLongDescription() const
+	{
+		return long_desc;
+	}
+
+	[[nodiscard]] const std::string& getVersion() const
+	{
+		return version;
+	}
+
+	[[nodiscard]] const std::string& getLicense() const
+	{
+		return license;
+	}
+
+	[[nodiscard]] const std::string& getChangelog() const
+	{
+		return changelog;
+	}
+
+	[[nodiscard]] int getStatus() const
+	{
+		return status;
+	}
+
+private:
 	// Package attributes
 	std::string pkg_name;
 	std::string title;
@@ -57,7 +110,7 @@ public:
 
 	std::string license;
 	std::string changelog;
-	
+
 	std::string url;
 	std::string sourceUrl;
 	std::string iconUrl;
@@ -65,7 +118,7 @@ public:
 	std::string updated;
 	std::string binary;
 
-	Manifest* manifest = NULL;
+	Manifest manifest;
 	int updated_timestamp = 0;
 
 	int downloads = 0;
@@ -76,17 +129,19 @@ public:
 	std::string category;
 
 	// Sorting attributes
-	Repo* parentRepo;
-	std::string* repoUrl;
+	std::shared_ptr<Repo> mRepo;
 
 	int status; // local, update, installed, get
 
 	// bitmask for permissions, from left to right:
 	// unused, iosu, kernel, nand, usb, sd, wifi, sound
-	char permissions;
+	char permissions{};
 
-	// the downloaded contents file, to keep memory around to cleanup later
-	std::string* contents;
+	friend Get;
+	friend Repo;
+	friend GetRepo;
+	friend LocalRepo;
+	friend OSCRepo;
 };
 
 #endif

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <unordered_set>
@@ -43,38 +42,34 @@ Package::Package(int state)
 
 	this->status = state;
 	this->screens = 0;
-	this->manifest = NULL;
 }
 
-Package::~Package()
-{
-	delete this->contents;
-}
+Package::~Package() = default;
 
-std::string Package::toString()
+std::string Package::toString() const
 {
 	return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
 }
 
-bool Package::downloadZip(const char* tmp_path, float* progress)
+bool Package::downloadZip(std::string_view tmp_path, float*) const
 {
-	if (libget_status_callback != NULL)
+	if (libget_status_callback != nullptr)
 		libget_status_callback(STATUS_DOWNLOADING, 1, 1);
 
 	// fetch zip file to tmp directory using curl
-	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path);
-	auto zipUrl = this->parentRepo->getZipUrl(this);
-	return downloadFileToDisk(zipUrl, tmp_path + this->pkg_name + ".zip");
+	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path.data());
+	auto zipUrl = this->mRepo->getZipUrl(*this);
+	return downloadFileToDisk(zipUrl, std::string(tmp_path) + this->pkg_name + ".zip");
 }
 
-bool Package::install(const char* pkg_path, const char* tmp_path)
+bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 {
 	// assumes that download was called first
-	if (libget_status_callback != NULL)
+	if (libget_status_callback != nullptr)
 		libget_status_callback(STATUS_ANALYZING, 1, 1);
 
-	if (networking_callback != NULL)
-		networking_callback(0, 10, 10, 0, 0);
+	if (networking_callback != nullptr)
+		networking_callback(nullptr, 10, 10, 0, 0);
 
 #ifdef NETWORK_MOCK
 	// for network mocking, copy over a /mock.zip to the expected download path
@@ -90,39 +85,41 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	Manifest existingManifest(ManifestPath, ROOT_PATH);
 
 	std::unordered_set<std::string> existing_package_paths;
-	if (existingManifest.valid)
+	if (existingManifest.isValid() && manifest.isValid())
 	{
 		// go through its paths, add them our existing set
-		for (int i = 0; i < manifest->entries.size(); i++)
+		for (const auto& entry : manifest.getEntries())
 		{
-			ManifestOp op = this->manifest->entries[i].operation;
+			ManifestOp op = entry.operation;
 			if (op == MUPDATE || op == MEXTRACT)
-				existing_package_paths.insert(manifest->entries[i].path);
+			{
+				existing_package_paths.insert(entry.path);
+			}
 		}
 	}
 
 	//! Open the Zip file
-	UnZip* HomebrewZip = new UnZip((tmp_path + this->pkg_name + ".zip").c_str());
+	UnZip HomebrewZip(tmp_path + this->pkg_name + ".zip");
 
 	//! First extract the Manifest
-	HomebrewZip->ExtractFile(ManifestPathInternal.c_str(), ManifestPath.c_str());
+	HomebrewZip.ExtractFile(ManifestPathInternal, ManifestPath);
 
 	//! Then extract the info.json file (to know what version we have installed and stuff)
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
-	HomebrewZip->ExtractFile(jsonPathInternal.c_str(), jsonPath.c_str());
+	HomebrewZip.ExtractFile(jsonPathInternal, jsonPath);
 
-	this->manifest = new Manifest(ManifestPath, ROOT_PATH);
+	this->manifest = Manifest(ManifestPath, ROOT_PATH);
 
-	if (!manifest->valid && manifest->fakeManifestPossible)
+	if (!manifest.isValid() && manifest.isFakeManifestPossible())
 	{
 #ifndef NETWORK_MOCK
 		printf("--> Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
-		this->manifest = new Manifest(HomebrewZip->PathDump(), ROOT_PATH);
+		this->manifest = Manifest(HomebrewZip.PathDump(), ROOT_PATH);
 		std::ofstream pseudomanifest(ManifestPath);
-		for (size_t i = 0; i <= manifest->entries.size() - 1; i++)
+		for (const auto& entry : manifest.getEntries())
 		{
-			pseudomanifest << manifest->entries[i].raw << std::endl;
+			pseudomanifest << entry.raw << std::endl;
 		}
 		pseudomanifest.close();
 #endif
@@ -130,21 +127,25 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 
 	std::unordered_set<std::string> incoming_package_paths;
 
-	if (manifest->valid)
+	if (manifest.isValid())
 	{
 		// get all file info from within the zip, for every path
-		auto infoMap = HomebrewZip->GetPathToFilePosMapping();
+		auto infoMap = HomebrewZip.GetPathToFilePosMapping();
 
-		if (libget_status_callback != NULL)
+		if (libget_status_callback != nullptr)
 			libget_status_callback(STATUS_INSTALLING, 1, 1);
 
-		for (int i = 0; i < manifest->entries.size(); i++)
+		int i = 0;
+		const auto& entries = manifest.getEntries();
+		for (const auto& entry : entries)
 		{
-			if (networking_callback != NULL)
-				networking_callback(0, manifest->entries.size(), i + 1, 0, 0);
+			if (networking_callback != nullptr)
+				networking_callback(nullptr, entries.size(), i + 1, 0, 0);
 
-			std::string Path = manifest->entries[i].zip_path;
-			std::string ExtractPath = manifest->entries[i].path;
+			i++;
+
+			std::string Path = entry.zip_path;
+			std::string ExtractPath = entry.path;
 			auto pathCStr = Path.c_str();
 			auto ePathCStr = ExtractPath.c_str();
 
@@ -155,7 +156,7 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			auto mapResult = infoMap.find(Path);
 			if (mapResult == infoMap.end())
 			{
-				// auto onlyZipPaths = HomebrewZip->PathDump();
+				// auto onlyZipPaths = HomebrewZip.PathDump();
 				// for (auto zipPath : onlyZipPaths)
 				// {
 				// 	printf("zip path: %s\n", zipPath.c_str());
@@ -167,25 +168,27 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 			auto filePos = mapResult->second;
 
 			int resp = 0;
-			switch (manifest->entries[i].operation)
+			switch (entry.operation)
 			{
 			case MEXTRACT:
 				//! Simply Extract, with no checks or anything, won't be deleted upon removal
 				info("%s : EXTRACT\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
+				resp = HomebrewZip.Extract(ePathCStr, filePos);
 				break;
 			case MUPDATE:
 				info("%s : UPDATE\n", pathCStr);
-				resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
+				resp = HomebrewZip.Extract(ePathCStr, filePos);
 				break;
 			case MGET:
+			{
 				info("%s : GET\n", pathCStr);
-				struct stat sbuff;
+				struct stat sbuff = {};
 				if (stat(ePathCStr, &sbuff) != 0) //! File doesn't exist, extract
-					resp = HomebrewZip->Extract(ePathCStr, NULL, &filePos);
+					resp = HomebrewZip.Extract(ePathCStr, filePos);
 				else
 					info("File already exists, skipping...");
 				break;
+			}
 			default:
 				info("%s : NOP\n", ePathCStr);
 				break;
@@ -214,17 +217,14 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	{
 		//! Extract the whole zip
 		//		printf("No manifest found: extracting the Zip\n");
-		//		HomebrewZip->ExtractAll("sdroot/");
+		//		HomebrewZip.ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		if (!manifest->fakeManifestPossible)
+		if (!manifest.isFakeManifestPossible())
 		{
 			printf("--> Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 			return false;
 		}
 	}
-
-	//! Close the Zip file
-	delete HomebrewZip;
 
 	//! Delete the Zip file
 	std::remove((tmp_path + this->pkg_name + ".zip").c_str());
@@ -232,35 +232,40 @@ bool Package::install(const char* pkg_path, const char* tmp_path)
 	return true;
 }
 
-bool Package::remove(const char* pkg_path)
+bool Package::remove(std::string_view pkg_path)
 {
-	if (libget_status_callback != NULL)
+	if (libget_status_callback != nullptr)
 		libget_status_callback(STATUS_REMOVING, 1, 1);
 
 	// perform an uninstall of the current package, parsing the cached metadata
 	std::string ManifestPathInternal = "manifest.install";
-	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
+	std::string ManifestPath = std::string(pkg_path) + this->pkg_name + "/" + ManifestPathInternal;
 
 	info("HomebrewManager::Delete\n");
 	std::unordered_set<std::string> uniq_folders;
 
 	//! Parse the manifest
 	info("Parsing the Manifest\n");
-	if (!manifest) this->manifest = new Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
-	if (this->manifest->valid)
+	if (!manifest.isValid())
 	{
-		for (int i = 0; i < this->manifest->entries.size(); i++)
+		this->manifest = Manifest(ManifestPath, ROOT_PATH); // Load and parse manifest if not yet done
+	}
+	if (this->manifest.isValid())
+	{
+		int i = 0;
+		const auto& entries = manifest.getEntries();
+		for (const auto& entry : entries)
 		{
-			if (networking_callback != NULL)
-				networking_callback(0, manifest->entries.size(), i + 1, 0, 0);
-
-			std::string DeletePath = manifest->entries[i].path;
+			if (networking_callback != nullptr)
+				networking_callback(nullptr, entries.size(), i + 1, 0, 0);
+			i++;
+			const std::string& DeletePath = entry.path;
 
 			// the current directory
 			std::string cur_dir = dir_name(DeletePath);
 			uniq_folders.insert(cur_dir);
 
-			ManifestOp op = this->manifest->entries[i].operation;
+			ManifestOp op = entry.operation;
 			if (op != NOP && op != MEXTRACT) // get, upgrade, and local
 			{
 				info("Removing %s\n", DeletePath.c_str());
@@ -277,7 +282,9 @@ bool Package::remove(const char* pkg_path)
 	// sort unique folders from longest to shortest
 	std::vector<std::string> folders;
 	for (auto& folder : uniq_folders)
+	{
 		folders.push_back(folder);
+	}
 	std::sort(folders.begin(), folders.end(), compareLen);
 
 	std::vector<std::string> intermediate_folders;
@@ -287,7 +294,7 @@ bool Package::remove(const char* pkg_path)
 	for (auto& folder : folders)
 	{
 		auto parent = dir_name(folder);
-		while (parent != "")
+		while (!parent.empty())
 		{
 			std::cout << "processing... " << parent << "\n";
 			if ((uniq_folders.find(parent) == uniq_folders.end()) && (parent.length() > fsroot.length()))
@@ -311,15 +318,16 @@ bool Package::remove(const char* pkg_path)
 	std::sort(folders.begin(), folders.end(), compareLen);
 
 	for (auto& folder : folders)
+	{
 		rmdir(folder.c_str());
+	}
 
 	printf("--> Removing manifest...\n");
 
 	std::remove(ManifestPath.c_str());
 	auto full_pkg_path = std::string(pkg_path) + this->pkg_name;
 	std::remove((full_pkg_path + "/info.json").c_str());
-	std::remove((full_pkg_path + "/icon.png").c_str());	// clean up icon if present
-	delete this->manifest;
+	std::remove((full_pkg_path + "/icon.png").c_str()); // clean up icon if present
 
 	rmdir((std::string(pkg_path) + this->pkg_name).c_str());
 
@@ -333,19 +341,19 @@ bool Package::remove(const char* pkg_path)
 	return true;
 }
 
-void Package::updateStatus(const char* pkg_path)
+void Package::updateStatus(const std::string& pkg_path)
 {
 	// check if the manifest for this package exists
 	std::string ManifestPathInternal = "manifest.install";
 	std::string ManifestPath = pkg_path + this->pkg_name + "/" + ManifestPathInternal;
 
-	struct stat sbuff;
+	struct stat sbuff = {};
 	if (stat(ManifestPath.c_str(), &sbuff) == 0)
 	{
 		// manifest exists, we are at least installed
 		this->status = INSTALLED;
 
-		this->manifest = new Manifest(ManifestPath, ROOT_PATH);
+		this->manifest = Manifest(ManifestPath, ROOT_PATH);
 	}
 
 	// check for info.json, parse version out of it
@@ -370,17 +378,17 @@ void Package::updateStatus(const char* pkg_path)
 
 		rapidjson::Document doc;
 		rapidjson::ParseResult ok = doc.ParseStream(isw);
-		std::string version;
+		std::string tmpVersion;
 
 		if (ok && doc.HasMember("version"))
 		{
 			const rapidjson::Value& info_doc = doc["version"];
-			version = info_doc.GetString();
+			tmpVersion = info_doc.GetString();
 		}
 		else
-			version = "0.0.0";
+			tmpVersion = "0.0.0";
 
-		if (version != this->version)
+		if (tmpVersion != this->version)
 			this->status = UPDATE;
 
 		// we're eithe ran update or an install at this point
@@ -446,7 +454,7 @@ int Package::isPreviouslyInstalled()
 	return this->status;
 }
 
-const char* Package::statusString()
+const char* Package::statusString() const
 {
 	switch (this->status)
 	{
@@ -462,27 +470,28 @@ const char* Package::statusString()
 	return "UNKNOWN";
 }
 
-std::string Package::getIconUrl()
+std::string Package::getIconUrl() const
 {
 	// ask the parent repo for the icon url TODO: some fallback?
-	if (this->parentRepo == NULL) {
+	if (this->mRepo == nullptr)
+	{
 		printf("--> ERROR: Parent repo not set for package %s\n", this->pkg_name.c_str());
 		return "";
 	}
-	return this->parentRepo->getIconUrl(this);
+	return this->mRepo->getIconUrl(*this);
 }
 
-std::string Package::getBannerUrl()
+std::string Package::getBannerUrl() const
 {
-	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen.png";
+	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/screen.png";
 }
 
-std::string Package::getScreenShotUrl(int count)
+std::string Package::getScreenShotUrl(int count) const
 {
-	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/screen" + std::to_string(count) + ".png";
+	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/screen" + std::to_string(count) + ".png";
 }
 
-std::string Package::getManifestUrl()
+std::string Package::getManifestUrl() const
 {
-	return *(this->repoUrl) + "/packages/" + this->pkg_name + "/manifest.install";
+	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/manifest.install";
 }

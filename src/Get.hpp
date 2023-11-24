@@ -1,8 +1,9 @@
 #ifndef GET_H
 #define GET_H
-#include <vector>
-#include "constants.h"
 #include "Repo.hpp"
+#include "constants.h"
+#include <optional>
+#include <vector>
 
 void info(const char* format, ...);
 
@@ -10,20 +11,16 @@ class Get
 {
 public:
 	// constructor takes path to the .get directory, and a fallback default repo url
-	Get(const char* config_dir, const char* defaultRepo);
+	Get(std::string_view config_dir, std::string_view defaultRepo);
 
-	int install(Package* pkg_name); // download the given package name and manifest data
-	int remove(Package* pkg_name);  // delete and remove all files for the given package name
-	int toggleRepo(Repo* repo);		// enable/disable the specified repo (and write changes)
+	int install(Package& pkg_name); // download the given package name and manifest data
+	int remove(Package& pkg_name);	// delete and remove all files for the given package name
+	int toggleRepo(Repo& repo);		// enable/disable the specified repo (and write changes)
 
-	std::vector<Package*> search(std::string query); // return a list of packages matching query
-	Package* lookup(std::string pkg_name);
+	std::vector<Package> search(const std::string& query); // return a list of packages matching query
+	std::optional<Package> lookup(const std::string& pkg_name);
 	void addLocalRepo();
-  	void removeDuplicates();
-
-	// the remote repos and packages
-	std::vector<Repo*> repos;
-	std::vector<Package*> packages;
+	void removeDuplicates();
 
 	// map of word -> list of packages whose info matches that word
 	// TODO: this
@@ -34,15 +31,28 @@ public:
 	//	  void downloadAll()			// download all of the queued packages
 
 	// config paths (TODO: replace with a Config class)
-	const char* repos_path;
-	const char* pkg_path;
-	const char* tmp_path;
+	std::string mRepos_path;
+	std::string mPkg_path;
+	std::string mTmp_path;
+
+	[[nodiscard]] const std::vector<std::shared_ptr<Repo>>& getRepos() const
+	{
+		return repos;
+	}
+	[[nodiscard]] const std::vector<std::shared_ptr<Package>>& getPackages() const
+	{
+		return packages;
+	}
 
 private:
 	void loadRepos();
 	void update();
-	int validateRepos();
+	int validateRepos() const;
 
-	const char* defaultRepo;
+	// the remote repos and packages
+	std::vector<std::shared_ptr<Repo>> repos;
+	std::vector<std::shared_ptr<Package>> packages;
+
+	std::string mDefaultRepo;
 };
 #endif

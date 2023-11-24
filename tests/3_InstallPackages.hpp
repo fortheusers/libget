@@ -7,9 +7,10 @@ class InstallPackages : public Test {
     }
 	bool execute()
     {
+		auto& packages = get->getPackages();
         // install two of the packages
-        get->install(get->packages[0]);
-        get->install(get->packages[2]);
+        get->install(*packages[0]);
+        get->install(*packages[2]);
 
         // verify that some files got created
         // TODO: verify some!

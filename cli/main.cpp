@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <cstdarg>
+#include <memory>
 
 #include "../src/Get.hpp"
 #include "../src/Utils.hpp"
@@ -17,10 +18,10 @@ int main(int argc, char** args)
 	setUserAgent("get-cli/" APP_VERSION);
 
 	// create main Get object
-	Get* get = new Get("./.get/", "https://switch.cdn.fortheusers.org");
+	Get get("./.get/", "https://switch.cdn.fortheusers.org");
 
-	vector<Repo*> repos = get->repos;
-	vector<Package*> packages = get->packages;
+	auto repos = get.getRepos();
+	auto packages = get.getPackages();
 
 	bool removeMode = false;
 
@@ -48,10 +49,10 @@ int main(int argc, char** args)
 
 			printf("--> Searching for \"%s\" in all repos...\n", query.c_str());
 
-			vector<Package*> results = get->search(query);
+			auto results = get.search(query);
 
 			for (int y = 0; y < results.size(); y++)
-				printf("\t%s %s\n", results[y]->statusString(), results[y]->toString().c_str());
+				printf("\t%s %s\n", results[y].statusString(), results[y].toString().c_str());
 
 			break;
 		}
@@ -82,9 +83,9 @@ int main(int argc, char** args)
 			int updatecount = 0;
 			for (int x = 0; x < packages.size(); x++)
 			{
-				if (packages[x]->status != GET)
+				if (packages[x]->getStatus() != GET)
 					count++;
-				if (packages[x]->status == UPDATE)
+				if (packages[x]->getStatus() == UPDATE)
 					updatecount++;
 			}
 			printf("%d package%s installed\n", count, plural(count));
@@ -92,9 +93,9 @@ int main(int argc, char** args)
 		}
 		else if (cur == "-o" || cur == "--offline") {
 			// add the local repo to list locally installed packages
-			get->addLocalRepo();
-			repos = get->repos;
-			packages = get->packages;
+			get.addLocalRepo();
+			repos = get.getRepos();
+			packages = get.getPackages();
 		}
 		else // assume argument is a package
 		{
@@ -102,20 +103,20 @@ int main(int argc, char** args)
 			// TODO: use a hash map to improve speed
 			bool found = false;
 
-			for (int y = 0; y < packages.size(); y++)
+			for (auto & cur_package: packages)
 			{
-				if (packages[y]->pkg_name == cur)
+				if (cur_package->getPackageName() == cur)
 				{
 					found = true;
 
 					if (removeMode)
 					{
 						// remove flag was specified, delete this package
-						get->remove(packages[y]);
+						get.remove(*cur_package);
 						break;
 					}
 
-					get->install(packages[y]);
+					get.install(*cur_package);
 					break;
 				}
 			}
