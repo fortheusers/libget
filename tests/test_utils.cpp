@@ -60,7 +60,9 @@ std::string calculateMD5(const char* path)
   char* file_buffer;
 
   file_descript = open(path, O_RDONLY);
-  if(file_descript < 0) exit(-1);
+  if(file_descript < 0) {
+    return "";
+  }
 
   file_size = get_size_by_fd(file_descript);
 
