@@ -9,9 +9,8 @@ class FakeManifestTest : public Test {
 	{
 		// disable all repos
 		for (int i = 0; i < get->getRepos().size(); i++) {
-			if (i < get->getRepos().size()) {
-				get->getRepos()[i]->setEnabled(false);
-			}
+			printf("Disabling repo %s\n", get->getRepos()[i]->getUrl().c_str());
+			get->getRepos()[i]->setEnabled(false);
 		}
 
 		// enable only the 4th repo (server d)
@@ -20,35 +19,34 @@ class FakeManifestTest : public Test {
 
 		// there should be 1 available GET package
 		if (count(get, GET) != 1) {
-			error << "There should be 1 GET package, but there are " << count(get, GET) << endl;
+			error << "(1) There should be 1 GET package, but there are " << count(get, GET) << endl;
 			return false;
 		}
 
-		get->toggleRepo(*get->getRepos()[4]);
 		install(get, "missingmanifest");
 
 		if (!exists("sdroot/image.png")) {
-			error << "The downloaded file in package 'missingmanifest' on server 'c' did not successfully extract" << endl;
+			error << "The downloaded file in package 'missingmanifest' on server 'd' did not successfully extract" << endl;
 			return false;
 		}
 
 		std::string sum = calculateMD5("sdroot/image.png");
 		const char * rightSum = "26a7965e5aa6acced42de92eeee76d7a";
 		if (rightSum != sum) {
-			error << "The downloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
+			error << "The downloaded file in package 'missingmanifest' on server 'd' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
             return false;
         }
 
 		// make sure the missingmanifest has "installed" state
 		auto missingmanifest = get->lookup("missingmanifest");
 		if (!missingmanifest || missingmanifest->getStatus() != INSTALLED) {
-			error << "The package 'missingmanifest' on server 'c' was not installed" << endl;
+			error << "The package 'missingmanifest' on server 'd' was not installed" << endl;
 			return false;
 		}
 
 		// there should be one installed package total
 		if (count(get, INSTALLED) != 1) {
-			error << "There should be 1 installed package, but there are " << count(get, INSTALLED) << endl;
+			error << "(2) There should be 1 installed package, but there are " << count(get, INSTALLED) << endl;
 			return false;
 		}
 
@@ -62,7 +60,7 @@ class FakeManifestTest : public Test {
 
         sum = calculateMD5("sdroot/image.png");
         if (rightSum != sum) {
-            error << "The redownloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
+            error << "The redownloaded file in package 'missingmanifest' on server 'd' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
             return false;
         }
 

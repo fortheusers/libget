@@ -10,7 +10,6 @@ class FakeManifestUpgradeTest : public Test {
 	{
 		// enable the 5th repo (server e)
 		get->toggleRepo(*get->getRepos()[5]);
-		get->update();
 
 		// there should be 1 available UPDATE package, and 0 installed packages
 		if (count(get, UPDATE) != 1 || count(get, INSTALLED) != 0) {
@@ -29,21 +28,21 @@ class FakeManifestUpgradeTest : public Test {
 		install(get, "missingmanifest");
 
 		if (!exists("sdroot/image.png")) {
-			error << "The downloaded file in package 'missingmanifest' on server 'c' did not successfully extract" << endl;
+			error << "The downloaded file in package 'missingmanifest' on server 'e' did not successfully extract" << endl;
 			return false;
 		}
 
 		std::string sum = calculateMD5("sdroot/image.png");
 		const char * rightSum = "26a7965e5aa6acced42de92eeee76d7a";
 		if (rightSum != sum) {
-			error << "The downloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
+			error << "The downloaded file in package 'missingmanifest' on server 'e' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
             return false;
         }
 
 		// make sure the missingmanifest has "installed" state
 		auto missingmanifest = get->lookup("missingmanifest");
 		if (!missingmanifest || missingmanifest->getStatus() != INSTALLED) {
-			error << "The package 'missingmanifest' on server 'c' was not installed" << endl;
+			error << "The package 'missingmanifest' on server 'e' was not installed" << endl;
 			return false;
 		}
 
@@ -52,7 +51,7 @@ class FakeManifestUpgradeTest : public Test {
 
         sum = calculateMD5("sdroot/image.png");
         if (rightSum != sum) {
-            error << "The redownloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
+            error << "The redownloaded file in package 'missingmanifest' on server 'e' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
             return false;
         }
 
