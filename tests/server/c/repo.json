@@ -7,10 +7,6 @@
         {
             "version": "1.0", 
             "name": "raichu"
-        },
-        {
-            "version": "1.0", 
-            "name": "missingmanifest"
         }
     ]
 }

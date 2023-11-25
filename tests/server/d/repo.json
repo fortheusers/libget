@@ -1,0 +1,8 @@
+{
+    "packages": [
+        {
+            "version": "1.0", 
+            "name": "missingmanifest"
+        }
+    ]
+}

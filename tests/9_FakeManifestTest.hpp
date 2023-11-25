@@ -7,6 +7,7 @@ class FakeManifestTest : public Test {
 	}
 	bool execute()
 	{
+		get->toggleRepo(*get->getRepos()[4]);
 		install(get, "missingmanifest");
 
 		if (!exists("sdroot/image.png")) {
