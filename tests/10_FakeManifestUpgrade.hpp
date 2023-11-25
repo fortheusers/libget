@@ -18,17 +18,17 @@ class FakeManifestUpgradeTest : public Test {
 			return false;
 		}
 
-		// there should be 1 INSTALLED package, and 0 upgrade packages
-		if (count(get, UPDATE) != 0 || count(get, INSTALLED) != 1) {
-			error << "There should be 0 available UPDATE package, but there are " << count(get, UPDATE) << endl;
-			error << "There should be 1 installed package, but there are " << count(get, INSTALLED) << endl;
-			return false;
-		}
-
 		install(get, "missingmanifest");
 
 		if (!exists("sdroot/image.png")) {
 			error << "The downloaded file in package 'missingmanifest' on server 'e' did not successfully extract" << endl;
+			return false;
+		}
+
+		// there should be 1 INSTALLED package, and 0 upgrade packages
+		if (count(get, UPDATE) != 0 || count(get, INSTALLED) != 1) {
+			error << "There should be 0 available UPDATE package, but there are " << count(get, UPDATE) << endl;
+			error << "There should be 1 installed package, but there are " << count(get, INSTALLED) << endl;
 			return false;
 		}
 

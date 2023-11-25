@@ -31,9 +31,9 @@ class FakeManifestTest : public Test {
 		}
 
 		std::string sum = calculateMD5("sdroot/image.png");
-		const char * rightSum = "26a7965e5aa6acced42de92eeee76d7a";
+		std::string rightSum = "26a7965e5aa6acced42de92eeee76d7a";
 		if (rightSum != sum) {
-			error << "The downloaded file in package 'missingmanifest' on server 'd' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
+			error << "The downloaded file in package 'missingmanifest' on server 'd' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum << endl;
             return false;
         }
 
