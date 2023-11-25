@@ -2,8 +2,8 @@
     "repos": [
         {
             "name": "Switchbru Default",
-            "url": "https://switchbru.com/appstore",
-            "enabled": true
+            "url": "http://localhost",
+            "enabled": false
         },
         {
             "name": "VGMoose Apps",
@@ -12,8 +12,8 @@
         },
         {
             "name": "Sample repo",
-            "url": "http://localhost:8000",
-            "enabled": false
+            "url": "http://localhost:8000/c",
+            "enabled": true
         }
     ]
 }

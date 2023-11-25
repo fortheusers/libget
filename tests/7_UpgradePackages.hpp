@@ -71,6 +71,11 @@ class UpgradePackages : public Test {
 			error << "(2) After upgrading, some unexpected files were left behind" << endl;
 			return false;
 		}
+
+		// clean up the rest of the files directly on sdroot
+		remove("sdroot/dir2/x");
+		remove("sdroot/newdir/dogs");
+		remove("sdroot/dir2/mario");
 		
 		return true;
 	}

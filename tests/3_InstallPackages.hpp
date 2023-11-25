@@ -9,8 +9,11 @@ class InstallPackages : public Test {
     {
 		auto& packages = get->getPackages();
         // install two of the packages
-        get->install(*packages[0]);
-        get->install(*packages[2]);
+        auto threepkg = get->lookup("three");
+        get->install(threepkg.value());
+        
+        auto twopkg = get->lookup("two");
+        get->install(twopkg.value());
 
         // verify that some files got created
         // TODO: verify some!

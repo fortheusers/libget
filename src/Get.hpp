@@ -22,6 +22,7 @@ public:
 	std::optional<Package> lookup(const std::string& pkg_name);
 	void addLocalRepo();
 	void removeDuplicates();
+	void update();
 
 	// map of word -> list of packages whose info matches that word
 	// TODO: this
@@ -47,7 +48,6 @@ public:
 
 private:
 	void loadRepos();
-	void update();
 	int validateRepos() const;
 
 	// the remote repos and packages
