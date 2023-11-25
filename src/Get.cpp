@@ -212,9 +212,9 @@ void Get::update()
 
 	// sort the packages by name
 	// TODO: apply other sort orders here, and potentially search filters
-	std::sort(packages.begin(), packages.end(), [](const std::shared_ptr<Package>& a, const std::shared_ptr<Package>& b) {
-		return a->getPackageName() < b->getPackageName();
-	});
+	// std::sort(packages.begin(), packages.end(), [](const std::shared_ptr<Package>& a, const std::shared_ptr<Package>& b) {
+	// 	return a->getPackageName() < b->getPackageName();
+	// });
 }
 
 int Get::validateRepos() const

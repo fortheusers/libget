@@ -10,6 +10,7 @@ class FakeManifestUpgradeTest : public Test {
 	{
 		// enable the 5th repo (server e)
 		get->toggleRepo(*get->getRepos()[5]);
+		get->update();
 
 		// there should be 1 available UPDATE package, and 0 installed packages
 		if (count(get, UPDATE) != 1 || count(get, INSTALLED) != 0) {
@@ -32,7 +33,7 @@ class FakeManifestUpgradeTest : public Test {
 			return false;
 		}
 
-		std::string sum = calculateMD5("sdroot/image.png").c_str();
+		std::string sum = calculateMD5("sdroot/image.png");
 		const char * rightSum = "26a7965e5aa6acced42de92eeee76d7a";
 		if (rightSum != sum) {
 			error << "The downloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
@@ -49,7 +50,7 @@ class FakeManifestUpgradeTest : public Test {
         // install one more time, and make sure we're still all good
         install(get, "missingmanifest");
 
-        sum = calculateMD5("sdroot/image.png").c_str();
+        sum = calculateMD5("sdroot/image.png");
         if (rightSum != sum) {
             error << "The redownloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
             return false;

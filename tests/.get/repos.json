@@ -24,6 +24,11 @@
           "name": "Test Repo D",
           "url": "http://127.0.0.1:8000/d",
           "enabled": false
+        },
+        {
+          "name": "Test Repo E",
+          "url": "http://127.0.0.1:8000/e",
+          "enabled": false
         }
     ]
 }

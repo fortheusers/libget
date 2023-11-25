@@ -16,6 +16,7 @@ class FakeManifestTest : public Test {
 
 		// enable only the 4th repo (server d)
 		get->getRepos()[4]->setEnabled(true);
+		get->update();
 
 		// there should be 1 available GET package
 		if (count(get, GET) != 1) {
@@ -31,7 +32,7 @@ class FakeManifestTest : public Test {
 			return false;
 		}
 
-		std::string sum = calculateMD5("sdroot/image.png").c_str();
+		std::string sum = calculateMD5("sdroot/image.png");
 		const char * rightSum = "26a7965e5aa6acced42de92eeee76d7a";
 		if (rightSum != sum) {
 			error << "The downloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
@@ -59,7 +60,7 @@ class FakeManifestTest : public Test {
 		// should work even though the package is broken
         install(get, "missingmanifest");
 
-        sum = calculateMD5("sdroot/image.png").c_str();
+        sum = calculateMD5("sdroot/image.png");
         if (rightSum != sum) {
             error << "The redownloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
             return false;

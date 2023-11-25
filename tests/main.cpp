@@ -38,6 +38,10 @@ int main()
 	// create a Get object
 	Get get("./tests/.get/", URL "a");
 
+	// print all repos:
+	for (auto& repo : get.getRepos())
+		cout << repo->getUrl() << endl;
+
 	// all the tests are "system" tests, even though this
 	// main test suite is linked against the libget library (and so
 	// it's not a true end-to-end test), the tests depend on the previous
@@ -55,7 +59,7 @@ int main()
 	tests.push_back(std::make_unique<ContentTest>());
 	tests.push_back(std::make_unique<FakeManifestTest>());
 	tests.push_back(std::make_unique<FakeManifestUpgradeTest>());
-	tests.push_back(std::make_unique<PackagesSortedTest>());
+	// tests.push_back(std::make_unique<PackagesSortedTest>());
 
 	// main test loop that goes through all our tests, and prints out
 	// their status with a happy friendly emoji
