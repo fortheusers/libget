@@ -35,6 +35,8 @@ void *memalign(size_t blocksize, size_t bytes)
   errno = posix_memalign(&m, blocksize, bytes);
   return errno ? NULL : m;
 }
+#else
+#include <malloc.h>
 #endif
 
 // void info(const char* format, ...);
