@@ -11,6 +11,8 @@
 #include "7_UpgradePackages.hpp"
 #include "8_ContentTest.hpp"
 #include "9_FakeManifestTest.hpp"
+#include "10_FakeManifestUpgrade.hpp"
+#include "11_PackagesSorted.hpp"
 
 using namespace std;
 

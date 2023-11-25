@@ -1,29 +1,30 @@
 #include "tests.hpp"
 
-class FakeManifestTest : public Test {
+class FakeManifestUpgradeTest : public Test {
 	public:
-	FakeManifestTest() {
-		purpose = "Packages without manifests are still installed";
+	FakeManifestUpgradeTest() {
+		// depends on the previous test having succeeded
+		purpose = "Packages without manifests can be upgraded";
 	}
 	bool execute()
 	{
-		// disable all repos
-		for (int i = 0; i < get->getRepos().size(); i++) {
-			if (i < get->getRepos().size()) {
-				get->getRepos()[i]->setEnabled(false);
-			}
-		}
+		// enable the 5th repo (server e)
+		get->toggleRepo(*get->getRepos()[5]);
 
-		// enable only the 4th repo (server d)
-		get->getRepos()[4]->setEnabled(true);
-
-		// there should be 1 available GET package
-		if (count(get, GET) != 1) {
-			error << "There should be 1 GET package, but there are " << count(get, GET) << endl;
+		// there should be 1 available UPDATE package, and 0 installed packages
+		if (count(get, UPDATE) != 1 || count(get, INSTALLED) != 0) {
+			error << "There should be 1 available UPDATE package, but there are " << count(get, UPDATE) << endl;
+			error << "There should be 0 installed package, but there are " << count(get, INSTALLED) << endl;
 			return false;
 		}
 
-		get->toggleRepo(*get->getRepos()[4]);
+		// there should be 1 INSTALLED package, and 0 upgrade packages
+		if (count(get, UPDATE) != 0 || count(get, INSTALLED) != 1) {
+			error << "There should be 0 available UPDATE package, but there are " << count(get, UPDATE) << endl;
+			error << "There should be 1 installed package, but there are " << count(get, INSTALLED) << endl;
+			return false;
+		}
+
 		install(get, "missingmanifest");
 
 		if (!exists("sdroot/image.png")) {
@@ -45,18 +46,7 @@ class FakeManifestTest : public Test {
 			return false;
 		}
 
-		// there should be one installed package total
-		if (count(get, INSTALLED) != 1) {
-			error << "There should be 1 installed package, but there are " << count(get, INSTALLED) << endl;
-			return false;
-		}
-
-		// manually remove the image on disk, breaking the package
-		// TODO: a test to show broken packages as their own state
-		std::remove("sdroot/image.png");
-
         // install one more time, and make sure we're still all good
-		// should work even though the package is broken
         install(get, "missingmanifest");
 
         sum = calculateMD5("sdroot/image.png").c_str();
@@ -64,6 +54,13 @@ class FakeManifestTest : public Test {
             error << "The redownloaded file in package 'missingmanifest' on server 'c' has incorrect md5 sum, expected: " << rightSum << ", received: " << sum.c_str() << endl;
             return false;
         }
+
+		// there should still be 1 INSTALLED package, and 0 upgrade packages
+		if (count(get, UPDATE) != 0 || count(get, INSTALLED) != 1) {
+			error << "There should be 0 available UPDATE package, but there are " << count(get, UPDATE) << endl;
+			error << "There should be 1 installed package, but there are " << count(get, INSTALLED) << endl;
+			return false;
+		}
 
 		// TODO: test zip extractions with an extra folder or no folder directory
 

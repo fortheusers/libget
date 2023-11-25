@@ -29,8 +29,9 @@ public:
 	[[nodiscard]] bool isEnabled() const;
 	[[nodiscard]] bool isLoaded() const; // whether this server could be reached or not
 
-protected:
 	void setEnabled(bool enabled);
+
+protected:
 
 	std::string name;
 	std::string url;

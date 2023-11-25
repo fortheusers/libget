@@ -206,10 +206,15 @@ void Get::update()
 	this->removeDuplicates();
 
 	// check for any installed packages to update their status
-	for (const auto& package : packages)
-	{
+	for (const auto& package : packages) {
 		package->updateStatus(mPkg_path);
 	}
+
+	// sort the packages by name
+	// TODO: apply other sort orders here, and potentially search filters
+	std::sort(packages.begin(), packages.end(), [](const std::shared_ptr<Package>& a, const std::shared_ptr<Package>& b) {
+		return a->getPackageName() < b->getPackageName();
+	});
 }
 
 int Get::validateRepos() const
