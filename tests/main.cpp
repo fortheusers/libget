@@ -10,6 +10,7 @@
 #include "6_RemovePackages.hpp"
 #include "7_UpgradePackages.hpp"
 #include "8_ContentTest.hpp"
+#include "9_FakeManifestTest.hpp"
 
 using namespace std;
 
@@ -50,6 +51,7 @@ int main()
 	tests.push_back(std::make_unique<RemovePackages>());
 	tests.push_back(std::make_unique<UpgradePackages>());
 	tests.push_back(std::make_unique<ContentTest>());
+	tests.push_back(std::make_unique<FakeManifestTest>());
 
 	// main test loop that goes through all our tests, and prints out
 	// their status with a happy friendly emoji

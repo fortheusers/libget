@@ -58,8 +58,6 @@ class UpgradePackages : public Test {
 			return false;
 		}
 
-    // TODO: this test is good! but the code is bad, see issue https://github.com/vgmoose/libget/issues/8
-    // TODO: uncomment these tests, and fix the bug in the code so they pass
 		ok = true;
 		ok &= exists("sdroot/dir2/x");
 		ok &= exists("sdroot/newdir/dogs");
