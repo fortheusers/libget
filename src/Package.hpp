@@ -54,6 +54,8 @@ public:
 
 	int isPreviouslyInstalled();
 
+	Manifest manifest;
+
 	[[nodiscard]] const std::string& getPackageName() const
 	{
 		return pkg_name;
@@ -99,6 +101,38 @@ public:
 		return status;
 	}
 
+	[[nodiscard]] int getDownloadCount() const {
+		return downloads;
+	}
+
+	[[nodiscard]] int getDownloadSize() const {
+		return download_size;
+	}
+
+	[[nodiscard]] int getExtractedSize() const {
+		return download_size;
+	}
+
+	[[nodiscard]] int getScreenshotCount() const {
+		return screens;
+	}
+
+	[[nodiscard]] int getUpdatedAtTimestamp() const {
+		return updated_timestamp;
+	}
+
+	[[nodiscard]] const std::string& getUpdatedAt() const {
+		return updated;
+	}
+
+	[[nodiscard]] const std::string& getCategory() const {
+		return category;
+	}
+
+	[[nodiscard]] const std::string& getBinary() const {
+		return binary;
+	}
+
 private:
 	// Package attributes
 	std::string pkg_name;
@@ -118,7 +152,6 @@ private:
 	std::string updated;
 	std::string binary;
 
-	Manifest manifest;
 	int updated_timestamp = 0;
 
 	int downloads = 0;

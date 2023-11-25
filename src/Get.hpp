@@ -18,6 +18,7 @@ public:
 	int toggleRepo(Repo& repo);		// enable/disable the specified repo (and write changes)
 
 	std::vector<Package> search(const std::string& query); // return a list of packages matching query
+	std::vector<Package> list();							// return a list of all packages
 	std::optional<Package> lookup(const std::string& pkg_name);
 	void addLocalRepo();
 	void removeDuplicates();

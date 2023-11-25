@@ -223,6 +223,17 @@ int Get::validateRepos() const
 	return 0;
 }
 
+std::vector<Package> Get::list()
+{
+	// packages is a vector of shared_ptrs, so we need to dereference them
+	std::vector<Package> ret;
+	for (auto& cur : packages) {
+		if (cur != nullptr)
+			ret.emplace_back(*cur);
+	}
+	return ret;
+}
+
 std::vector<Package> Get::search(const std::string& query)
 {
 	// TODO: replace with inverted index for speed

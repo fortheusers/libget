@@ -23,6 +23,7 @@ Manifest::Manifest(const std::vector<std::string>& paths, std::string_view root_
 
 Manifest::Manifest(std::string_view ManifestPath, std::string_view root_path)
 {
+	fakeManifestPossible = true;
 	struct stat buf = {};
 	if (stat(ManifestPath.data(), &buf) == 0)
 	{
@@ -73,7 +74,8 @@ Manifest::Manifest(std::string_view ManifestPath, std::string_view root_path)
 				}
 			}
 			valid = true;
-			fakeManifestPossible = true;
+		} else {
+			fakeManifestPossible = false;
 		}
 		ManifestFile.close();
 	}
