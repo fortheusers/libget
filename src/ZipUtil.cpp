@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <dirent.h>
 #include <fcntl.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory>
 #include <optional>
 #include <stdio.h>
@@ -24,6 +24,17 @@
 #define fsync _commit
 #else
 #define cross_free free
+#endif
+
+// on macos, wrap posix_memalign
+// https://stackoverflow.com/a/45182325/4953343
+#ifdef __APPLE__
+void *memalign(size_t blocksize, size_t bytes)
+{
+  void *m;
+  errno = posix_memalign(&m, blocksize, bytes);
+  return errno ? NULL : m;
+}
 #endif
 
 // void info(const char* format, ...);

@@ -116,12 +116,22 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 #ifndef NETWORK_MOCK
 		printf("--> Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
 		this->manifest = Manifest(HomebrewZip.PathDump(), ROOT_PATH);
+
+		// write the pseudo-manifest to the internal package .get directory
+		mkpath((pkg_path + this->pkg_name).c_str());
+
 		std::ofstream pseudomanifest(ManifestPath);
-		for (const auto& entry : manifest.getEntries())
-		{
+		printf("--> Writing pseudo-manifest to %s\n", ManifestPath.c_str());
+		for (const auto& entry : manifest.getEntries()) {
 			pseudomanifest << entry.raw << std::endl;
 		}
 		pseudomanifest.close();
+
+		// write a pseudo-info.json here too
+		// TODO: load other attributes from the package, besides version
+		std::ofstream pseudojson(jsonPath);
+		pseudojson << "{\"version\":\"" << this->version << "\"}" << std::endl;
+		pseudojson.close();
 #endif
 	}
 

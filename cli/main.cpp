@@ -61,7 +61,7 @@ int main(int argc, char** args)
 			// list available remote packages
 			printf("--> Listing available remotes and packages\n");
 
-			printf("%d repo%s loaded!\n", repos.size(), plural(repos.size()));
+			printf("%zu repo%s loaded!\n", repos.size(), plural(repos.size()));
 			int enabledCount = 0;
 			for (int x = 0; x < repos.size(); x++) {
 				printf("\t%s\n", repos[x]->toString().c_str());
@@ -75,7 +75,7 @@ int main(int argc, char** args)
 				break;
 			}
 
-			printf("%d package%s available!\n", packages.size(), plural(packages.size()));
+			printf("%zu package%s available!\n", packages.size(), plural(packages.size()));
 			for (int x = 0; x < packages.size(); x++)
 				printf("\t%s %s\n", packages[x]->statusString(), packages[x]->toString().c_str());
 
@@ -96,6 +96,14 @@ int main(int argc, char** args)
 			get.addLocalRepo();
 			repos = get.getRepos();
 			packages = get.getPackages();
+		}
+		else if (cur == "-c" || cur == "--clone") {
+			// download all packages directly (TODO: save repo json)
+			printf("--> Cloning all packages...\n");
+			for (auto & cur_package: packages) {
+					get.install(*cur_package);
+			}
+			printf("--> Cloned %zu packages!\n", packages.size());
 		}
 		else // assume argument is a package
 		{
