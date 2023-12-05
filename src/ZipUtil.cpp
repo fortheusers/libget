@@ -22,6 +22,7 @@
 #define aligned_alloc _aligned_malloc
 #define cross_free _aligned_free
 #define fsync _commit
+#define memalign _aligned_malloc
 #else
 #define cross_free free
 #endif
@@ -128,7 +129,7 @@ int Zip::Add(const std::string& path)
 		done += readBytes;
 	}
 	close(fileNumber);
-	free(buffer);
+	cross_free(buffer);
 
 	if (done != filesize)
 	{
