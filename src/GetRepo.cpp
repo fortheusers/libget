@@ -5,6 +5,11 @@
 #include <regex>
 #include <sstream>
 
+#ifdef WIN32
+#include <iomanip>
+#include <locale>
+#endif
+
 using namespace rapidjson;
 
 #ifdef WIN32
