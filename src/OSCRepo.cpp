@@ -24,6 +24,10 @@ extern "C" char* strptime(const char* s,
 	}
 	return (char*)(s + input.tellg());
 }
+
+// needed for windows.h conflict with rapidjson namespace:
+// https://github.com/Tencent/rapidjson/issues/1448
+#undef GetObject
 #endif
 
 std::vector<std::unique_ptr<Package>> OSCRepo::loadPackages()
