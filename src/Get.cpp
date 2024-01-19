@@ -20,7 +20,11 @@ using namespace rapidjson;
 
 bool debug = false;
 
-Get::Get(std::string_view config_dir, std::string_view defaultRepo)
+Get::Get(
+	std::string_view config_dir,
+	std::string_view defaultRepo,
+	bool performInitialLoad
+)
 	: mDefaultRepo(defaultRepo)
 {
 
@@ -40,9 +44,12 @@ Get::Get(std::string_view config_dir, std::string_view defaultRepo)
 
 	printf("--> Using \"%s\" as repo list\n", mRepos_path.c_str());
 
-	// load repo info
 	this->loadRepos();
-	this->update();
+
+	if (performInitialLoad) {
+		// load repo info
+		this->update();
+	}
 }
 
 int Get::install(Package& package)
@@ -88,6 +95,93 @@ void Get::addLocalRepo()
 {
 	repos.push_back(std::make_unique<LocalRepo>(mPkg_path));
 	update();
+}
+
+void Get::addAndRemoveReposByURL(
+	const std::unordered_set<std::string>& reposToAdd,
+	const std::unordered_set<std::string>& reposToRemove
+)
+{
+	int reposLen = repos.size();
+
+	bool madeChanges = false;
+
+	repos.erase(std::remove_if(repos.begin(), repos.end(), 
+		[reposToRemove](auto curRepo) {
+			std::string curUrl = curRepo->getUrl();
+			return reposToRemove.find(curUrl) != reposToRemove.end();
+		}), repos.end()
+	);
+
+	madeChanges = reposLen != repos.size();
+
+	std::unordered_set<std::string> currentUrls;
+	for (auto& curRepo : repos) {
+		currentUrls.insert(curRepo->getUrl());
+	}
+	
+	for (auto& url : reposToAdd) {
+		if (currentUrls.find(url) == currentUrls.end()) {
+			// extract domain from url string
+			std::string nameSummary;
+			size_t start = url.find("//");
+
+			if (start != std::string::npos) {
+				nameSummary = url.substr(start + 2);
+				size_t end = nameSummary.find("/");
+				if (end != std::string::npos) {
+					nameSummary = nameSummary.substr(0, end);
+				}
+			}
+
+			// if nameSummary is still empty, provide a fallback
+			if (nameSummary.empty()) {
+				nameSummary = "Auto-added from Meta";
+			}
+
+			repos.push_back(std::make_unique<GetRepo>(nameSummary, url, true));
+		}
+	}
+
+	madeChanges = madeChanges || reposLen != repos.size();
+
+	// save the repos to disk, if we've made any changes
+	if (madeChanges) {
+		saveRepos();
+		loadRepos();
+	}
+}
+
+// Saves the repos from our current Get object to disk
+void Get::saveRepos() {
+	Document d;
+	d.SetObject();
+	Document::AllocatorType& allocator = d.GetAllocator();
+
+	Value reposOut(kArrayType);
+
+	for (auto& repo : repos) {
+		Value repoObj(kObjectType);
+		printf("--> Saving repo %s\n", repo->getName().c_str());
+		printf("--> Saving repo %s\n", repo->getUrl().c_str());
+		printf("--> Saving repo %s\n", repo->getType().c_str());
+		
+		repoObj.AddMember("name", rapidjson::Value(repo->getName().c_str(), allocator), allocator);
+		repoObj.AddMember("url",  rapidjson::Value(repo->getUrl().c_str(), allocator), allocator);
+		repoObj.AddMember("type", rapidjson::Value(repo->getType().c_str(), allocator), allocator);
+		repoObj.AddMember("enabled", repo->isEnabled(), allocator);
+		reposOut.PushBack(repoObj, allocator);
+	}
+
+	d.AddMember("repos", reposOut, allocator);
+
+	std::ofstream file(mRepos_path);
+	StringBuffer buffer;
+	Writer<StringBuffer> writer(buffer);
+	d.Accept(writer);
+	std::cout << buffer.GetString() << std::endl;
+	file << buffer.GetString();
+	file.close();
 }
 
 /**
