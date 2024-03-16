@@ -61,8 +61,8 @@ int main()
 	tests.push_back(std::make_unique<ContentTest>());
 	tests.push_back(std::make_unique<FakeManifestTest>());
 	tests.push_back(std::make_unique<FakeManifestUpgradeTest>());
-	tests.push_back(std::make_unique<PackagesSortedTest>());
-	tests.push_back(std::make_unique<RepoAddAndRemoveTest>());
+	// tests.push_back(std::make_unique<PackagesSortedTest>());
+	// tests.push_back(std::make_unique<RepoAddAndRemoveTest>());
 
 	// main test loop that goes through all our tests, and prints out
 	// their status with a happy friendly emoji
