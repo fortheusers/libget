@@ -51,17 +51,17 @@ int main()
 	// due to this dependency, if one fails, the rest don't execute
 	// they will always run in the order defined here, though
 	vector<std::unique_ptr<Test>> tests ;
-	// tests.push_back(std::make_unique<InitCheck>());
-	// tests.push_back(std::make_unique<CheckPackages>());
-	// tests.push_back(std::make_unique<InstallPackages>());
-	// tests.push_back(std::make_unique<InstallPackages2>());
-	// tests.push_back(std::make_unique<Search>());
-	// tests.push_back(std::make_unique<RemovePackages>());
-	// tests.push_back(std::make_unique<UpgradePackages>());
-	// tests.push_back(std::make_unique<ContentTest>());
-	// tests.push_back(std::make_unique<FakeManifestTest>());
-	// tests.push_back(std::make_unique<FakeManifestUpgradeTest>());
-	// tests.push_back(std::make_unique<PackagesSortedTest>());
+	tests.push_back(std::make_unique<InitCheck>());
+	tests.push_back(std::make_unique<CheckPackages>());
+	tests.push_back(std::make_unique<InstallPackages>());
+	tests.push_back(std::make_unique<InstallPackages2>());
+	tests.push_back(std::make_unique<Search>());
+	tests.push_back(std::make_unique<RemovePackages>());
+	tests.push_back(std::make_unique<UpgradePackages>());
+	tests.push_back(std::make_unique<ContentTest>());
+	tests.push_back(std::make_unique<FakeManifestTest>());
+	tests.push_back(std::make_unique<FakeManifestUpgradeTest>());
+	tests.push_back(std::make_unique<PackagesSortedTest>());
 	tests.push_back(std::make_unique<RepoAddAndRemoveTest>());
 
 	// main test loop that goes through all our tests, and prints out

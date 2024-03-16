@@ -23,9 +23,10 @@ bool debug = false;
 Get::Get(
 	std::string_view config_dir,
 	std::string_view defaultRepo,
-	bool performInitialLoad
+	bool performInitialLoad,
+	std::string defaultRepoType
 )
-	: mDefaultRepo(defaultRepo)
+	: mDefaultRepo(defaultRepo), mDefaultRepoType(defaultRepoType)
 {
 
 	// the path for the get metadata folder
@@ -198,7 +199,11 @@ void Get::loadRepos()
 	{
 		printf("--> Could not load repos from %s, generating default GET repos.json\n", config_path.c_str());
 
+#if defined(WII)
+		auto defaultRepo = GetRepo::createRepo("Default Repo", this->mDefaultRepo, true, this->mDefaultRepoType, mPkg_path);
+#else
 		auto defaultRepo = std::make_unique<GetRepo>("Default Repo", this->mDefaultRepo, true);
+#endif
 
 		Document d;
 		d.Parse(Repo::generateRepoJson(*defaultRepo).c_str());

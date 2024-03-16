@@ -15,7 +15,8 @@ public:
 	Get(
 		std::string_view config_dir,
 		std::string_view defaultRepo,
-		bool performInitialLoad = true
+		bool performInitialLoad = true,
+		std::string defaultRepoType = "get"
 	);
 
 	int install(Package& pkg_name); // download the given package name and manifest data
@@ -66,5 +67,6 @@ private:
 	std::vector<std::shared_ptr<Package>> packages;
 
 	std::string mDefaultRepo;
+	std::string mDefaultRepoType;
 };
 #endif
