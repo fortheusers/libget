@@ -1,7 +1,7 @@
 #include "LocalRepo.hpp"
-#include "Get.hpp"
-#include "Package.hpp"
-#include "Utils.hpp"
+#include "../Get.hpp"
+#include "../Package.hpp"
+#include "../Utils.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
 #include <cstring>

@@ -1,7 +1,7 @@
-#include "Repo.hpp"
+#include "./repos/Repo.hpp"
 #include "Utils.hpp"
 #include "ZipUtil.hpp"
-#include "constants.h"
+#include "./repos/constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
 #include <algorithm>

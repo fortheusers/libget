@@ -1,5 +1,5 @@
 #include "OSCRepo.hpp"
-#include "Utils.hpp"
+#include "../Utils.hpp"
 #include "constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
@@ -18,7 +18,7 @@ using namespace rapidjson;
 std::vector<std::unique_ptr<Package>> OSCRepo::loadPackages()
 {
 	std::vector<std::unique_ptr<Package>> result;
-	std::string directoryUrl = this->url + "/api/v3/contents";
+	std::string directoryUrl = this->url;
 
 	std::string response;
 	bool success = downloadFileToMemory(directoryUrl, &response);
@@ -31,7 +31,7 @@ std::vector<std::unique_ptr<Package>> OSCRepo::loadPackages()
 
 		// update repo url
 		this->url.replace(0, 5, "http");
-		directoryUrl = this->url + "/api/v3/contents";
+		directoryUrl = this->url;
 
 		// retry fetch
 		success = downloadFileToMemory(directoryUrl, &response);
@@ -55,7 +55,7 @@ std::vector<std::unique_ptr<Package>> OSCRepo::loadPackages()
 
 	if (!ok || !doc.IsArray())
 	{
-		printf("--> Invalid format in downloaded repo.json for %s\n", this->url.c_str());
+		printf("--> Invalid format in downloaded data for %s\n", this->url.c_str());
 		this->loaded = false;
 		return {};
 	}

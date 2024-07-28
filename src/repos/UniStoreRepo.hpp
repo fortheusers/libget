@@ -1,11 +1,11 @@
-#ifndef OSC_REPO_H
-#define OSC_REPO_H
-#include "Package.hpp"
+#ifndef UNISTORE_REPO_H
+#define UNISTORE_REPO_H
+#include "../Package.hpp"
 #include "Repo.hpp"
 #include <iostream>
 #include <vector>
 
-class OSCRepo : public Repo
+class UniStoreRepo : public Repo
 {
 public:
 	using Repo::Repo;

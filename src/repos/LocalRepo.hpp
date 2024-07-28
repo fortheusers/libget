@@ -1,6 +1,6 @@
 #ifndef LOCAL_REPO_H
 #define LOCAL_REPO_H
-#include "Package.hpp"
+#include "../Package.hpp"
 #include "Repo.hpp"
 #include <iostream>
 #include <vector>

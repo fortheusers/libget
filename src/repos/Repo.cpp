@@ -2,7 +2,8 @@
 #include "GetRepo.hpp"
 #include "LocalRepo.hpp"
 #include "OSCRepo.hpp"
-#include "Package.hpp"
+#include "UniStoreRepo.hpp"
+#include "../Package.hpp"
 #include <iostream>
 #include <sstream>
 
@@ -39,7 +40,24 @@ std::unique_ptr<Repo> Repo::createRepo(std::string_view name, std::string_view u
 		return std::make_unique<LocalRepo>(std::string(package_path));
 	else if (type == "osc")
 		return std::make_unique<OSCRepo>(name, url, enabled);
-	// TODO: add more supported repo formats here
+	else if (type == "unistore")
+		return std::make_unique<UniStoreRepo>(name, url, enabled);
+	// else if (type == "github")
+	// 	return std::make_unique<GitHubRepo>(name, url, enabled);
+	// else if (type == "aroma")
+	// 	return std::make_unique<AromaRepo>(name, url, enabled);
+
+	// TODO: add more repo types from down below
+	// else if (type == "gitlab")
+	// 	return std::make_unique<GitLabRepo>(name, url, enabled);
+	// else if (type == "apk")
+	// 	return std::make_unique<APKRepo>(name, url, enabled);
+	// else if (type == "apt")
+	// 	return std::make_unique<AptRepo>(name, url, enabled);
+	// else if (type == "pacman")
+	// 	return std::make_unique<PacmanRepo>(name, url, enabled);
+	// else if (type == "dnf")
+	// 	return std::make_unique<DnfRepo>(name, url, enabled);
 
 	return nullptr;
 }

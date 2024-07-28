@@ -26,6 +26,7 @@ class Repo;
 class GetRepo;
 class LocalRepo;
 class OSCRepo;
+class UniStoreRepo;
 
 /**
  * A package is a single application that can be installed. It contains the URL to the zip file and any instructions to install it (like a GET manifest).
@@ -175,6 +176,7 @@ private:
 	friend GetRepo;
 	friend LocalRepo;
 	friend OSCRepo;
+	friend UniStoreRepo;
 };
 
 #endif

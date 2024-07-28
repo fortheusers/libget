@@ -12,8 +12,8 @@
 #include "rapidjson/writer.h"
 
 #include "Get.hpp"
-#include "GetRepo.hpp"
-#include "LocalRepo.hpp"
+#include "./repos/GetRepo.hpp"
+#include "./repos/LocalRepo.hpp"
 #include "Utils.hpp"
 
 using namespace rapidjson;
@@ -199,7 +199,7 @@ void Get::loadRepos()
 	{
 		printf("--> Could not load repos from %s, generating default GET repos.json\n", config_path.c_str());
 
-#if defined(WII)
+#if defined(WII) || defined(_3DS)
 		auto defaultRepo = GetRepo::createRepo("Default Repo", this->mDefaultRepo, true, this->mDefaultRepoType, mPkg_path);
 #else
 		auto defaultRepo = std::make_unique<GetRepo>("Default Repo", this->mDefaultRepo, true);
