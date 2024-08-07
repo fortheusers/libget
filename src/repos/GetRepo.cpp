@@ -4,9 +4,9 @@
 #include "rapidjson/document.h"
 #include <regex>
 #include <sstream>
+#include <iomanip>
 
 #ifdef WIN32
-#include <iomanip>
 #include <locale>
 #endif
 
