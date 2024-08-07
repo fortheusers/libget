@@ -128,19 +128,20 @@ std::vector<std::unique_ptr<Package>> GetRepo::loadPackages()
 		if (cur.HasMember("updated"))
 		{
 			package->updated = cur["updated"].GetString();
-			struct tm tm
-			{
-			};
+			struct tm tm {};
 
-#if !defined(_3DS) && !defined(WII)
 			auto res = strptime(package->updated.c_str(), "%d/%m/%Y", &tm);
 			if (res)
 			{
 				// make sure that all the time-related fields are set
 				tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
 				package->updated_timestamp = (int)mktime(&tm);
+
+				// also update the label to a simpler y-m-d format
+				std::stringstream ss;
+				ss << std::put_time(&tm, "%Y-%m-%d");
+				package->updated = ss.str();
 			}
-#endif
 		}
 
 		// even more details
@@ -149,9 +150,10 @@ std::vector<std::unique_ptr<Package>> GetRepo::loadPackages()
 		if (cur.HasMember("web_dls"))
 			package->downloads += cur["web_dls"].GetInt();
 		if (cur.HasMember("extracted"))
-			package->extracted_size += cur["extracted"].GetInt();
+			// convert KB to bytes
+			package->extracted_size += cur["extracted"].GetInt() * 1000;
 		if (cur.HasMember("filesize"))
-			package->download_size += cur["filesize"].GetInt();
+			package->download_size += cur["filesize"].GetInt() * 1000; // ibid
 
 		if (cur.HasMember("category"))
 			package->category = cur["category"].GetString();

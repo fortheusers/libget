@@ -67,5 +67,5 @@ bool libget_reset_data(const char* path);
 std::string dir_name(const std::string& file_path);
 bool compareLen(const std::string& a, const std::string& b);
 bool is_dir(std::string_view path, struct dirent* ent);
-
+std::string getHumanReadableBytes(uint64_t bytes);
 #endif

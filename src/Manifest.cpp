@@ -25,6 +25,14 @@ Manifest::Manifest(std::string_view ManifestPath, std::string_view root_path)
 {
 	fakeManifestPossible = true;
 	struct stat buf = {};
+
+	// check if file is empty
+	if (stat(ManifestPath.data(), &buf) == 0 && buf.st_size == 0)
+	{
+		// empty file, could still be faked but is invalid
+		return;
+	}
+
 	if (stat(ManifestPath.data(), &buf) == 0)
 	{
 		std::ifstream ManifestFile;

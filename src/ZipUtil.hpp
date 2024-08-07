@@ -27,6 +27,7 @@ public:
 	~UnZip();
 	void Close();
 
+	bool IsValid();
 	int Extract(const std::string& path, unz_file_pos& file_pos);
 	int Extract(const std::string& path, const unz_file_info_s& fileInfo);
 	int ExtractFile(const std::string& internalPath, const std::string& path);

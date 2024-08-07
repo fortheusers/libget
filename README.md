@@ -70,7 +70,7 @@ Below are three example repos. The first two are libget repos used by the Switch
   {
     "repos": [{
        "name":"3DS Universal-DB",
-       "url":"https://db.universal-team.net/unistore/universal-db.unistore",
+       "url":"https://db.universal-team.net/data/full.json",
        "type":"unistore",
        "enabled":true
     }]

@@ -148,7 +148,9 @@ void setPlatformCurlFlags(CURL* c)
 	// // from https://github.com/GaryOderNichts/wiiu-examples/blob/main/curl-https/romfs/cacert.pem
 	curl_easy_setopt(c, CURLOPT_CAINFO, RAMFS "res/cacert.pem");
 
-	curl_easy_setopt(curl, CURLOPT_SOCKOPTFUNCTION, sockopt_callback);
+	curl_easy_setopt(c, CURLOPT_SOCKOPTFUNCTION, sockopt_callback);
+
+	curl_easy_setopt(c, CURLOPT_FOLLOWLOCATION, 1L); // follow redirects
 
 	// set the user agent
 	curl_easy_setopt(c, CURLOPT_USERAGENT, USER_AGENT);
@@ -241,7 +243,7 @@ bool downloadFileToDisk(const std::string& remote_path, const std::string& local
 		return false;
 	}
 
-	// write remaning data to file before free.
+	// write remaining data to file before free.
 	fwrite(data_struct.data, data_struct.offset, 1, data_struct.out);
 	return true;
 }
@@ -413,4 +415,29 @@ bool is_dir(std::string_view path, struct dirent* entry)
 	stat(full_path.c_str(), &s);
 	return s.st_mode & S_IFDIR;
 #endif
+}
+
+std::string getHumanReadableBytes(uint64_t bytes)
+{
+	const char* suffixes[] = { "bytes", "KB", "MB", "GB", "TB" };
+	int suffix = 0;
+	double size = bytes;
+
+	while (size >= 1024 && suffix < 4)
+	{
+		size /= 1024;
+		suffix++;
+	}
+
+	std::stringstream ss;
+	// limit to up to 2 decimal places
+	int places = 0;
+    double fractional_part = size - static_cast<int>(size);
+    if (fractional_part > 0) {
+		// there's a decimal component, set to either 1 or 2
+        places = (fractional_part * 100 >= 1) ? 2 : 1;
+    }
+	ss.precision(places);
+	ss << std::fixed << size << " " << suffixes[suffix];
+	return ss.str();
 }

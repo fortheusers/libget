@@ -145,6 +145,7 @@ void Zip::Close()
 
 UnZip::UnZip(const std::string& zipPath)
 {
+	printf("Unzip Path: %s\n", zipPath.c_str());
 	fileToUnzip = unzOpen(zipPath.c_str());
 }
 
@@ -156,6 +157,25 @@ UnZip::~UnZip()
 void UnZip::Close()
 {
 	unzClose(fileToUnzip);
+}
+
+bool UnZip::IsValid()
+{
+	// check if the zip file is actually a zip file
+	if (fileToUnzip == nullptr) {
+        printf("Error: fileToUnzip is null\n");
+        return false;
+    }
+
+	unz_global_info globalInfo;
+	int result = unzGetGlobalInfo(fileToUnzip, &globalInfo);
+	if (result != UNZ_OK) {
+		printf("Failed to get global info from the ZIP file.\n");
+		// Handle the error appropriately
+		return false;
+	}
+
+    return result == UNZ_OK;
 }
 
 int UnZip::ExtractFile(const std::string& internalPath, const std::string& path)
@@ -271,7 +291,7 @@ std::vector<std::string> UnZip::PathDump()
 		std::string fileName = GetFullFileName(fileInfo);
 		if (fileInfo.uncompressed_size != 0 && fileInfo.compression_method != 0)
 		{
-			// info("PathDump: %s\n", fileName.c_str());
+			// printf("PathDump: %s\n", fileName.c_str());
 			paths.push_back(fileName);
 		}
 	}

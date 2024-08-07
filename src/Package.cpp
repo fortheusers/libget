@@ -59,11 +59,36 @@ bool Package::downloadZip(std::string_view tmp_path, float*) const
 	// fetch zip file to tmp directory using curl
 	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path.data());
 	auto zipUrl = this->mRepo->getZipUrl(*this);
-	return downloadFileToDisk(zipUrl, std::string(tmp_path) + this->pkg_name + ".zip");
+
+	if (zipUrl.empty()) {
+		printf("--> ERROR: No download url found for %s\n", this->pkg_name.c_str());
+		return false;
+	}
+
+	return downloadFileToDisk(zipUrl, std::string(tmp_path) + this->pkg_name + getUrlFileExt());
+}
+
+std::string Package::getUrlFileExt() const {
+	std::string urlEnding = ".zip"; // assume zip
+
+	auto zipUrl = this->mRepo->getZipUrl(*this);
+
+	if (!zipUrl.ends_with(".zip")) { // only do something if it's not a .zip already
+		auto lastDotPos = zipUrl.find_last_of(".");
+		if (lastDotPos != std::string::npos) {
+			// slash found, grab the file ending
+			std::string ending = zipUrl.substr(lastDotPos);
+			urlEnding = ending;
+			// printf("--> Found file ending: %s\n", urlEnding.c_str());
+		}
+	}
+
+	return urlEnding;
 }
 
 bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 {
+	printf("Going to install %s\n", this->pkg_name.c_str());
 	// assumes that download was called first
 	if (libget_status_callback != nullptr)
 		libget_status_callback(STATUS_ANALYZING, 1, 1);
@@ -71,10 +96,23 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 	if (networking_callback != nullptr)
 		networking_callback(nullptr, 10, 10, 0, 0);
 
+	std::string downloadedFilePath = tmp_path + this->pkg_name + getUrlFileExt();
+
 #ifdef NETWORK_MOCK
 	// for network mocking, copy over a /mock.zip to the expected download path
-	cp(ROOT_PATH "mock.zip", (tmp_path + this->pkg_name + ".zip").c_str());
+	cp(ROOT_PATH "mock.zip", (downloadedFilePath).c_str());
 #endif
+
+	// check file size to see if it's 0 bytes
+	struct stat sbuff = {};
+	stat((downloadedFilePath).c_str(), &sbuff);
+	if (sbuff.st_size == 0)
+	{
+		printf("--> ERROR: Downloaded file is empty\n");
+		return false;
+	}
+
+	printf("--> Downloaded file size: %ld\n", sbuff.st_size);
 
 	// our internal path of where the manifest will be
 	std::string ManifestPathInternal = "manifest.install";
@@ -98,24 +136,78 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 		}
 	}
 
+	printf("--> Existing manifest valid: %d\n", existingManifest.isValid());
 	//! Open the Zip file
-	UnZip HomebrewZip(tmp_path + this->pkg_name + ".zip");
+	UnZip HomebrewZip(downloadedFilePath);
+	printf("--> Opened Zip file\n");
 
-	//! First extract the Manifest
-	HomebrewZip.ExtractFile(ManifestPathInternal, ManifestPath);
-
-	//! Then extract the info.json file (to know what version we have installed and stuff)
+	// location of the info.json within the zip
 	std::string jsonPathInternal = "info.json";
 	std::string jsonPath = pkg_path + this->pkg_name + "/" + jsonPathInternal;
-	HomebrewZip.ExtractFile(jsonPathInternal, jsonPath);
+	
+	printf("--> Extracting to %s\n", pkg_path.c_str());
+	//! Check if it's a valid Zip file
+	if (HomebrewZip.IsValid())
+	{
+		printf("--> Valid Zip file\n");
+		//! First extract the Manifest
+		HomebrewZip.ExtractFile(ManifestPathInternal, ManifestPath);
+
+		//! Then extract the info.json file (to know what version we have installed and stuff)
+		HomebrewZip.ExtractFile(jsonPathInternal, jsonPath);
+	} else {
+		printf("--> NOTICE: Downloaded file is not a valid zip, just copying to SD root\n");
+		// TODO: support other file types, copying to their destinations
+	}
 
 	this->manifest = Manifest(ManifestPath, ROOT_PATH);
 
+	printf("--> Manifest valid: %d\n", manifest.isValid());
 	if (!manifest.isValid() && manifest.isFakeManifestPossible())
 	{
+		printf("--> ERROR: Manifest invalid/doesn't exist but recoverable\n");
 #ifndef NETWORK_MOCK
 		printf("--> Manifest invalid/doesn't exist but recoverable, generating pseudo-manifest\n");
-		this->manifest = Manifest(HomebrewZip.PathDump(), ROOT_PATH);
+		if (HomebrewZip.IsValid())
+		{
+			printf("HB zip is valid\n");
+			// generate a pseudo-manifest from the zip file
+			this->manifest = Manifest(HomebrewZip.PathDump(), ROOT_PATH);
+		} else {
+			printf("Not a zip but going for it\n");
+			// we're not a zip, so just put our one file path in the manifest
+
+			// since we don't know where to put the files, put them in a default app location
+			// #if defined(__WIIU__)
+			// 	platformDefault = "wiiu/apps/";
+			// #elif defined(WII)
+			// 	platformDefault = "apps/";
+			// #elif defined(SWITCH)
+			// 	platformDefault = "switch/";
+			// #elif defined(_3DS)
+			// 	platformDefault = "3ds/";
+			// #endif
+
+			std::string platformDefault = "";
+			std::string ext = getUrlFileExt();
+			if (ext == ".3dsx") {
+				platformDefault = "3ds/";
+			} else if (ext == ".cia") {
+				// TODO: where should these go? they need a post install step
+			} else if (ext == ".nro") {
+				platformDefault = "switch/";
+			} else if (ext == ".rpx" || ext == ".wuhb") {
+				platformDefault = "wiiu/apps/";
+			} else {
+				// assume wii format
+				platformDefault = "apps/";
+			}
+
+			printf("Continuing with %s\n", platformDefault.c_str());
+			std::string destFilePath = platformDefault + this->pkg_name + ext;
+			std::vector<std::string> entries = { destFilePath };
+			this->manifest = Manifest(entries, ROOT_PATH);
+		}
 
 		// write the pseudo-manifest to the internal package .get directory
 		mkpath((pkg_path + this->pkg_name).c_str());
@@ -129,6 +221,7 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 
 		// write a pseudo-info.json here too
 		// TODO: load other attributes from the package, besides version
+		printf("--> Writing pseudo-info.json to %s\n", jsonPath.c_str());
 		std::ofstream pseudojson(jsonPath);
 		pseudojson << "{\"version\":\"" << this->version << "\"}" << std::endl;
 		pseudojson.close();
@@ -137,7 +230,7 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 
 	std::unordered_set<std::string> incoming_package_paths;
 
-	if (manifest.isValid())
+	if (manifest.isValid() && HomebrewZip.IsValid())
 	{
 		// get all file info from within the zip, for every path
 		auto infoMap = HomebrewZip.GetPathToFilePosMapping();
@@ -229,7 +322,21 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 		//		printf("No manifest found: extracting the Zip\n");
 		//		HomebrewZip.ExtractAll("sdroot/");
 		// TODO: generate a manifest here, it's needed for deletion
-		if (!manifest.isFakeManifestPossible())
+
+		if (!HomebrewZip.IsValid())
+		{
+			// our zip was no good, so just copy over the file to the destination
+			// it's the first file in the pseudo-manifest
+			
+			// make a folder for the base name of the target file
+			auto containingDir = dir_name(manifest.getEntries().front().path);
+			mkpath(containingDir.c_str());
+
+			auto firstEntry = manifest.getEntries().front();
+			rename(downloadedFilePath.c_str(), firstEntry.path.c_str());
+			printf("--> Moved %s to %s\n", downloadedFilePath.c_str(), firstEntry.path.c_str());
+		}
+		else if (!manifest.isFakeManifestPossible())
 		{
 			printf("--> Invalid/No manifest file found (or error writing manifest download)! Refusing to extract.\n");
 			return false;

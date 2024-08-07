@@ -1,6 +1,7 @@
 #ifndef PACKAGE_H
 #define PACKAGE_H
 #include "Manifest.hpp"
+#include "Utils.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
 #include <optional>
@@ -54,6 +55,7 @@ public:
 	[[nodiscard]] std::string getScreenShotUrl(int count) const;
 
 	int isPreviouslyInstalled();
+	[[nodiscard]] std::string getUrlFileExt() const;
 
 	Manifest manifest;
 
@@ -111,7 +113,15 @@ public:
 	}
 
 	[[nodiscard]] int getExtractedSize() const {
-		return download_size;
+		return extracted_size;
+	}
+
+	[[nodiscard]] std::string getHumanDownloadSize() const {
+		return getHumanReadableBytes(download_size);
+	}
+
+	[[nodiscard]] std::string getHumanExtractedSize() const {
+		return getHumanReadableBytes(extracted_size);
 	}
 
 	[[nodiscard]] int getScreenshotCount() const {
