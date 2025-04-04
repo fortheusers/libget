@@ -19,18 +19,18 @@ class RepoAddAndRemoveTest : public Test {
 			removeSet.insert(repo->getUrl());
 		
 		// create some test repos to add
-		std::unordered_set<std::string> addSet;
-		addSet.insert("https://wiiu.cdn.fortheusers.org");
-		addSet.insert("https://switch.cdn.fortheusers.org");
+		std::unordered_map<std::string, std::string> addMap;
+		addMap["https://wiiu.cdn.fortheusers.org"] = "get";
+		addMap["https://switch.cdn.fortheusers.org"] = "get";
 
 		// call the add and remove functions
-		get->addAndRemoveReposByURL(addSet, removeSet);
+		get->addAndRemoveReposByURL(addMap, removeSet);
 
 		// we should end up with only the repos we added
 		repos = get->getRepos();
-		if (repos.size() != addSet.size())
+		if (repos.size() != addMap.size())
 		{
-			error << "Expected " << addSet.size() << " repos, got " << repos.size();
+			error << "Expected " << addMap.size() << " repos, got " << repos.size();
 			return false;
 		}
 

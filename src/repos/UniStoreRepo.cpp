@@ -13,7 +13,7 @@ using namespace rapidjson;
 std::vector<std::unique_ptr<Package>> UniStoreRepo::loadPackages()
 {
 	std::vector<std::unique_ptr<Package>> result;
-	std::string directoryUrl = this->url;
+	std::string directoryUrl = this->url + "/data/full.json";
 
 	std::string response;
 	bool success = downloadFileToMemory(directoryUrl, &response);
@@ -159,12 +159,13 @@ std::vector<std::unique_ptr<Package>> UniStoreRepo::loadPackages()
 					// get the object for this key
 					std::string name = it->name.GetString();
 					const Value& obj = cur2[name.c_str()];
-					if (obj.HasMember("url") && obj.HasMember("size")) {
+					if (obj.HasMember("url")) {
 						std::string url = obj["url"].GetString();
-						auto size = obj["size"].GetInt();
+						if (obj.HasMember("size") && obj["size"].IsInt()) {
+							package->download_size = obj["size"].GetInt();
+						}
 						if (name.ends_with(ending)) {
 							package->url = url;
-							package->download_size = size;
 							found = true;
 							break;
 						}

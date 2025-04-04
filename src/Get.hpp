@@ -32,7 +32,7 @@ public:
 
 	void saveRepos();
 	void addAndRemoveReposByURL(
-		const std::unordered_set<std::string>& reposToAdd,
+		const std::unordered_map<std::string, std::string>& reposToAdd,
 		const std::unordered_set<std::string>& reposToRemove
 	);
 

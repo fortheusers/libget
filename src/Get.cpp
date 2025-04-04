@@ -99,7 +99,7 @@ void Get::addLocalRepo()
 }
 
 void Get::addAndRemoveReposByURL(
-	const std::unordered_set<std::string>& reposToAdd,
+	const std::unordered_map<std::string, std::string>& reposToAdd,
 	const std::unordered_set<std::string>& reposToRemove
 )
 {
@@ -121,7 +121,9 @@ void Get::addAndRemoveReposByURL(
 		currentUrls.insert(curRepo->getUrl());
 	}
 	
-	for (auto& url : reposToAdd) {
+	for (auto& entry : reposToAdd) {
+		auto url = entry.first;
+		auto curType = entry.second;
 		if (currentUrls.find(url) == currentUrls.end()) {
 			// extract domain from url string
 			std::string nameSummary;
@@ -139,8 +141,8 @@ void Get::addAndRemoveReposByURL(
 			if (nameSummary.empty()) {
 				nameSummary = "Auto-added from Meta";
 			}
-
-			repos.push_back(std::make_unique<GetRepo>(nameSummary, url, true));
+			auto newRepo = Repo::createRepo(nameSummary, url, true, curType, "");
+			repos.push_back(std::shared_ptr<Repo>(std::move(newRepo)));
 		}
 	}
 
@@ -199,7 +201,7 @@ void Get::loadRepos()
 	{
 		printf("--> Could not load repos from %s, generating default GET repos.json\n", config_path.c_str());
 
-#if defined(WII) || defined(_3DS)
+#if defined(WII) || defined(_3DS) || defined(WII_MOCK)
 		auto defaultRepo = GetRepo::createRepo("Default Repo", this->mDefaultRepo, true, this->mDefaultRepoType, mPkg_path);
 #else
 		auto defaultRepo = std::make_unique<GetRepo>("Default Repo", this->mDefaultRepo, true);
