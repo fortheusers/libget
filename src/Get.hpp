@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 void info(const char* format, ...);
 

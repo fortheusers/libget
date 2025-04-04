@@ -11,14 +11,30 @@
 
 using namespace std;
 
+// https://stackoverflow.com/a/5867387
+std::string getEnvVar(std::string const& key)
+{
+    char const* val = getenv(key.c_str()); 
+    return val == NULL ? std::string() : std::string(val);
+}
+
 int main(int argc, char** args)
 {
 	init_networking();
 
 	setUserAgent("get-cli/" APP_VERSION);
 
+	// our config dir is in our current directory
+	std::string config_dir = "./.get/";
+
+	// or use the home dir if it's defined
+	std::string homeDir = getEnvVar("HOME");
+	if (homeDir != "") {
+		config_dir = homeDir + "/.config/libget-cli/";
+	}
+
 	// create main Get object
-	Get get("./.get/", "https://switch.cdn.fortheusers.org");
+	Get get(config_dir, "https://switch.cdn.fortheusers.org");
 
 	auto repos = get.getRepos();
 	auto packages = get.getPackages();
