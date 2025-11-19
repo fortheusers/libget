@@ -24,8 +24,9 @@ public:
 	[[nodiscard]] std::string getZipUrl(const Package& package) const override;
 	[[nodiscard]] std::string getIconUrl(const Package& package) const override;
 
+	[[maybe_unused]] std::vector<std::unique_ptr<Package>> loadPackages() override;
+
 private:
 	std::string mPkg_path;
-	[[maybe_unused]] std::vector<std::unique_ptr<Package>> loadPackages() override;
 };
 #endif

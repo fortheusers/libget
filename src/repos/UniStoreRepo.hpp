@@ -13,7 +13,6 @@ public:
 	[[nodiscard]] std::string getZipUrl(const Package& package) const override;
 	[[nodiscard]] std::string getIconUrl(const Package& package) const override;
 
-private:
 	[[maybe_unused]] std::vector<std::unique_ptr<Package>> loadPackages() override;
 };
 #endif

@@ -42,9 +42,8 @@ protected:
 
 	static std::unique_ptr<Repo> createRepo(std::string_view name, std::string_view url, bool enabled, std::string_view type, std::string_view package_path);
 
-private:
 	virtual std::vector<std::unique_ptr<Package>> loadPackages() = 0;
-
+private:
 	friend Get;
 };
 

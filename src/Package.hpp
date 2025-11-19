@@ -144,13 +144,15 @@ public:
 		return binary;
 	}
 
-private:
-	// Package attributes
-	std::string pkg_name;
+	// these are exposed, since they can be overridden in some contexts
 	std::string title;
 	std::string author;
 	std::string short_desc;
 	std::string long_desc;
+
+private:
+	// Package attributes
+	std::string pkg_name;
 	std::string version;
 
 	std::string license;
