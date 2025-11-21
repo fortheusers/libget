@@ -40,6 +40,7 @@ int main(int argc, char** args)
 	auto packages = get.getPackages();
 
 	bool removeMode = false;
+	bool resumeMode = false;
 
 	for (int x = 1; x < argc; x++)
 	{
@@ -48,6 +49,11 @@ int main(int argc, char** args)
 		if (cur == "-x" || cur == "-d" || cur == "-r" || cur == "--delete" || cur == "--remove")
 		{
 			removeMode = true;
+		}
+		else if (cur == "--resume")
+		{
+			resumeMode = true;
+			printf("--> Resume mode enabled - will continue partial downloads\n");
 		}
 		else if (cur == "-s" || cur == "--search")
 		{
@@ -140,7 +146,7 @@ int main(int argc, char** args)
 						break;
 					}
 
-					get.install(*cur_package);
+					get.install(*cur_package, resumeMode);
 					break;
 				}
 			}

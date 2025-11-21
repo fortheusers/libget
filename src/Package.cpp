@@ -51,13 +51,13 @@ std::string Package::toString() const
 	return "[" + this->pkg_name + "] (" + this->version + ") \"" + this->title + "\" - " + this->short_desc;
 }
 
-bool Package::downloadZip(std::string_view tmp_path, float*) const
+bool Package::downloadZip(std::string_view tmp_path, float*, bool resume) const
 {
 	if (libget_status_callback != nullptr)
 		libget_status_callback(STATUS_DOWNLOADING, 1, 1);
 
 	// fetch zip file to tmp directory using curl
-	printf("--> Downloading %s to %s\n", this->pkg_name.c_str(), tmp_path.data());
+	printf("--> Downloading %s to %s%s\n", this->pkg_name.c_str(), tmp_path.data(), resume ? " (resuming)" : "");
 	auto zipUrl = this->mRepo->getZipUrl(*this);
 
 	if (zipUrl.empty()) {
@@ -65,7 +65,41 @@ bool Package::downloadZip(std::string_view tmp_path, float*) const
 		return false;
 	}
 
-	return downloadFileToDisk(zipUrl, std::string(tmp_path) + this->pkg_name + getUrlFileExt());
+	std::string downloadPath = std::string(tmp_path) + this->pkg_name + getUrlFileExt();
+	
+	// passing metadata allows us to note some headers for resume support
+	download_metadata_t metadata = {};
+	metadata.content_length = this->download_size;
+	
+	bool success = downloadFileToDiskWithMetadata(zipUrl, downloadPath, resume, &metadata);
+	
+	// if the download filed, but some data was received, record any metadata
+	// (saves whether or not resume was requested)
+	if (!success)
+	{
+		struct stat file_info = {};
+		if (stat(downloadPath.c_str(), &file_info) == 0 && file_info.st_size > 0)
+		{
+			if (!metadata.etag.empty() || metadata.content_length > 0)
+			{
+				printf("--> Saving download metadata for resume validation\n");
+				saveDownloadMetadata(downloadPath, metadata);
+			}
+		}
+		
+		if (resume)
+		{
+			printf("--> Resume failed. File may have changed on server. Try downloading without --resume\n");
+		}
+	}
+	else
+	{
+		// Download succeeded, clean up any metadata file
+		std::string metapath = getMetadataPath(downloadPath);
+		std::remove(metapath.c_str());
+	}
+	
+	return success;
 }
 
 std::string Package::getUrlFileExt() const {
@@ -84,6 +118,79 @@ std::string Package::getUrlFileExt() const {
 	}
 
 	return urlEnding;
+}
+
+// This method returns 0 through 100 representing how much of the file is downloaded, or 
+// returns negative for a partial download not being possible. It can be called before passing resume=true
+// to downloadZip()
+int Package::hasPartialDownload(std::string_view tmp_path) const
+{
+	std::string downloadPath = std::string(tmp_path) + this->pkg_name + getUrlFileExt();
+	struct stat file_info = {};
+	
+	// File must exist and not be empty
+	if (stat(downloadPath.c_str(), &file_info) == 0 && file_info.st_size > 0)
+	{
+		// do we have any existing metadata?
+		download_metadata_t saved_metadata = {};
+		bool has_saved_metadata = loadDownloadMetadata(downloadPath, &saved_metadata);
+		
+		// validate whatever we can against the current headers (in case the file changed, eg on a new update)
+		if (has_saved_metadata && !saved_metadata.etag.empty())
+		{
+			auto zipUrl = this->mRepo->getZipUrl(*this);
+			if (!zipUrl.empty())
+			{
+				download_metadata_t remote_metadata = {};
+				if (getRemoteFileMetadata(zipUrl, &remote_metadata))
+				{
+					// etag check
+					if (!remote_metadata.etag.empty() && remote_metadata.etag != saved_metadata.etag)
+					{
+						printf("--> Warning: Remote file ETag changed (was %s, now %s)\n", 
+							   saved_metadata.etag.c_str(), remote_metadata.etag.c_str());
+						return -1;
+					}
+					
+					// content length check
+					if (remote_metadata.content_length > 0 && saved_metadata.content_length > 0 &&
+						remote_metadata.content_length != saved_metadata.content_length)
+					{
+						printf("--> Warning: Remote file size changed (was %ld, now %ld)\n",
+							   saved_metadata.content_length, remote_metadata.content_length);
+						return -1;
+					}
+				}
+			}
+		}
+		
+		// How far along was the download given our partial?
+		if (this->download_size > 0)
+		{
+			int percentage = (int)((file_info.st_size * 100) / this->download_size);
+			return (percentage >= 100) ? 99 : percentage; // 100 would be misleading
+		}
+		else
+		{
+			// total size may not always be available, fallback just return 1%
+			return 1;
+		}
+	}
+	
+	return -1; // cannot resume!
+}
+
+long Package::getPartialDownloadSize(std::string_view tmp_path) const
+{
+	std::string downloadPath = std::string(tmp_path) + this->pkg_name + getUrlFileExt();
+	struct stat file_info = {};
+	
+	if (stat(downloadPath.c_str(), &file_info) == 0)
+	{
+		return file_info.st_size;
+	}
+	
+	return 0;
 }
 
 bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
@@ -343,8 +450,8 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 		}
 	}
 
-	//! Delete the Zip file
-	std::remove((tmp_path + this->pkg_name + ".zip").c_str());
+	//! Delete the Zip file (only on successful install)
+	std::remove((tmp_path + this->pkg_name + getUrlFileExt()).c_str());
 
 	return true;
 }
@@ -605,10 +712,16 @@ std::string Package::getBannerUrl() const
 
 std::string Package::getScreenShotUrl(int count) const
 {
+	if (!this->mRepo) {
+		return "";
+	}
 	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/screen" + std::to_string(count) + ".png";
 }
 
 std::string Package::getManifestUrl() const
 {
+	if (!this->mRepo) {
+		return "";
+	}
 	return this->mRepo->getUrl() + "/packages/" + this->pkg_name + "/manifest.install";
 }

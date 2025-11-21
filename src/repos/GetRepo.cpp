@@ -2,6 +2,7 @@
 #include "../Utils.hpp"
 #include "constants.h"
 #include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 #include <regex>
 #include <sstream>
 #include <iomanip>
@@ -48,7 +49,16 @@ std::vector<std::unique_ptr<Package>> GetRepo::loadPackages()
 	Document doc;
 	ParseResult ok = doc.Parse(response.c_str());
 
-	if (!ok || !doc.IsObject() || !doc.HasMember("packages"))
+	if (!ok)
+	{
+		printf("--> JSON parse error in repo.json for %s: %s (offset %zu)\n",
+			this->url.c_str(), GetParseError_En(ok.Code()), ok.Offset());
+		printf("--> Response preview (first 200 chars): %.200s\n", response.c_str());
+		this->loaded = false;
+		return {};
+	}
+
+	if (!doc.IsObject() || !doc.HasMember("packages"))
 	{
 		printf("--> Invalid format in downloaded repo.json for %s\n", this->url.c_str());
 		this->loaded = false;

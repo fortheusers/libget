@@ -20,7 +20,7 @@ public:
 		std::string defaultRepoType = "get"
 	);
 
-	int install(Package& pkg_name); // download the given package name and manifest data
+	int install(Package& pkg_name, bool resume = false); // download the given package name and manifest data
 	int remove(Package& pkg_name);	// delete and remove all files for the given package name
 	int toggleRepo(Repo& repo);		// enable/disable the specified repo (and write changes)
 
@@ -62,6 +62,10 @@ public:
 	void loadRepos();
 	int validateRepos() const;
 	
+	void cancelCurrentOperation() { cancelRequested = true; }
+	bool isCancelled() const { return cancelRequested; }
+	void resetCancellation() { cancelRequested = false; }
+	
 private:
 	// the remote repos and packages
 	std::vector<std::shared_ptr<Repo>> repos;
@@ -69,5 +73,7 @@ private:
 
 	std::string mDefaultRepo;
 	std::string mDefaultRepoType;
+	
+	bool cancelRequested = false;
 };
 #endif

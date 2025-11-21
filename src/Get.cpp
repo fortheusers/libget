@@ -53,10 +53,10 @@ Get::Get(
 	}
 }
 
-int Get::install(Package& package)
+int Get::install(Package& package, bool resume)
 {
 	// found package in a remote server, fetch it
-	bool located = package.downloadZip(mTmp_path);
+	bool located = package.downloadZip(mTmp_path, nullptr, resume);
 
 	if (!located)
 	{
@@ -70,6 +70,12 @@ int Get::install(Package& package)
 	package.install(mPkg_path, mTmp_path);
 
 	printf("--> Downloaded [%s] to sdroot/\n", package.getPackageName().c_str());
+
+	// clear any progress callbacks before updating repo metadata
+	extern int (*networking_callback)(void*, double, double, double, double);
+	extern void* networking_callback_data;
+	networking_callback = nullptr;
+	networking_callback_data = nullptr;
 
 	// update again post-install
 	update();
@@ -272,7 +278,8 @@ void Get::loadRepos()
 
 void Get::update()
 {
-	printf("--> Updating package list\n");
+	printf("--> Updating package list\n", packages.size());
+	
 	// clear current packages
 	packages.clear();
 
@@ -310,6 +317,8 @@ void Get::update()
 	for (const auto& package : packages) {
 		package->updateStatus(mPkg_path);
 	}
+	
+	printf("--> Get::update() complete, final package count: %zu\n", packages.size());
 
 	// sort the packages by name
 	// TODO: apply other sort orders here, and potentially search filters

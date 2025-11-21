@@ -19,6 +19,14 @@ typedef struct
 	FILE* out;
 } ntwrk_struct_t;
 
+// struct to hold download metadata for resume validation
+typedef struct
+{
+	std::string etag;
+	std::string last_modified;
+	long content_length;
+} download_metadata_t;
+
 #define STATUS_DOWNLOADING 0
 #define STATUS_INSTALLING 1
 #define STATUS_REMOVING 2
@@ -34,10 +42,13 @@ bool CreateSubfolder(std::string_view path);
 int init_networking();
 int deinit_networking();
 bool downloadFileToMemory(const std::string& path, std::string* buffer);				// writes to disk in BUF_SIZE chunks.
-bool downloadFileToDisk(const std::string& remote_path, const std::string& local_path); // saves file to local_path.
+bool downloadFileToDisk(const std::string& remote_path, const std::string& local_path, bool resume = false); // saves file to local_path, optionally resuming
+bool downloadFileToDiskWithMetadata(const std::string& remote_path, const std::string& local_path, bool resume, download_metadata_t* metadata);
+bool getRemoteFileMetadata(const std::string& remote_path, download_metadata_t* metadata); // performs HEAD request to get metadata
 
 #ifndef NETWORK_MOCK
 void setPlatformCurlFlags(CURL* c);
+void resetCurlToCleanState(CURL* c);  // reset curl handle to clean state after each use
 #endif
 
 // for cross platform dir creation
@@ -49,11 +60,17 @@ char* my_strptime(const char* s, const char* f, struct tm* tm);
 // if set, will be invoked during the download
 extern int (*networking_callback)(void*, double, double, double, double);
 extern int (*libget_status_callback)(int, int, int);
+extern void* networking_callback_data; // User data to pass to networking_callback
 void setUserAgent(const char* data);
 
 // helper methods
 const char* plural(int amount);
 void cp(const char* from, const char* to);
+
+// metadata helpers for resume validation
+bool saveDownloadMetadata(const std::string& filepath, const download_metadata_t& metadata);
+bool loadDownloadMetadata(const std::string& filepath, download_metadata_t* metadata);
+std::string getMetadataPath(const std::string& filepath);
 
 template <typename CharT>
 inline std::basic_string<CharT> toLower(const std::basic_string<CharT>& str)

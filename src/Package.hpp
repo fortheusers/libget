@@ -43,11 +43,15 @@ public:
 	Package(const Package& other) = default;
 
 	[[nodiscard]] std::string toString() const;
-	bool downloadZip(std::string_view tmp_path, float* progress = nullptr) const;
+	bool downloadZip(std::string_view tmp_path, float* progress = nullptr, bool resume = false) const;
 	bool install(const std::string& pkg_path, const std::string& tmp_path);
 	bool remove(std::string_view pkg_path);
 	[[nodiscard]] const char* statusString() const;
 	void updateStatus(const std::string& pkg_path);
+	
+	// check if a partial download exists for this package, return percentage
+	[[nodiscard]] int hasPartialDownload(std::string_view tmp_path) const;
+	[[nodiscard]] long getPartialDownloadSize(std::string_view tmp_path) const;
 
 	[[nodiscard]] std::string getIconUrl() const;
 	[[nodiscard]] std::string getBannerUrl() const;

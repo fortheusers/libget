@@ -2,6 +2,7 @@
 #include "../Utils.hpp"
 #include "constants.h"
 #include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 #include "rapidjson/rapidjson.h"
 #include <iomanip>
 #include <regex>
@@ -47,9 +48,18 @@ std::vector<std::unique_ptr<Package>> OSCRepo::loadPackages()
 	Document doc;
 	ParseResult ok = doc.Parse(response.c_str());
 
-	if (!ok || !doc.IsArray())
+	if (!ok)
 	{
-		printf("--> Invalid format in downloaded data for %s\n", this->url.c_str());
+		printf("--> JSON parse error in OSC repo data for %s: %s (offset %zu)\n",
+			this->url.c_str(), GetParseError_En(ok.Code()), ok.Offset());
+		printf("--> Response preview (first 200 chars): %.200s\n", response.c_str());
+		this->loaded = false;
+		return {};
+	}
+
+	if (!doc.IsArray())
+	{
+		printf("--> Invalid format in downloaded data for %s (expected array)\n", this->url.c_str());
 		this->loaded = false;
 		return {};
 	}
