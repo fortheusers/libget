@@ -109,7 +109,7 @@ void Get::addAndRemoveReposByURL(
 	const std::unordered_set<std::string>& reposToRemove
 )
 {
-	int reposLen = repos.size();
+	size_t reposLen = repos.size();
 
 	bool madeChanges = false;
 
@@ -278,7 +278,7 @@ void Get::loadRepos()
 
 void Get::update()
 {
-	printf("--> Updating package list\n", packages.size());
+	printf("--> Updating package list\n");
 	
 	// clear current packages
 	packages.clear();

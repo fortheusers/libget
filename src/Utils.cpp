@@ -77,7 +77,7 @@ CURL* curl = nullptr;
 #ifndef NETWORK_MOCK
 // networking optimizations adapted from:
 //  - https://github.com/samdejong86/Arria-V-ADC-Ethernet-software/blob/master/ADC_Socket_bsp/iniche/src/h/socket.h
-int sockopt_callback(void* clientp, curl_socket_t curlfd, curlsocktype purpose)
+int sockopt_callback(void* clientp __attribute__((unused)), curl_socket_t curlfd, curlsocktype purpose __attribute__((unused)))
 {
 	int winscale = 1, rcvbuf = 0x20000, tcpsack = 1;
 #ifndef WIN32
@@ -260,8 +260,6 @@ static size_t DiskWriteCallback(void* contents, size_t size, size_t num_files, v
 bool downloadFileCommon(const std::string& path, std::string* buffer = nullptr, ntwrk_struct_t* data_struct = nullptr)
 {
 #ifndef NETWORK_MOCK
-	CURLcode res;
-
 	if (!buffer && !data_struct)
 	{
 		return false;
@@ -691,7 +689,7 @@ bool libget_reset_data(const char* path)
 	return !res;
 }
 
-bool is_dir(std::string_view path, struct dirent* entry)
+bool is_dir(std::string_view path __attribute__((unused)), struct dirent* entry)
 {
 #ifndef WIN32
 	return entry->d_type & DT_DIR;

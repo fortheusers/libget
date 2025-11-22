@@ -115,13 +115,13 @@ std::string LocalRepo::getType() const
 	return "local";
 }
 
-std::string LocalRepo::getZipUrl(const Package& package) const
+std::string LocalRepo::getZipUrl(const Package& package __attribute__((unused))) const
 {
 	// Local packages don't have a zip url
 	return "";
 }
 
-std::string LocalRepo::getIconUrl(const Package& package) const
+std::string LocalRepo::getIconUrl(const Package& package __attribute__((unused))) const
 {
 	// ditto and/or ibid
 	return "";

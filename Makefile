@@ -17,6 +17,8 @@ INCLUDES    += $(RAPIDJSON) $(MINIZIP) $(TINYXML)
 
 VPATH       += $(LIBGET) $(LIBGET_REPOS) $(MINIZIP) $(TINYXML)
 
+CFLAGS      += -Wall -Wextra -Werror
+
 CFLAGS      += -DNETWORK
 LDFLAGS     += -lcurl
 

@@ -219,7 +219,7 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 		return false;
 	}
 
-	printf("--> Downloaded file size: %ld\n", sbuff.st_size);
+	printf("--> Downloaded file size: %lld\n", (long long)sbuff.st_size);
 
 	// our internal path of where the manifest will be
 	std::string ManifestPathInternal = "manifest.install";

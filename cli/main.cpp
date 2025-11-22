@@ -73,7 +73,7 @@ int main(int argc, char** args)
 
 			auto results = get.search(query);
 
-			for (int y = 0; y < results.size(); y++)
+			for (size_t y = 0; y < results.size(); y++)
 				printf("\t%s %s\n", results[y].statusString(), results[y].toString().c_str());
 
 			break;
@@ -85,7 +85,7 @@ int main(int argc, char** args)
 
 			printf("%zu repo%s loaded!\n", repos.size(), plural(repos.size()));
 			int enabledCount = 0;
-			for (int x = 0; x < repos.size(); x++) {
+			for (size_t x = 0; x < repos.size(); x++) {
 				printf("\t%s\n", repos[x]->toString().c_str());
 				if (repos[x]->isLoaded() && repos[x]->isEnabled()) {
 					enabledCount++;
@@ -98,12 +98,12 @@ int main(int argc, char** args)
 			}
 
 			printf("%zu package%s available!\n", packages.size(), plural(packages.size()));
-			for (int x = 0; x < packages.size(); x++)
+			for (size_t x = 0; x < packages.size(); x++)
 				printf("\t%s %s\n", packages[x]->statusString(), packages[x]->toString().c_str());
 
 			int count = 0;
 			int updatecount = 0;
-			for (int x = 0; x < packages.size(); x++)
+			for (size_t x = 0; x < packages.size(); x++)
 			{
 				if (packages[x]->getStatus() != GET)
 					count++;
