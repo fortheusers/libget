@@ -201,7 +201,7 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 		libget_status_callback(STATUS_ANALYZING, 1, 1);
 
 	if (networking_callback != nullptr)
-		networking_callback(nullptr, 10, 10, 0, 0);
+		networking_callback(nullptr, 1.0);
 
 	std::string downloadedFilePath = tmp_path + this->pkg_name + getUrlFileExt();
 
@@ -349,8 +349,10 @@ bool Package::install(const std::string& pkg_path, const std::string& tmp_path)
 		const auto& entries = manifest.getEntries();
 		for (const auto& entry : entries)
 		{
-			if (networking_callback != nullptr)
-				networking_callback(nullptr, entries.size(), i + 1, 0, 0);
+			if (networking_callback != nullptr) {
+				double progress = (double)(i + 1) / (double)entries.size();
+				networking_callback(nullptr, progress);
+			}
 
 			i++;
 
@@ -480,8 +482,10 @@ bool Package::remove(std::string_view pkg_path)
 		const auto& entries = manifest.getEntries();
 		for (const auto& entry : entries)
 		{
-			if (networking_callback != nullptr)
-				networking_callback(nullptr, entries.size(), i + 1, 0, 0);
+			if (networking_callback != nullptr) {
+				double progress = (double)(i + 1) / (double)entries.size();
+				networking_callback(nullptr, progress);
+			}
 			i++;
 			const std::string& DeletePath = entry.path;
 

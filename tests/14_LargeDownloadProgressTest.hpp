@@ -7,24 +7,22 @@
 #include <ctime>
 
 struct ProgressTracker {
-	std::vector<double> downloadedBytes;
-	std::vector<double> totalBytes;
+	std::vector<double> progressValues;
 	bool downloadFinished = false;
 	int callCount = 0;
 	bool sequentialCheck = true;
 	
 	void reset() {
-		downloadedBytes.clear();
-		totalBytes.clear();
+		progressValues.clear();
 		downloadFinished = false;
 		callCount = 0;
 		sequentialCheck = true;
 	}
 	
 	bool isSequential() const {
-		// ensure that downloaded bytes aren't going in the wrong direction
-		for (size_t i = 1; i < downloadedBytes.size(); i++) {
-			if (downloadedBytes[i] < downloadedBytes[i-1]) {
+		// ensure that progress isn't going backwards
+		for (size_t i = 1; i < progressValues.size(); i++) {
+			if (progressValues[i] < progressValues[i-1]) {
 				return false;
 			}
 		}
@@ -32,24 +30,20 @@ struct ProgressTracker {
 	}
 	
 	bool wasCompleted() const {
-		// check if we reached 100% in updates, or very close
-		if (downloadedBytes.empty() || totalBytes.empty()) return false;
-		double lastDownloaded = downloadedBytes.back();
-		double lastTotal = totalBytes.back();
-		if (lastTotal <= 0) return false;
-		double percent = (lastDownloaded / lastTotal) * 100.0;
-		return percent >= 99.0;
+		// check if we reached 100% (or very close) in updates
+		if (progressValues.empty()) return false;
+		double lastProgress = progressValues.back();
+		return lastProgress >= 0.99;
 	}
 } progressTracker;
 
-int testProgressCallback(void*, double dltotal, double dlnow, double, double) {
+int testProgressCallback(void*, double progress) {
 	progressTracker.callCount++;
-	progressTracker.downloadedBytes.push_back(dlnow);
-	progressTracker.totalBytes.push_back(dltotal);
+	progressTracker.progressValues.push_back(progress);
 	
-	if (progressTracker.downloadedBytes.size() > 1) {
-		size_t idx = progressTracker.downloadedBytes.size() - 1;
-		if (progressTracker.downloadedBytes[idx] < progressTracker.downloadedBytes[idx-1]) {
+	if (progressTracker.progressValues.size() > 1) {
+		size_t idx = progressTracker.progressValues.size() - 1;
+		if (progressTracker.progressValues[idx] < progressTracker.progressValues[idx-1]) {
 			progressTracker.sequentialCheck = false;
 		}
 	}
@@ -227,10 +221,9 @@ public:
 		
 		if (!progressTracker.wasCompleted()) {
 			error << "Progress did not reach completion" << endl;
-			if (!progressTracker.downloadedBytes.empty() && !progressTracker.totalBytes.empty()) {
-				double lastDl = progressTracker.downloadedBytes.back();
-				double lastTotal = progressTracker.totalBytes.back();
-				cout << "  Last progress: " << lastDl << " / " << lastTotal << " bytes" << endl;
+			if (!progressTracker.progressValues.empty()) {
+				double lastProgress = progressTracker.progressValues.back();
+				cout << "  Last progress: " << (lastProgress * 100.0) << "%" << endl;
 			}
 			return false;
 		}

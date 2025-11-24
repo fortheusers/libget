@@ -71,8 +71,10 @@ std::vector<std::unique_ptr<Package>> GetRepo::loadPackages()
 	auto total = packages_doc.Size();
 	for (int i = 0; i < (int)total; i++)
 	{
-		if (networking_callback != nullptr)
-			networking_callback(nullptr, total, i + 1, 0, 0);
+		if (networking_callback != nullptr) {
+			double progress = (double)(i + 1) / (double)total;
+			networking_callback(nullptr, progress);
+		}
 
 		auto package = std::make_unique<Package>(GET);
 

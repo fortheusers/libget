@@ -72,7 +72,7 @@ int Get::install(Package& package, bool resume)
 	printf("--> Downloaded [%s] to sdroot/\n", package.getPackageName().c_str());
 
 	// clear any progress callbacks before updating repo metadata
-	extern int (*networking_callback)(void*, double, double, double, double);
+	extern libget_progress_callback_t networking_callback;
 	extern void* networking_callback_data;
 	networking_callback = nullptr;
 	networking_callback_data = nullptr;

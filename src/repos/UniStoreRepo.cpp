@@ -69,10 +69,12 @@ std::vector<std::unique_ptr<Package>> UniStoreRepo::loadPackages()
 
 	// for every package in the repo
 	auto total = (int32_t)packages_doc.Size();
-	for (int i = 0; i < total; i++)
+	for (int32_t i = 0; i < total; i++)
 	{
-		if (networking_callback != nullptr)
-			networking_callback(nullptr, total, i + 1, 0, 0);
+		if (networking_callback != nullptr) {
+			double progress = (double)(i + 1) / (double)total;
+			networking_callback(nullptr, progress);
+		}
 		
 		std::vector<std::string> keys;
 		auto start = packages_doc[i].GetObj().MemberBegin();

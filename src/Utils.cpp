@@ -1,6 +1,14 @@
 // operating system level utilities
 // contains directory utils, http utils, and helper methods
 
+// CURLOPT_PROGRESSFUNCTION deprecated in 7.32.0 and is replaced with CURLOPT_XFERINFOFUNCTION
+#include <curl/curl.h>
+#if LIBCURL_VERSION_NUM >= 0x072000
+	#define COMPAT_CURL_PROGRESS_OPTION CURLOPT_XFERINFOFUNCTION
+#else
+	#define COMPAT_CURL_PROGRESS_OPTION CURLOPT_PROGRESSFUNCTION
+#endif
+
 #if defined(WII) && !defined(NETWORK_MOCK)
 #include <wiisocket.h>
 #endif
@@ -48,11 +56,30 @@
 
 #define BUF_SIZE 0x800000 // 8MB.
 
-int (*networking_callback)(void*, double, double, double, double);
-int (*libget_status_callback)(int, int, int);
+libget_progress_callback_t networking_callback = nullptr;
+int (*libget_status_callback)(int, int, int) = nullptr;
 void* networking_callback_data = nullptr; // User data to pass to callback
 
 static const char* USER_AGENT = "libget-unknown/0.0.0";
+
+// different signature depending on curl version
+#ifndef NETWORK_MOCK
+#if LIBCURL_VERSION_NUM >= 0x072000
+static int libget_curl_progress_wrapper(void* /*clientp*/, curl_off_t dltotal, curl_off_t dlnow, curl_off_t, curl_off_t)
+#else
+static int libget_curl_progress_wrapper(void* /*clientp*/, double dltotal, double dlnow, double, double)
+#endif
+{
+	if (networking_callback == nullptr)
+		return 0;
+	
+	if (dltotal == 0)
+		dltotal = 1;
+	
+	double progress = (double)dlnow / (double)dltotal;
+	return networking_callback(networking_callback_data, progress);
+}
+#endif
 
 // reference to the curl handle so that we can re-use the connection
 #ifndef NETWORK_MOCK
@@ -181,7 +208,7 @@ void resetCurlToCleanState(CURL* c)
 	if (!c) return;
 		
 	// clear callbacks which might reference freed objects
-	curl_easy_setopt(c, CURLOPT_PROGRESSFUNCTION, nullptr);
+	curl_easy_setopt(c, COMPAT_CURL_PROGRESS_OPTION, nullptr);
 	curl_easy_setopt(c, CURLOPT_PROGRESSDATA, nullptr);
 	curl_easy_setopt(c, CURLOPT_NOPROGRESS, 1);
 	
@@ -274,12 +301,12 @@ bool downloadFileCommon(const std::string& path, std::string* buffer = nullptr, 
 	
 	if (networking_callback != nullptr) {
 		printf("[downloadFileCommon] Setting progress callback (networking_callback=%p)\n", networking_callback);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, networking_callback);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, networking_callback_data);
+		curl_easy_setopt(curl, COMPAT_CURL_PROGRESS_OPTION, libget_curl_progress_wrapper);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, curl);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 	} else {
 		printf("[downloadFileCommon] Disabling progress callbacks (networking_callback is nullptr)\n");
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, nullptr);
+		curl_easy_setopt(curl, COMPAT_CURL_PROGRESS_OPTION, nullptr);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, nullptr);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 	}

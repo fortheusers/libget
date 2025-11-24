@@ -56,9 +56,12 @@ int my_mkdir(const std::string& path, int perms = 0700);
 char* my_strptime(const char* s, const char* f, struct tm* tm);
 
 
+// curl callback wrapper, progress is between 0 and 1 (inclusive)
+typedef int (*libget_progress_callback_t)(void* clientp, double progress);
+
 // callback for networking progress
 // if set, will be invoked during the download
-extern int (*networking_callback)(void*, double, double, double, double);
+extern libget_progress_callback_t networking_callback;
 extern int (*libget_status_callback)(int, int, int);
 extern void* networking_callback_data; // User data to pass to networking_callback
 void setUserAgent(const char* data);
