@@ -74,9 +74,15 @@ static int libget_curl_progress_wrapper(void* /*clientp*/, double dltotal, doubl
 		return 0;
 	
 	if (dltotal == 0)
-		dltotal = 1;
+		return networking_callback(networking_callback_data, 0.0);
 	
 	double progress = (double)dlnow / (double)dltotal;
+	
+	// don't go OOB
+	if (progress > 1.0) {
+		progress = 1.0;
+	}
+	
 	return networking_callback(networking_callback_data, progress);
 }
 #endif

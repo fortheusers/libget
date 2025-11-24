@@ -1474,6 +1474,7 @@ extern int ZEXPORT zipWriteInFileInZip (zipFile file,const void* buf,unsigned in
               if(uTotalOutBefore > zi->ci.stream.total_out)
               {
                 int bBreak = 0;
+                (void) bBreak;
                 bBreak++;
               }
 
