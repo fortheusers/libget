@@ -488,6 +488,9 @@ bool downloadFileToDiskWithMetadata(const std::string& remote_path, const std::s
 			if (loadDownloadMetadata(local_path, &old_metadata))
 			{
 				printf("--> Found existing download metadata (ETag: %s)\n", old_metadata.etag.c_str());
+			} else {
+				// no metadata found, cannot resume (old clients might have partials without metadata)
+				resume_from = 0;
 			}
 			
 			printf("--> Resuming download from byte %ld\n", resume_from);

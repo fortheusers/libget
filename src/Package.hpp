@@ -154,6 +154,8 @@ public:
 	std::string short_desc;
 	std::string long_desc;
 
+
+	std::string url;
 private:
 	// Package attributes
 	std::string pkg_name;
@@ -162,7 +164,6 @@ private:
 	std::string license;
 	std::string changelog;
 
-	std::string url;
 	std::string sourceUrl;
 	std::string iconUrl;
 
