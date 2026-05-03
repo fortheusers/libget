@@ -7,6 +7,7 @@
 #endif
 
 #include <algorithm>
+#include <cstdint>
 #include <stdio.h>
 #include <string>
 
