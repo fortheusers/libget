@@ -26,8 +26,6 @@
 #include <sys/types.h>
 #endif
 
-#include <algorithm>
-#include <cstdint>
 #include <ctime>
 #include <dirent.h>
 #include <errno.h>
@@ -36,10 +34,8 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iomanip>
