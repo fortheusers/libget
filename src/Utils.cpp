@@ -149,14 +149,17 @@ char* my_strptime(const char* s,
 	const char* f,
 	struct tm* tm)
 {
-	std::istringstream input(s);
-	input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
-	input >> std::get_time(tm, f);
-	if (input.fail())
-	{
-		return nullptr;
-	}
-	return (char*)(s + input.tellg());
+	// just use normal strptime, the DIY implementation was being Weird
+	return strptime(s, f, tm);
+
+	// std::istringstream input(s);
+	// input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+	// input >> std::get_time(tm, f);
+	// if (input.fail())
+	// {
+	// 	return nullptr;
+	// }
+	// return (char*)(s + input.tellg());
 }
 
 // http://stackoverflow.com/a/11366985
