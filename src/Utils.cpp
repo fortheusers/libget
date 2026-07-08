@@ -148,15 +148,17 @@ int my_mkdir(const std::string& path, int perms)
 char* my_strptime(const char* s,
 	const char* f,
 	struct tm* tm)
-{
+try {
 	std::istringstream input(s);
-	input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+	input.imbue(std::locale::classic());
 	input >> std::get_time(tm, f);
 	if (input.fail())
 	{
 		return nullptr;
 	}
 	return (char*)(s + input.tellg());
+} catch (...) {
+	return nullptr;
 }
 
 // http://stackoverflow.com/a/11366985
