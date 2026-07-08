@@ -1,10 +1,20 @@
 #include <algorithm>
 #include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
+#include <errno.h>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unordered_set>
+
+#if !defined(WIN32) && !defined(_WIN32)
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
@@ -39,9 +49,12 @@ Get::Get(
 	//	  printf("--> Using \"./sdroot\" as local download root directory\n");
 	//	  my_mkdir("./sdroot");
 
-	my_mkdir(config_dir.data());
-	my_mkdir(mPkg_path.c_str());
-	my_mkdir(mTmp_path.c_str());
+	if (!mkpath(config_path))
+		printf("--> Could not create config dir %s\n", config_path.c_str());
+	if (!mkpath(mPkg_path))
+		printf("--> Could not create packages dir %s\n", mPkg_path.c_str());
+	if (!mkpath(mTmp_path))
+		printf("--> Could not create tmp dir %s\n", mTmp_path.c_str());
 
 	printf("--> Using \"%s\" as repo list\n", mRepos_path.c_str());
 
@@ -161,8 +174,11 @@ void Get::addAndRemoveReposByURL(
 	}
 }
 
-// Saves the repos from our current Get object to disk
+// Saves the repos from our current Get object to disk, via a tmp file and
+// atomic rename so a crash mid-write can't truncate repos.json.
 void Get::saveRepos() {
+	std::string tmpPath = mRepos_path + ".tmp";
+
 	Document d;
 	d.SetObject();
 	Document::AllocatorType& allocator = d.GetAllocator();
@@ -171,10 +187,6 @@ void Get::saveRepos() {
 
 	for (auto& repo : repos) {
 		Value repoObj(kObjectType);
-		printf("--> Saving repo %s\n", repo->getName().c_str());
-		printf("--> Saving repo %s\n", repo->getUrl().c_str());
-		printf("--> Saving repo %s\n", repo->getType().c_str());
-		
 		repoObj.AddMember("name", rapidjson::Value(repo->getName().c_str(), allocator), allocator);
 		repoObj.AddMember("url",  rapidjson::Value(repo->getUrl().c_str(), allocator), allocator);
 		repoObj.AddMember("type", rapidjson::Value(repo->getType().c_str(), allocator), allocator);
@@ -184,28 +196,70 @@ void Get::saveRepos() {
 
 	d.AddMember("repos", reposOut, allocator);
 
-	std::ofstream file(mRepos_path);
 	StringBuffer buffer;
 	Writer<StringBuffer> writer(buffer);
 	d.Accept(writer);
-	std::cout << buffer.GetString() << std::endl;
-	file << buffer.GetString();
-	file.close();
+
+	{
+		std::ofstream file(tmpPath);
+		if (!file.is_open()) {
+			printf("--> Could not open %s for writing\n", tmpPath.c_str());
+			return;
+		}
+		file << buffer.GetString();
+		file.flush();
+		if (file.fail()) {
+			printf("--> Write failed for %s\n", tmpPath.c_str());
+			file.close();
+			std::remove(tmpPath.c_str());
+			return;
+		}
+	}
+
+#if !defined(WIN32) && !defined(_WIN32)
+	// fsync so the new content reaches the SD card before the rename
+	int fd = open(tmpPath.c_str(), O_RDONLY);
+	if (fd >= 0) {
+		fsync(fd);
+		close(fd);
+	}
+#endif
+
+	// std::filesystem::rename atomically replaces an existing destination on
+	// both POSIX and Windows; plain std::rename does not on Windows.
+	std::error_code ec;
+	std::filesystem::rename(tmpPath, mRepos_path, ec);
+	if (ec) {
+		printf("--> Could not rename %s to %s: %s\n", tmpPath.c_str(), mRepos_path.c_str(), ec.message().c_str());
+		std::filesystem::remove(tmpPath, ec);
+		return;
+	}
+
+#if !defined(WIN32) && !defined(_WIN32)
+	// fsync the directory so the rename itself survives a power-off
+	std::string parentDir = dir_name(mRepos_path);
+	if (parentDir.empty()) parentDir = ".";
+	int dirFd = open(parentDir.c_str(), O_RDONLY);
+	if (dirFd >= 0) {
+		fsync(dirFd);
+		close(dirFd);
+	}
+#endif
 }
 
 /**
-Load any repos from a config file into the repos vector.
+Load any repos from a config file into the repos vector. Regenerates the
+default repo when the file is missing/empty/corrupted, or when it parses to
+a valid but empty repos array.
 **/
 void Get::loadRepos()
 {
 	repos.clear();
 
 	auto& config_path = mRepos_path;
-	std::ifstream ifs(config_path);
 
-	if (!ifs.good() || ifs.peek() == std::ifstream::traits_type::eof())
-	{
-		printf("--> Could not load repos from %s, generating default GET repos.json\n", config_path.c_str());
+	auto generateDefault = [&](const char* reason, bool writeToDisk = true) {
+		printf("--> Generating default repos.json (%s)\n", reason);
 
 #if defined(WII) || defined(_3DS) || defined(WII_MOCK)
 		auto defaultRepo = GetRepo::createRepo("Default Repo", this->mDefaultRepo, true, this->mDefaultRepoType, mPkg_path);
@@ -213,26 +267,37 @@ void Get::loadRepos()
 		auto defaultRepo = std::make_unique<GetRepo>("Default Repo", this->mDefaultRepo, true);
 #endif
 
-		Document d;
-		d.Parse(Repo::generateRepoJson(*defaultRepo).c_str());
-
-		std::ofstream file(config_path);
-		StringBuffer buffer;
-		Writer<StringBuffer> writer(buffer);
-		d.Accept(writer);
-		file << buffer.GetString();
-		file.close();
-
-		ifs = std::ifstream(config_path);
-
-		if (!ifs.good())
+		if (writeToDisk)
 		{
-			printf("--> Could not generate a new repos.json\n");
+			Document d;
+			d.Parse(Repo::generateRepoJson(*defaultRepo).c_str());
 
-			// manually create a repo, no file access (so we append now, since we won't be able to load later)
-			repos.push_back(std::move(defaultRepo));
-			return;
+			std::ofstream file(config_path);
+			if (file.is_open())
+			{
+				StringBuffer buffer;
+				Writer<StringBuffer> writer(buffer);
+				d.Accept(writer);
+				file << buffer.GetString();
+				file.close();
+			}
+			else
+			{
+				printf("--> Could not write default to %s, using in-memory only\n", config_path.c_str());
+			}
 		}
+
+		// keep an in-memory default even if the disk write failed or was skipped
+		repos.clear();
+		repos.push_back(std::move(defaultRepo));
+	};
+
+	std::ifstream ifs(config_path);
+
+	if (!ifs.good() || ifs.peek() == std::ifstream::traits_type::eof())
+	{
+		generateDefault("file missing or empty");
+		return;
 	}
 
 	IStreamWrapper isw(ifs);
@@ -242,7 +307,28 @@ void Get::loadRepos()
 
 	if (!ok || !doc.HasMember("repos"))
 	{
-		printf("--> Invalid format in %s", config_path.c_str());
+		printf("--> Invalid JSON in %s\n", config_path.c_str());
+		ifs.close();
+
+		// preserve the corrupted file so the user can recover from it manually;
+		// fall back to a timestamped name so a previous .bad isn't clobbered
+		std::string badPath = config_path + ".bad";
+		std::error_code ec;
+		if (std::filesystem::exists(badPath, ec))
+			badPath = config_path + ".bad." + std::to_string(time(nullptr));
+
+		std::filesystem::rename(config_path, badPath, ec);
+		if (ec)
+		{
+			// can't preserve safely; leave the bad file alone and only run an in-memory default
+			printf("--> Could not preserve corrupted file (%s); leaving %s untouched\n", ec.message().c_str(), config_path.c_str());
+			generateDefault("invalid JSON, no on-disk write", false);
+		}
+		else
+		{
+			printf("--> Moved corrupted file to %s\n", badPath.c_str());
+			generateDefault("invalid JSON");
+		}
 		return;
 	}
 
@@ -273,6 +359,12 @@ void Get::loadRepos()
 		{
 			repos.push_back(std::move(repo));
 		}
+	}
+
+	if (repos.empty())
+	{
+		ifs.close();
+		generateDefault("repos array was empty");
 	}
 }
 
